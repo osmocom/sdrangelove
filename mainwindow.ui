@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>553</width>
+    <height>286</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>SDRangelove</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="Scale" name="timeScale" native="true"/>
+    </item>
+    <item row="1" column="1">
+     <widget class="Scale" name="freqScale" native="true"/>
+    </item>
+    <item row="3" column="0" colspan="2">
+     <layout class="QGridLayout" name="gridLayout_2">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item row="3" column="0">
+       <widget class="QPushButton" name="freqSet">
+        <property name="text">
+         <string>Set...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QPushButton" name="freqUp2">
+        <property name="text">
+         <string>+500k</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" rowspan="2">
+       <widget class="QLabel" name="centerFreq">
+        <property name="font">
+         <font>
+          <family>Monospace</family>
+          <pointsize>6</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>0 Hz</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QPushButton" name="freqDown2">
+        <property name="text">
+         <string>-500k</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QPushButton" name="freqDown">
+        <property name="text">
+         <string>-100k</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QPushButton" name="freqDown3">
+        <property name="text">
+         <string>-1M</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QPushButton" name="freqUp">
+        <property name="text">
+         <string>+100k</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QPushButton" name="freqUp3">
+        <property name="text">
+         <string>+1M</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="2" column="1">
+     <widget class="SpectroHistogram" name="spectroHistogram" native="true"/>
+    </item>
+    <item row="0" column="1">
+     <widget class="Waterfall" name="waterfall" native="true"/>
+    </item>
+    <item row="2" column="0">
+     <widget class="Scale" name="powerScale" native="true"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>553</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_File">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="action_Exit"/>
+   </widget>
+   <widget class="QMenu" name="menu_Settings">
+    <property name="title">
+     <string>&amp;Settings</string>
+    </property>
+    <addaction name="actionE4000_Stages"/>
+    <addaction name="separator"/>
+    <addaction name="action_Hardware"/>
+   </widget>
+   <widget class="QMenu" name="menu_Aquisition">
+    <property name="title">
+     <string>&amp;Aquisition</string>
+    </property>
+    <addaction name="action_Start"/>
+    <addaction name="action_Stop"/>
+   </widget>
+   <addaction name="menu_File"/>
+   <addaction name="menu_Aquisition"/>
+   <addaction name="menu_Settings"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="action_Exit">
+   <property name="text">
+    <string>E&amp;xit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="action_Hardware">
+   <property name="text">
+    <string>&amp;Hardware</string>
+   </property>
+  </action>
+  <action name="action_Start">
+   <property name="text">
+    <string>&amp;Start</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+  </action>
+  <action name="action_Stop">
+   <property name="text">
+    <string>&amp;Stop</string>
+   </property>
+   <property name="shortcut">
+    <string>F6</string>
+   </property>
+  </action>
+  <action name="actionE4000_Stages">
+   <property name="text">
+    <string>E4000 Stages</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>Waterfall</class>
+   <extends>QWidget</extends>
+   <header>gui/waterfall.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SpectroHistogram</class>
+   <extends>QWidget</extends>
+   <header>gui/spectrohistogram.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Scale</class>
+   <extends>QWidget</extends>
+   <header>gui/scale.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
