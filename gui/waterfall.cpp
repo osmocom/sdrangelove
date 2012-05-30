@@ -207,7 +207,11 @@ void Waterfall::resizeTexture()
 
 void Waterfall::refresh()
 {
-	if(m_fftSize != m_image->width())
-	   createImage();
+	QMutexLocker mutexLocker(&m_mutex);
+
+	if((m_image == NULL) || (m_fftSize != m_image->width())) {
+		createImage();
+		resizeGL(width(), height());
+	}
 	update();
 }
