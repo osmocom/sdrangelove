@@ -108,6 +108,10 @@ public:
 
 	void configure(int nfft, bool inverse, const traits_type & traits = traits_type())
 	{
+		_twiddles.clear();
+		_stageRadix.clear();
+		_stageRemainder.clear();
+
 		_nfft = nfft;
 		_inverse = inverse;
 		_traits = traits;
