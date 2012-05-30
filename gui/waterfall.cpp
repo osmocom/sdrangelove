@@ -15,156 +15,6 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#if 0
-
-#include <stdio.h>
-#include <QPainter>
-#include "waterfall.h"
-
-Waterfall::Waterfall(QWidget* parent) :
-	QWidget(parent),
-	m_fftSize(512),
-	m_image(NULL)
-{
-	// no background painting
-	setAutoFillBackground(false);
-	setAttribute(Qt::WA_OpaquePaintEvent, true);
-	setAttribute(Qt::WA_NoSystemBackground, true);
-	setMinimumHeight(128);
-/*
-	m_palette[0] = 0;
-	for(int i = 1; i < 240; i++) {
-		 QColor c;
-		 c.setHsv(239 - i, 255 - ((i < 200) ? 0 : (i - 200) * 3), 150 + ((i < 100) ? i : 100));
-		 m_palette[i] = c.rgb();
-	}
-*/
-	for(int i = 0; i <= 239; i++) {
-		 QColor c;
-		 c.setHsv(239 - i, 255, 15 + i);
-		 m_palette[i] = c.rgb();
-	 }
-
-	 createImage();
-
-	 connect(&m_timer, SIGNAL(timeout()), this, SLOT(refresh()));
-	 m_timer.start(50);
-}
-
-Waterfall::~Waterfall()
-{
-	QMutexLocker mutexLocker(&m_mutex);
-	if(m_image != NULL) {
-		delete m_image;
-		m_image = NULL;
-	}
-}
-
-void Waterfall::newSpectrum(const std::vector<Real>& spectrum)
-{
-	if(!m_mutex.tryLock())
-		return;
-
-	if(m_image == NULL) {
-		m_mutex.unlock();
-		return;
-	}
-	if(m_image->height() == 0) {
-		m_mutex.unlock();
-		return;
-	}
-
-	m_fftSize = spectrum.size();
-
-	int w = spectrum.size();
-	if(w > m_image->width())
-		w = m_image->width();
-
-	quint32* pix = (quint32*)m_image->scanLine(m_pos);
-
-	for(int i = 0; i < w; i++) {
-		Real vr = 2.4 * spectrum[i];
-		int v = (int)vr;
-
-		if(v > 239)
-			v = 239;
-		else if(v < 0)
-			v = 0;
-
-		*pix++ = m_palette[(int)v];
-	}
-
-	m_pos++;
-	if(m_pos >= m_image->height())
-		m_pos = 0;
-
-	m_mutex.unlock();
-}
-
-void Waterfall::createImage()
-{
-	if(m_image != NULL) {
-		if((m_image->width() == m_fftSize) && (m_image->height() == height()))
-			return;
-		delete m_image;
-		m_image = NULL;
-	}
-
-	m_image = new QImage(m_fftSize, height(), QImage::Format_RGB32);
-	if(m_image != NULL) {
-		m_image->fill(qRgb(0x00, 0x00, 0x00));
-/*
-		for(int i = 0; i < 240; i++)
-			m_image->setPixel(10 + i, 10, m_palette[i]);
-*/
-		m_pos = 0;
-	}
-}
-
-void Waterfall::paintEvent(QPaintEvent*)
-{
-	QMutexLocker mutexLocker(&m_mutex);
-	QPainter painter(this);
-
-	if(m_image == NULL) {
-		painter.setPen(Qt::NoPen);
-		painter.setBackground(palette().window());
-		painter.drawRect(rect());
-		return;
-	}
-
-	if(m_fftSize != m_image->width())
-	   createImage();
-
-	painter.drawImage(0, 0, *m_image, 0, m_pos, m_image->width(), m_image->height() - m_pos);
-	painter.drawImage(0, m_image->height() - m_pos, *m_image, 0, 0, m_image->width(), m_pos);
-
-	if(m_fftSize < width()) {
-		painter.setPen(Qt::NoPen);
-		painter.setBrush(palette().window());
-		painter.drawRect(QRect(QPoint(m_fftSize, 0), QPoint(width(), height())));
-	}
-/*
-	for(int i = 0; i < 240; i++) {
-		painter.setPen(m_palette[i]);
-		painter.drawPoint(10 + i, 10);
-	}
-*/
-}
-
-void Waterfall::resizeEvent(QResizeEvent*)
-{
-	QMutexLocker mutexLocker(&m_mutex);
-	createImage();
-}
-
-void Waterfall::refresh()
-{
-	update();
-}
-
-#endif
-
 #include <stdio.h>
 #include <QPainter>
 #include <GL/glu.h>
@@ -245,7 +95,7 @@ void Waterfall::newSpectrum(const std::vector<Real>& spectrum)
 	quint32* pix = (quint32*)m_image->scanLine(m_pos);
 
 	for(int i = 0; i < w; i++) {
-		Real vr = 2.4 * (spectrum[i] + 72.0);
+		Real vr = 2.4 * spectrum[i];
 		int v = (int)vr;
 
 		if(v > 239)
@@ -280,15 +130,12 @@ void Waterfall::createImage()
 
 void Waterfall::initializeGL()
 {
-	qDebug("initializeGL()");
 	glGenTextures(1, &m_texture);
 	m_textureAllocated = true;
 }
 
 void Waterfall::resizeGL(int width, int height)
 {
-	qDebug("resizeGL()");
-
 	glViewport(0, 0, width, height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -343,6 +190,11 @@ void Waterfall::resizeTexture()
 	if(!m_resizeTexture)
 		return;
 	m_resizeTexture = false;
+
+	if(!m_textureAllocated) {
+		glGenTextures(1, &m_texture);
+		m_textureAllocated = true;
+	}
 
 	m_textureHeight = height();
 	quint8* data = new quint8[m_fftSize * m_textureHeight * 4];
