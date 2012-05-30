@@ -257,8 +257,12 @@ void SpectroHistogram::resizeTexture()
 
 void SpectroHistogram::refresh()
 {
-	if(m_fftSize != m_image->width())
+	QMutexLocker mutexLocker(&m_mutex);
+
+	if((m_image == NULL) || (m_fftSize != m_image->width())) {
 	   createImage();
+	   resizeGL(width(), height());
+	}
 
 	update();
 }
