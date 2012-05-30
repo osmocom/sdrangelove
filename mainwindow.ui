@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>553</width>
-    <height>286</height>
+    <width>551</width>
+    <height>284</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,10 +18,28 @@
     <item row="0" column="0">
      <widget class="Scale" name="timeScale" native="true"/>
     </item>
-    <item row="1" column="1">
-     <widget class="Scale" name="freqScale" native="true"/>
+    <item row="0" column="1" rowspan="2">
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <widget class="QWidget" name="">
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="Waterfall" name="waterfall" native="true"/>
+        </item>
+        <item>
+         <widget class="Scale" name="freqScale" native="true"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="SpectroHistogram" name="spectroHistogram" native="true"/>
+     </widget>
     </item>
-    <item row="3" column="0" colspan="2">
+    <item row="1" column="0">
+     <widget class="Scale" name="powerScale" native="true"/>
+    </item>
+    <item row="2" column="0" colspan="2">
      <layout class="QGridLayout" name="gridLayout_2">
       <property name="spacing">
        <number>0</number>
@@ -93,15 +111,6 @@
       </item>
      </layout>
     </item>
-    <item row="2" column="1">
-     <widget class="SpectroHistogram" name="spectroHistogram" native="true"/>
-    </item>
-    <item row="0" column="1">
-     <widget class="Waterfall" name="waterfall" native="true"/>
-    </item>
-    <item row="2" column="0">
-     <widget class="Scale" name="powerScale" native="true"/>
-    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -109,7 +118,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>553</width>
+     <width>551</width>
      <height>21</height>
     </rect>
    </property>
