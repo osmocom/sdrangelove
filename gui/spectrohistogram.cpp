@@ -45,7 +45,7 @@ SpectroHistogram::SpectroHistogram(QWidget* parent) :
 	}
 
 	connect(&m_timer, SIGNAL(timeout()), this, SLOT(refresh()));
-	m_timer.start(100);
+	m_timer.start(50);
 
 	createImage();
 	m_holdOff = 4;
