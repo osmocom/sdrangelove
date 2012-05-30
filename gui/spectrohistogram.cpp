@@ -16,32 +16,39 @@
 ///////////////////////////////////////////////////////////////////////////////////
 
 #include <QPainter>
+#include <GL/glu.h>
 #include "spectrohistogram.h"
 
 SpectroHistogram::SpectroHistogram(QWidget* parent) :
-	QWidget(parent),
+	QGLWidget(parent),
 	m_fftSize(512),
 	m_image(NULL),
 	m_histo(NULL),
-	m_histoHoldoff(NULL)
+	m_histoHoldoff(NULL),
+	m_textureAllocated(false)
 {
 	// no background painting
 	setAutoFillBackground(false);
 	setAttribute(Qt::WA_OpaquePaintEvent, true);
 	setAttribute(Qt::WA_NoSystemBackground, true);
 	setMinimumHeight(100);
-	setMaximumHeight(100);
 
 	m_palette[0] = 0;
 	for(int i = 1; i < 240; i++) {
 		 QColor c;
 		 c.setHsv(239 - i, 255 - ((i < 200) ? 0 : (i - 200) * 3), 150 + ((i < 100) ? i : 100));
-		 m_palette[i] = c.rgb();
+		 ((quint8*)&m_palette[i])[0] = c.red();
+		 ((quint8*)&m_palette[i])[1] = c.green();
+		 ((quint8*)&m_palette[i])[2] = c.blue();
+		 ((quint8*)&m_palette[i])[3] = c.alpha();
 	}
 	for(int i = 1; i < 16; i++) {
 		QColor c;
-		c.setHsv(180, 64, 48 + i * 4);
-		m_palette[i] = c.rgb();
+		c.setHsv(270, 128, 48 + i * 4);
+		((quint8*)&m_palette[i])[0] = c.red();
+		((quint8*)&m_palette[i])[1] = c.green();
+		((quint8*)&m_palette[i])[2] = c.blue();
+		((quint8*)&m_palette[i])[3] = c.alpha();
 	}
 
 	connect(&m_timer, SIGNAL(timeout()), this, SLOT(refresh()));
@@ -51,6 +58,7 @@ SpectroHistogram::SpectroHistogram(QWidget* parent) :
 	m_holdOff = 4;
 	m_holdOffCount = m_holdOff;
 	m_lateHoldOff = 20;
+	m_resizeTexture = true;
 }
 
 SpectroHistogram::~SpectroHistogram()
@@ -68,6 +76,10 @@ SpectroHistogram::~SpectroHistogram()
 	if(m_histoHoldoff != NULL) {
 		delete[] m_histoHoldoff;
 		m_histoHoldoff = NULL;
+	}
+	if(m_textureAllocated) {
+		glDeleteTextures(1, &m_texture);
+		m_textureAllocated = false;
 	}
 }
 
@@ -119,7 +131,7 @@ void SpectroHistogram::newSpectrum(const std::vector<Real>& spectrum)
 				(*(b + v)) += 4;
 			else if(*(b + v) < 239)
 				(*(b + v)) += 1;
-			*h = m_lateHoldOff;
+			//*h = m_lateHoldOff;
 		}
 
 		b += 100;
@@ -135,40 +147,54 @@ void SpectroHistogram::createImage()
 		delete m_image;
 		m_image = NULL;
 	}
+	if(m_histo != NULL) {
+		delete[] m_histo;
+		m_histo = NULL;
+	}
+	if(m_histoHoldoff != NULL) {
+		delete[] m_histoHoldoff;
+		m_histoHoldoff = NULL;
+	}
 
 	m_image = new QImage(m_fftSize, 100, QImage::Format_RGB32);
-	if(m_image != NULL) {
+	if(m_image != NULL)
 		m_image->fill(qRgb(0x00, 0x00, 0x00));
-/*
-		for(int i = 0; i < 240; i++) {
-			m_image->setPixel(10 + i, 10, m_palette[i]);
-			m_image->setPixel(10 + i, 11, m_palette[i]);
-			m_image->setPixel(10 + i, 12, m_palette[i]);
-		}
-*/
-	}
+
 	m_histo = new quint8[100 * m_fftSize];
 	memset(m_histo, 0x00, 100 * m_fftSize);
 	m_histoHoldoff = new quint8[100 * m_fftSize];
 	memset(m_histoHoldoff, 0x07, 100 * m_fftSize);
+
+	m_resizeTexture = true;
 }
 
-void SpectroHistogram::paintEvent(QPaintEvent*)
+void SpectroHistogram::initializeGL()
 {
-	QMutexLocker mutexLocker(&m_mutex);
-	QPainter painter(this);
+	glGenTextures(1, &m_texture);
+	m_textureAllocated = true;
+}
+
+void SpectroHistogram::resizeGL(int width, int height)
+{
+	glViewport(0, 0, width, height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0, width, height, 0);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	m_resizeTexture = true;
+}
+
+void SpectroHistogram::paintGL()
+{
+	if(!m_mutex.tryLock())
+		return;
 
 	if(m_image == NULL) {
-		painter.setPen(Qt::NoPen);
-		painter.setBackground(palette().window());
-		painter.drawRect(rect());
+		m_mutex.unlock();
 		return;
 	}
 
-	if(m_image->width() != m_fftSize)
-		createImage();
-
-#if 1
 	quint32* pix;
 	quint8* bs = m_histo;
 	for(int y = 0; y < 100; y++) {
@@ -181,17 +207,58 @@ void SpectroHistogram::paintEvent(QPaintEvent*)
 		}
 		bs++;
 	}
-#endif
-	painter.drawImage(0, 0, *m_image);
 
-	if(m_fftSize < width()) {
-		painter.setPen(Qt::NoPen);
-		painter.setBrush(palette().window());
-		painter.drawRect(QRect(QPoint(m_fftSize, 0), QPoint(width(), height())));
+	resizeTexture();
+	glBindTexture(GL_TEXTURE_2D, m_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_fftSize, 100, GL_RGBA, GL_UNSIGNED_BYTE, m_image->scanLine(0));
+	m_mutex.unlock();
+	glEnable(GL_TEXTURE_2D);
+	glPushMatrix();
+	glTranslatef(0, 0, 0);
+	glScalef(width(), height(), 1.0);
+	glBegin(GL_QUADS);
+	float prop_y = 0.0;
+	float prop_x = 1.0;
+	float off = 1.0 / (100 - 1);
+	glTexCoord2f(0, prop_y + 1 - off);
+	glVertex2f(0, 1);
+	glTexCoord2f(prop_x, prop_y + 1 - off);
+	glVertex2f(1, 1);
+	glTexCoord2f(prop_x, prop_y);
+	glVertex2f(1, 0);
+	glTexCoord2f(0, prop_y);
+	glVertex2f(0, 0);
+	glEnd();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+}
+
+void SpectroHistogram::resizeTexture()
+{
+	if(!m_resizeTexture)
+		return;
+	m_resizeTexture = false;
+
+	if(!m_textureAllocated) {
+		glGenTextures(1, &m_texture);
+		m_textureAllocated = true;
 	}
+
+	quint8* data = new quint8[m_fftSize * 100 * 4];
+	memset(data, 0x00, m_fftSize * 100 * 4);
+	glBindTexture(GL_TEXTURE_2D, m_texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_fftSize, 100, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	delete[] data;
 }
 
 void SpectroHistogram::refresh()
 {
+	if(m_fftSize != m_image->width())
+	   createImage();
+
 	update();
 }

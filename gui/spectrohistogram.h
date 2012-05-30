@@ -18,12 +18,12 @@
 #ifndef INCLUDE_SPECTROHISTOGRAM_H
 #define INCLUDE_SPECTROHISTOGRAM_H
 
-#include <QWidget>
+#include <QGLWidget>
 #include <QMutex>
 #include <QTimer>
 #include "dsp/dsptypes.h"
 
-class SpectroHistogram : public QWidget {
+class SpectroHistogram : public QGLWidget {
 	Q_OBJECT
 
 public:
@@ -43,10 +43,16 @@ private:
 	int m_holdOff;
 	int m_lateHoldOff;
 	int m_holdOffCount;
+	bool m_textureAllocated;
+	GLuint m_texture;
+	bool m_resizeTexture;
 
 	void createImage();
 
-	void paintEvent(QPaintEvent*);
+	void initializeGL();
+	void resizeGL(int width, int height);
+	void paintGL();
+	void resizeTexture();
 
 private slots:
 	void refresh();
