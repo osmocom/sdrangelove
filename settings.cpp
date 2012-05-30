@@ -20,16 +20,24 @@
 
 Settings::Settings() :
 	m_changed(false),
-	m_fftSize(512),
-	m_fftOverlap(30),
-	m_centerFreq(144500000)
+	m_reference(NULL)
 {
+	defaults();
 }
 
-Settings::~Settings()
+Settings::Settings(Settings* reference) :
+	m_changed(false),
+	m_reference(reference)
 {
-	if(m_changed)
-		save();
+	defaults();
+}
+
+void Settings::defaults()
+{
+	m_fftSize = 1024;
+	m_fftOverlap = 30;
+	m_fftWindow = 3;
+	m_centerFreq = 144500000;
 }
 
 void Settings::load()
@@ -42,6 +50,7 @@ void Settings::load()
 
 	m_fftSize = s.value("fftsize", 512).toInt();
 	m_fftOverlap = s.value("fftoverlap", 30).toInt();
+	m_fftWindow = s.value("fftwindow", 3).toInt();
 	m_centerFreq = s.value("centerfreq", 144500000).toLongLong();;
 }
 
@@ -53,11 +62,11 @@ void Settings::save()
 	s.setValue("version", 1);
 	s.setValue("fftsize", m_fftSize);
 	s.setValue("fftoverlap", m_fftOverlap);
+	s.setValue("fftwindow", m_fftWindow);
 	s.setValue("centerfreq", m_centerFreq);
 }
 
-
-int Settings::getFFTSize() const
+int Settings::fftSize() const
 {
 	return m_fftSize;
 }
@@ -68,7 +77,17 @@ void Settings::setFFTSize(int v)
 	m_changed = true;
 }
 
-int Settings::getFFTOverlap() const
+bool Settings::isModifiedFFTSize()
+{
+	if(m_reference->m_fftSize != m_fftSize) {
+		m_fftSize = m_reference->m_fftSize;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+int Settings::fftOverlap() const
 {
 	return m_fftOverlap;
 }
@@ -79,7 +98,38 @@ void Settings::setFFTOverlap(int v)
 	m_changed = true;
 }
 
-qint64 Settings::getCenterFreq() const
+bool Settings::isModifiedFFTOverlap()
+{
+	if(m_reference->m_fftOverlap != m_fftOverlap) {
+		m_fftOverlap = m_reference->m_fftOverlap;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+int Settings::fftWindow() const
+{
+	return m_fftWindow;
+}
+
+void Settings::setFFTWindow(int v)
+{
+	m_fftWindow = v;
+	m_changed = true;
+}
+
+bool Settings::isModifiedFFTWindow()
+{
+	if(m_reference->m_fftWindow != m_fftWindow) {
+		m_fftWindow = m_reference->m_fftWindow;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+qint64 Settings::centerFreq() const
 {
 	return m_centerFreq;
 }
@@ -88,4 +138,14 @@ void Settings::setCenterFreq(qint64 v)
 {
 	m_centerFreq = v;
 	m_changed = true;
+}
+
+bool Settings::isModifiedCenterFreq()
+{
+	if(m_reference->m_centerFreq != m_centerFreq) {
+		m_centerFreq = m_reference->m_centerFreq;
+		return true;
+	} else {
+		return false;
+	}
 }

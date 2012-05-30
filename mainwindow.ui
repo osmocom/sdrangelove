@@ -6,44 +6,75 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>551</width>
-    <height>284</height>
+    <width>547</width>
+    <height>280</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>SDRangelove</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="Scale" name="timeScale" native="true"/>
-    </item>
-    <item row="0" column="1" rowspan="2">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
-      <widget class="QWidget" name="">
-       <layout class="QVBoxLayout" name="verticalLayout">
+      <widget class="QWidget" name="layoutWidget">
+       <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="Waterfall" name="waterfall" native="true"/>
+         <widget class="Scale" name="timeScale" native="true"/>
         </item>
         <item>
-         <widget class="Scale" name="freqScale" native="true"/>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="Waterfall" name="waterfall" native="true"/>
+          </item>
+          <item>
+           <widget class="Scale" name="freqScale" native="true"/>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
-      <widget class="SpectroHistogram" name="spectroHistogram" native="true"/>
+      <widget class="QWidget" name="layoutWidget">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="Scale" name="powerScale" native="true"/>
+        </item>
+        <item>
+         <widget class="SpectroHistogram" name="spectroHistogram" native="true"/>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
-    <item row="1" column="0">
-     <widget class="Scale" name="powerScale" native="true"/>
-    </item>
-    <item row="2" column="0" colspan="2">
+    <item>
      <layout class="QGridLayout" name="gridLayout_2">
       <property name="spacing">
        <number>0</number>
       </property>
+      <item row="2" column="2">
+       <widget class="QPushButton" name="freqUp2">
+        <property name="text">
+         <string>+500k</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QPushButton" name="freqDown">
+        <property name="text">
+         <string>-100k</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QPushButton" name="freqDown3">
+        <property name="text">
+         <string>-1M</string>
+        </property>
+       </widget>
+      </item>
       <item row="3" column="0">
        <widget class="QPushButton" name="freqSet">
         <property name="text">
@@ -51,10 +82,17 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="2">
-       <widget class="QPushButton" name="freqUp2">
+      <item row="1" column="2">
+       <widget class="QPushButton" name="freqUp">
         <property name="text">
-         <string>+500k</string>
+         <string>+100k</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QPushButton" name="freqDown2">
+        <property name="text">
+         <string>-500k</string>
         </property>
        </widget>
       </item>
@@ -74,39 +112,79 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QPushButton" name="freqDown2">
-        <property name="text">
-         <string>-500k</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QPushButton" name="freqDown">
-        <property name="text">
-         <string>-100k</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QPushButton" name="freqDown3">
-        <property name="text">
-         <string>-1M</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QPushButton" name="freqUp">
-        <property name="text">
-         <string>+100k</string>
-        </property>
-       </widget>
-      </item>
       <item row="3" column="2">
        <widget class="QPushButton" name="freqUp3">
         <property name="text">
          <string>+1M</string>
         </property>
+       </widget>
+      </item>
+      <item row="1" column="3">
+       <widget class="QComboBox" name="fftSize">
+        <item>
+         <property name="text">
+          <string>128</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>256</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>512</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>1024</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>2048</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>4096</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="2" column="3">
+       <widget class="QComboBox" name="fftWindow">
+        <item>
+         <property name="text">
+          <string>Bartlett</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Blackman-Harris</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Flat Top</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Hamming</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Hanning</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Rectangle</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>
@@ -118,7 +196,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>551</width>
+     <width>547</width>
      <height>21</height>
     </rect>
    </property>

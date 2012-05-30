@@ -25,12 +25,12 @@
 class FFTWindow {
 public:
 	enum Function {
-		Rectangle,
-		Flattop,
 		Bartlett,
 		BlackmanHarris,
+		Flattop,
 		Hamming,
-		Hanning
+		Hanning,
+		Rectangle
 	};
 
 	void create(Function function, int n);

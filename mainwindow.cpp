@@ -31,7 +31,7 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->setupUi(this);
 	createStatusBar();
 	ui->freqScale->setOrientation(Qt::Horizontal);
-	ui->freqScale->setRange(Unit::Frequency, m_settings.getCenterFreq() - 250000.0, m_settings.getCenterFreq() + 250000.0);
+	ui->freqScale->setRange(Unit::Frequency, m_settings.centerFreq() - 250000.0, m_settings.centerFreq() + 250000.0);
 	ui->timeScale->setOrientation(Qt::Vertical);
 	ui->timeScale->setRange(Unit::Time, -1.0, 0.0);
 	ui->powerScale->setOrientation(Qt::Vertical);
@@ -47,10 +47,19 @@ MainWindow::MainWindow(QWidget* parent) :
 	m_statusTimer.start(500);
 
 	statusBar()->showMessage("Welcome to SDRangelove", 3000);
+
+	for(int i = 0; i < ui->fftSize->count(); i++) {
+		if(ui->fftSize->itemText(i).toInt() == m_settings.fftSize()) {
+			ui->fftSize->setCurrentIndex(i);
+			break;
+		}
+	}
+	ui->fftWindow->setCurrentIndex(m_settings.fftWindow());
 }
 
 MainWindow::~MainWindow()
 {
+	m_settings.save();
 	delete ui;
 }
 
@@ -71,7 +80,7 @@ void MainWindow::createStatusBar()
 
 void MainWindow::updateCenterFreqDisplay()
 {
-	qint64 freq = m_settings.getCenterFreq();
+	qint64 freq = m_settings.centerFreq();
 	ui->centerFreq->setText(QString("%1 kHz").arg(freq / 1000));
 	ui->freqScale->setRange(Unit::Frequency, freq - 250000.0, freq + 250000.0);
 }
@@ -124,45 +133,55 @@ void MainWindow::on_action_Stop_triggered()
 
 void MainWindow::on_freqDown_clicked()
 {
-	m_settings.setCenterFreq(m_settings.getCenterFreq() - 100000);
+	m_settings.setCenterFreq(m_settings.centerFreq() - 100000);
 	updateCenterFreqDisplay();
 }
 
 void MainWindow::on_freqDown2_clicked()
 {
-	m_settings.setCenterFreq(m_settings.getCenterFreq() - 500000);
+	m_settings.setCenterFreq(m_settings.centerFreq() - 500000);
 	updateCenterFreqDisplay();
 }
 
 void MainWindow::on_freqDown3_clicked()
 {
-	m_settings.setCenterFreq(m_settings.getCenterFreq() - 1000000);
+	m_settings.setCenterFreq(m_settings.centerFreq() - 1000000);
 	updateCenterFreqDisplay();
 }
 
 void MainWindow::on_freqUp_clicked()
 {
-	m_settings.setCenterFreq(m_settings.getCenterFreq() + 100000);
+	m_settings.setCenterFreq(m_settings.centerFreq() + 100000);
 	updateCenterFreqDisplay();
 }
 
 void MainWindow::on_freqUp2_clicked()
 {
-	m_settings.setCenterFreq(m_settings.getCenterFreq() + 500000);
+	m_settings.setCenterFreq(m_settings.centerFreq() + 500000);
 	updateCenterFreqDisplay();
 }
 
 void MainWindow::on_freqUp3_clicked()
 {
-	m_settings.setCenterFreq(m_settings.getCenterFreq() + 1000000);
+	m_settings.setCenterFreq(m_settings.centerFreq() + 1000000);
 	updateCenterFreqDisplay();
 }
 
 void MainWindow::on_freqSet_clicked()
 {
 	bool ok;
-	int freq = QInputDialog::getInt(this, tr("Frequency in kHz"), tr("kHz"), m_settings.getCenterFreq() / 1000, 0, INT_MAX, 250, &ok);
+	int freq = QInputDialog::getInt(this, tr("Frequency in kHz"), tr("kHz"), m_settings.centerFreq() / 1000, 0, INT_MAX, 250, &ok);
 	if(ok)
 		m_settings.setCenterFreq(freq * 1000);
 	updateCenterFreqDisplay();
+}
+
+void MainWindow::on_fftSize_currentIndexChanged(const QString& str)
+{
+	m_settings.setFFTSize(str.toInt());
+}
+
+void MainWindow::on_fftWindow_currentIndexChanged(int index)
+{
+	m_settings.setFFTWindow(index);
 }

@@ -65,6 +65,8 @@ private slots:
 	void on_freqUp2_clicked();
 	void on_freqUp3_clicked();
 	void on_freqSet_clicked();
+	void on_fftSize_currentIndexChanged(const QString& str);
+	void on_fftWindow_currentIndexChanged(int index);
 };
 
 #endif // INCLUDE_MAINWINDOW_H

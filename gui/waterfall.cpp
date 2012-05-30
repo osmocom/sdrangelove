@@ -95,7 +95,7 @@ void Waterfall::newSpectrum(const std::vector<Real>& spectrum)
 	quint32* pix = (quint32*)m_image->scanLine(m_pos);
 
 	for(int i = 0; i < w; i++) {
-		Real vr = 2.4 * spectrum[i];
+		Real vr = 2.4 * (spectrum[i] + 96.0);
 		int v = (int)vr;
 
 		if(v > 239)

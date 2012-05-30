@@ -23,25 +23,35 @@
 class Settings {
 public:
 	Settings();
-	~Settings();
+	Settings(Settings* reference);
 
+	void defaults();
 	void load();
 	void save();
 
-	int getFFTSize() const;
+	int fftSize() const;
 	void setFFTSize(int v);
+	bool isModifiedFFTSize();
 
-	int getFFTOverlap() const;
+	int fftOverlap() const;
 	void setFFTOverlap(int v);
+	bool isModifiedFFTOverlap();
 
-	qint64 getCenterFreq() const;
+	int fftWindow() const;
+	void setFFTWindow(int v);
+	bool isModifiedFFTWindow();
+
+	qint64 centerFreq() const;
 	void setCenterFreq(qint64 v);
+	bool isModifiedCenterFreq();
 
 private:
 	bool m_changed;
+	const Settings* m_reference;
 
 	int m_fftSize;
 	int m_fftOverlap;
+	int m_fftWindow;
 	qint64 m_centerFreq;
 };
 

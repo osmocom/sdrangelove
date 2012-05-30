@@ -123,7 +123,7 @@ void SpectroHistogram::newSpectrum(const std::vector<Real>& spectrum)
 	b = m_histo;
 	h = m_histoHoldoff;
 	for(size_t i = 0; i < spectrum.size(); i++) {
-		Real vr = spectrum[i];
+		Real vr = spectrum[i] + 96.0;
 		int v = (int)vr;
 
 		if((v >= 0) && (v <= 99)) {

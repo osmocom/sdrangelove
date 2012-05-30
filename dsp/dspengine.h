@@ -24,8 +24,8 @@
 #include "dsptypes.h"
 #include "kissfft.h"
 #include "fftwindow.h"
+#include "settings.h"
 
-class Settings;
 class SampleSource;
 class SampleFifo;
 class Waterfall;
@@ -60,7 +60,7 @@ public:
 private:
 	typedef kissfft<Real, Complex> KissFFT;
 
-	Settings* m_settings;
+	Settings m_settings;
 
 	State m_state;
 	State m_nextState;
@@ -90,8 +90,6 @@ private:
 	std::vector<Complex> m_fftOut;
 	std::vector<Real> m_logPowerSpectrum;
 	FFTWindow m_fftWindow;
-
-	qint64 m_curCenterFreq;
 
 	void run();
 

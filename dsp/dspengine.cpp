@@ -29,11 +29,10 @@ DSPEngine::DSPEngine(Settings* settings, QObject* parent) :
 	m_nextState(StIdle),
 	m_sampleFifo(NULL),
 	m_sampleSource(NULL),
-	m_fftSize(512),
+	m_fftSize(-1),
 	m_fftOverlap(30),
 	m_waterfall(NULL),
-	m_spectroHistogram(NULL),
-	m_curCenterFreq(-1)
+	m_spectroHistogram(NULL)
 {
 	moveToThread(this);
 }
@@ -78,9 +77,6 @@ bool DSPEngine::startAcquisition()
 		return false;
 
 	m_stateWaitMutex.lock();
-
-	m_fftSize = m_settings->getFFTSize();
-	m_fftOverlap = m_settings->getFFTOverlap();
 
 	m_nextState = StRunning;
 	while((m_state != StRunning) && (m_state != StError))
@@ -169,7 +165,8 @@ void DSPEngine::work()
 		// extract power spectrum and reorder buckets
 		for(int i = 0; i < m_fftSize; i++) {
 			Complex c = m_fftOut[((i + m_fftOut.size() / 2) % m_fftOut.size())];
-			Real v = sqrt((c.real() * c.real() + c.imag() * c.imag())) * ((Real)m_fftSize);
+			c /= (Real)m_fftSize;
+			Real v = sqrt(c.real() * c.real() + c.imag() * c.imag());
 			v = 20.0 * log10(v);
 			m_logPowerSpectrum[i] = v;
 		}
@@ -181,9 +178,26 @@ void DSPEngine::work()
 			m_spectroHistogram->newSpectrum(m_logPowerSpectrum);
 	}
 
-	if(m_settings->getCenterFreq() != m_curCenterFreq) {
-		m_curCenterFreq = m_settings->getCenterFreq();
-		m_sampleSource->setCenterFrequency(m_curCenterFreq);
+	if(m_settings.isModifiedCenterFreq())
+		m_sampleSource->setCenterFrequency(m_settings.centerFreq());
+
+	if(m_settings.isModifiedFFTSize() || m_settings.isModifiedFFTOverlap() || m_settings.isModifiedFFTWindow()) {
+		m_fftSize = m_settings.fftSize();
+		m_fftOverlap = m_settings.fftOverlap();
+		try {
+			m_fft.configure(m_fftSize, false);
+			m_fftSamples.resize(2 * m_fftSize);
+			m_fftPreWindow.resize(m_fftSize);
+			m_fftIn.resize(m_fftSize);
+			m_fftOut.resize(m_fftSize);
+			m_logPowerSpectrum.resize(m_fftSize);
+			m_fftWindow.create((FFTWindow::Function)m_settings.fftWindow(), m_fftSize);
+		} catch(...) {
+			m_nextState = gotoError("out of memory error");
+		}
+		qDebug("%d", m_fftOut.size());
+		m_fftOverlapSize = (m_fftSize * m_fftOverlap) / 100;
+		m_fftRefillSize = m_fftSize - m_fftOverlapSize;
 	}
 }
 
@@ -251,6 +265,13 @@ DSPEngine::State DSPEngine::gotoRunning()
 	if(!m_ready)
 		return gotoError("DSP engine is not ready");
 
+	m_settings.isModifiedFFTSize();
+	m_settings.isModifiedFFTOverlap();
+	m_settings.isModifiedFFTWindow();
+	m_settings.isModifiedCenterFreq();
+
+	m_fftSize = m_settings.fftSize();
+	m_fftOverlap = m_settings.fftOverlap();
 	try {
 		m_fft.configure(m_fftSize, false);
 		m_fftSamples.resize(2 * m_fftSize);
@@ -258,6 +279,7 @@ DSPEngine::State DSPEngine::gotoRunning()
 		m_fftIn.resize(m_fftSize);
 		m_fftOut.resize(m_fftSize);
 		m_logPowerSpectrum.resize(m_fftSize);
+		m_fftWindow.create((FFTWindow::Function)m_settings.fftWindow(), m_fftSize);
 	} catch(...) {
 		return gotoError("out of memory error");
 	}
@@ -266,12 +288,11 @@ DSPEngine::State DSPEngine::gotoRunning()
 
 	if(!m_sampleFifo->setSize(2 * 250 * 500000 / 1000))
 	   return gotoError("could not allocate SampleFifo");
-	m_fftWindow.create(FFTWindow::Hamming, m_fftSize);
-
-	m_curCenterFreq = -1;
 
 	if(!m_sampleSource->startInput(0, 500000))
 		return gotoError("could not start OsmoSDR");
+
+	m_sampleSource->setCenterFrequency(m_settings.centerFreq());
 
 	return StRunning;
 }
