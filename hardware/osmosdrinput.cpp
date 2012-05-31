@@ -60,6 +60,10 @@ bool OsmoSDRInput::startInput(int device, int rate)
 		qCritical("error setting sample rate");
 		goto failed;
 	}
+	if((res = osmosdr_set_tuner_gain_mode(m_dev, 1)) < 0) {
+		qCritical("error setting tuner gain mode");
+		goto failed;
+	}
 
 	if((res = osmosdr_reset_buffer(m_dev)) < 0) {
 		qCritical("could not reset USB EP buffers: %s", strerror(errno));
@@ -99,4 +103,46 @@ bool OsmoSDRInput::setCenterFrequency(qint64 freq)
 	if(m_dev == NULL)
 		return false;
 	return osmosdr_set_center_freq(m_dev, freq) != 0;
+}
+
+bool OsmoSDRInput::setIQSwap(bool sw)
+{
+	if(m_dev == NULL)
+		return false;
+	return osmosdr_set_fpga_iq_swap(m_dev, sw ? 1 : 0);
+}
+
+bool OsmoSDRInput::setDecimation(int dec)
+{
+	if(m_dev == NULL)
+		return false;
+	return osmosdr_set_fpga_decimation(m_dev, dec);
+}
+
+bool OsmoSDRInput::setE4000LNAGain(int gain)
+{
+	if(m_dev == NULL)
+		return false;
+	return osmosdr_set_tuner_lna_gain(m_dev, gain);
+}
+
+bool OsmoSDRInput::setE4000MixerGain(int gain)
+{
+	if(m_dev == NULL)
+		return false;
+	return osmosdr_set_tuner_mixer_gain(m_dev, gain);
+}
+
+bool OsmoSDRInput::setE4000MixerEnh(int gain)
+{
+	if(m_dev == NULL)
+		return false;
+	return osmosdr_set_tuner_mixer_enh(m_dev, gain);
+}
+
+bool OsmoSDRInput::setE4000ifStageGain(int stage, int gain)
+{
+	if(m_dev == NULL)
+		return false;
+	return osmosdr_set_tuner_if_gain(m_dev, stage, gain);
 }

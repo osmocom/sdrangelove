@@ -45,6 +45,50 @@ public:
 	void setCenterFreq(qint64 v);
 	bool isModifiedCenterFreq();
 
+	bool iqSwap() const;
+	void setIQSwap(bool v);
+	bool isModifiedIQSwap();
+
+	int decimation() const;
+	void setDecimation(int v);
+	bool isModifiedDecimation();
+
+	int e4000LNAGain() const;
+	void setE4000LNAGain(int v);
+	bool isModifiedE4000LNAGain();
+
+	int e4000MixerGain() const;
+	void setE4000MixerGain(int v);
+	bool isModifiedE4000MixerGain();
+
+	int e4000MixerEnh() const;
+	void setE4000MixerEnh(int v);
+	bool isModifiedE4000MixerEnh();
+
+	int e4000if1() const;
+	void setE4000if1(int v);
+	bool isModifiedE4000if1();
+
+	int e4000if2() const;
+	void setE4000if2(int v);
+	bool isModifiedE4000if2();
+
+	int e4000if3() const;
+	void setE4000if3(int v);
+	bool isModifiedE4000if3();
+
+	int e4000if4() const;
+	void setE4000if4(int v);
+	bool isModifiedE4000if4();
+
+	int e4000if5() const;
+	void setE4000if5(int v);
+	bool isModifiedE4000if5();
+
+	int e4000if6() const;
+	void setE4000if6(int v);
+	bool isModifiedE4000if6();
+
 private:
 	bool m_changed;
 	const Settings* m_reference;
@@ -53,6 +97,18 @@ private:
 	int m_fftOverlap;
 	int m_fftWindow;
 	qint64 m_centerFreq;
+	bool m_iqSwap;
+	int m_decimation;
+
+	int m_e4000LNAGain;
+	int m_e4000MixerGain;
+	int m_e4000MixerEnh;
+	int m_e4000if1;
+	int m_e4000if2;
+	int m_e4000if3;
+	int m_e4000if4;
+	int m_e4000if5;
+	int m_e4000if6;
 };
 
 #endif // INCLUDE_SETTINGS_H

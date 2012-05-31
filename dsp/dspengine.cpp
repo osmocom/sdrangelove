@@ -145,16 +145,19 @@ void DSPEngine::run()
 
 void DSPEngine::work()
 {
-	while((m_sampleFifo->fill() > 2 * m_fftRefillSize) && (m_state == m_nextState)) {
+	int count = 0;
+
+	while((m_sampleFifo->fill() > 2 * m_fftRefillSize) && (m_state == m_nextState) && (count < m_sampleRate)) {
 		// advance buffer respecting the fft overlap factor
 		memmove(&m_fftPreWindow[0], &m_fftPreWindow[m_fftRefillSize], m_fftOverlapSize * sizeof(Complex));
 		// read new samples
 		m_sampleFifo->read(&m_fftSamples[0], 2 * m_fftRefillSize);
+		count += m_fftRefillSize;
 		// convert new samples to Complex()
 		qint16* s = &m_fftSamples[0];
 		for(int i = m_fftOverlapSize; i < m_fftSize; i++) {
-			float q = *s++;
 			float j = *s++;
+			float q = *s++;
 			m_fftPreWindow[i] = Complex(j / 32768.0f, q / 32768.0f);
 		}
 		// apply fft window
@@ -165,8 +168,8 @@ void DSPEngine::work()
 		// extract power spectrum and reorder buckets
 		for(int i = 0; i < m_fftSize; i++) {
 			Complex c = m_fftOut[((i + m_fftOut.size() / 2) % m_fftOut.size())];
-			c /= (Real)m_fftSize;
 			Real v = sqrt(c.real() * c.real() + c.imag() * c.imag());
+			v /= (Real)m_fftSize;
 			v = 20.0 * log10(v);
 			m_logPowerSpectrum[i] = v;
 		}
@@ -180,6 +183,12 @@ void DSPEngine::work()
 
 	if(m_settings.isModifiedCenterFreq())
 		m_sampleSource->setCenterFrequency(m_settings.centerFreq());
+
+	if(m_settings.isModifiedIQSwap())
+		m_sampleSource->setIQSwap(m_settings.iqSwap());
+
+	if(m_settings.isModifiedDecimation())
+		m_sampleSource->setDecimation(m_settings.decimation());
 
 	if(m_settings.isModifiedFFTSize() || m_settings.isModifiedFFTOverlap() || m_settings.isModifiedFFTWindow()) {
 		m_fftSize = m_settings.fftSize();
@@ -195,10 +204,28 @@ void DSPEngine::work()
 		} catch(...) {
 			m_nextState = gotoError("out of memory error");
 		}
-		qDebug("%d", m_fftOut.size());
 		m_fftOverlapSize = (m_fftSize * m_fftOverlap) / 100;
 		m_fftRefillSize = m_fftSize - m_fftOverlapSize;
 	}
+
+	if(m_settings.isModifiedE4000LNAGain())
+		((OsmoSDRInput*)m_sampleSource)->setE4000LNAGain(m_settings.e4000LNAGain());
+	if(m_settings.isModifiedE4000MixerGain())
+		((OsmoSDRInput*)m_sampleSource)->setE4000MixerGain(m_settings.e4000MixerGain());
+	if(m_settings.isModifiedE4000MixerEnh())
+		((OsmoSDRInput*)m_sampleSource)->setE4000MixerEnh(m_settings.e4000MixerEnh());
+	if(m_settings.isModifiedE4000if1())
+		((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(1, m_settings.e4000if1());
+	if(m_settings.isModifiedE4000if2())
+		((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(2, m_settings.e4000if2());
+	if(m_settings.isModifiedE4000if3())
+		((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(3, m_settings.e4000if3());
+	if(m_settings.isModifiedE4000if4())
+		((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(4, m_settings.e4000if4());
+	if(m_settings.isModifiedE4000if5())
+		((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(5, m_settings.e4000if5());
+	if(m_settings.isModifiedE4000if6())
+		((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(6, m_settings.e4000if6());
 }
 
 void DSPEngine::changeState()
@@ -269,6 +296,20 @@ DSPEngine::State DSPEngine::gotoRunning()
 	m_settings.isModifiedFFTOverlap();
 	m_settings.isModifiedFFTWindow();
 	m_settings.isModifiedCenterFreq();
+	m_settings.isModifiedIQSwap();
+	m_settings.isModifiedDecimation();
+	m_settings.isModifiedE4000LNAGain();
+	m_settings.isModifiedE4000MixerGain();
+	m_settings.isModifiedE4000MixerEnh();
+	m_settings.isModifiedE4000if1();
+	m_settings.isModifiedE4000if2();
+	m_settings.isModifiedE4000if3();
+	m_settings.isModifiedE4000if4();
+	m_settings.isModifiedE4000if5();
+	m_settings.isModifiedE4000if6();
+
+	m_sampleRate = 4000000 / (1 << m_settings.decimation());
+	qDebug("current rate: %d", m_sampleRate);
 
 	m_fftSize = m_settings.fftSize();
 	m_fftOverlap = m_settings.fftOverlap();
@@ -286,13 +327,24 @@ DSPEngine::State DSPEngine::gotoRunning()
 	m_fftOverlapSize = (m_fftSize * m_fftOverlap) / 100;
 	m_fftRefillSize = m_fftSize - m_fftOverlapSize;
 
-	if(!m_sampleFifo->setSize(2 * 250 * 500000 / 1000))
+	if(!m_sampleFifo->setSize(2 * 250 * m_sampleRate / 1000))
 	   return gotoError("could not allocate SampleFifo");
 
-	if(!m_sampleSource->startInput(0, 500000))
+	if(!m_sampleSource->startInput(0, 4000000))
 		return gotoError("could not start OsmoSDR");
 
 	m_sampleSource->setCenterFrequency(m_settings.centerFreq());
+	m_sampleSource->setIQSwap(m_settings.iqSwap());
+	m_sampleSource->setDecimation(m_settings.decimation());
+	((OsmoSDRInput*)m_sampleSource)->setE4000LNAGain(m_settings.e4000LNAGain());
+	((OsmoSDRInput*)m_sampleSource)->setE4000MixerGain(m_settings.e4000MixerGain());
+	((OsmoSDRInput*)m_sampleSource)->setE4000MixerEnh(m_settings.e4000MixerEnh());
+	((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(1, m_settings.e4000if1());
+	((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(2, m_settings.e4000if2());
+	((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(3, m_settings.e4000if3());
+	((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(4, m_settings.e4000if4());
+	((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(5, m_settings.e4000if5());
+	((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(6, m_settings.e4000if6());
 
 	return StRunning;
 }

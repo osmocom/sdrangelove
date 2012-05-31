@@ -75,6 +75,7 @@ private:
 	SampleFifo* m_sampleFifo;
 	SampleSource* m_sampleSource;
 
+	int m_sampleRate;
 	int m_fftSize;
 	int m_fftOverlap;
 	int m_fftOverlapSize;

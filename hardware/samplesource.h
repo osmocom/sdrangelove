@@ -30,6 +30,8 @@ public:
 	virtual void stopInput() = 0;
 
 	virtual bool setCenterFrequency(qint64 freq) = 0;
+	virtual bool setIQSwap(bool sw) = 0;
+	virtual bool setDecimation(int dec) = 0;
 
 protected:
 	SampleFifo* m_sampleFifo;

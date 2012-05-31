@@ -51,8 +51,11 @@ private:
 	Indicator* m_engineRunning;
 	Indicator* m_engineError;
 
+	int m_sampleRate;
+
 	void createStatusBar();
 	void updateCenterFreqDisplay();
+	void updateSampleRate();
 
 private slots:
 	void updateStatus();
@@ -67,6 +70,17 @@ private slots:
 	void on_freqSet_clicked();
 	void on_fftSize_currentIndexChanged(const QString& str);
 	void on_fftWindow_currentIndexChanged(int index);
+	void on_iqSwap_toggled(bool checked);
+	void on_decimation_currentIndexChanged(int index);
+	void on_e4000LNAGain_currentIndexChanged(int index);
+	void on_e4000MixerGain_currentIndexChanged(int index);
+	void on_e4000MixerEnh_currentIndexChanged(int index);
+	void on_e4000if1_currentIndexChanged(int index);
+	void on_e4000if2_currentIndexChanged(int index);
+	void on_e4000if3_currentIndexChanged(int index);
+	void on_e4000if4_currentIndexChanged(int index);
+	void on_e4000if5_currentIndexChanged(int index);
+	void on_e4000if6_currentIndexChanged(int index);
 };
 
 #endif // INCLUDE_MAINWINDOW_H

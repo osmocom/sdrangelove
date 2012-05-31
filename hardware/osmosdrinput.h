@@ -32,6 +32,13 @@ public:
 	void stopInput();
 
 	bool setCenterFrequency(qint64 freq);
+	bool setIQSwap(bool sw);
+	bool setDecimation(int dec);
+
+	bool setE4000LNAGain(int gain);
+	bool setE4000MixerGain(int gain);
+	bool setE4000MixerEnh(int gain);
+	bool setE4000ifStageGain(int stage, int gain);
 
 private:
 	osmosdr_dev_t* m_dev;

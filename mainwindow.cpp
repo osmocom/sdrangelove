@@ -31,12 +31,10 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->setupUi(this);
 	createStatusBar();
 	ui->freqScale->setOrientation(Qt::Horizontal);
-	ui->freqScale->setRange(Unit::Frequency, m_settings.centerFreq() - 250000.0, m_settings.centerFreq() + 250000.0);
 	ui->timeScale->setOrientation(Qt::Vertical);
 	ui->timeScale->setRange(Unit::Time, -1.0, 0.0);
 	ui->powerScale->setOrientation(Qt::Vertical);
 	ui->powerScale->setRange(Unit::DecibelMilliWatt, 0.0, -100.0);
-	updateCenterFreqDisplay();
 
 	m_dspEngine.setWaterfall(ui->waterfall);
 	m_dspEngine.setSpectroHistogram(ui->spectroHistogram);
@@ -55,6 +53,23 @@ MainWindow::MainWindow(QWidget* parent) :
 		}
 	}
 	ui->fftWindow->setCurrentIndex(m_settings.fftWindow());
+	ui->iqSwap->setChecked(m_settings.iqSwap());
+	ui->decimation->setCurrentIndex(m_settings.decimation() - 2);
+	ui->e4000LNAGain->setCurrentIndex((m_settings.e4000LNAGain() + 50) / 25);
+	ui->e4000MixerGain->setCurrentIndex((m_settings.e4000MixerGain() - 40) / 80);
+	if(m_settings.e4000MixerEnh() == 0)
+		ui->e4000MixerEnh->setCurrentIndex(0);
+	else ui->e4000MixerEnh->setCurrentIndex((m_settings.e4000MixerEnh() + 10) / 20);
+
+	ui->e4000if1->setCurrentIndex((m_settings.e4000if1() + 30) / 90);
+	ui->e4000if2->setCurrentIndex(m_settings.e4000if2() / 30);
+	ui->e4000if3->setCurrentIndex(m_settings.e4000if3() / 30);
+	ui->e4000if4->setCurrentIndex(m_settings.e4000if4() / 10);
+	ui->e4000if5->setCurrentIndex(m_settings.e4000if5() / 30 - 1);
+	ui->e4000if6->setCurrentIndex(m_settings.e4000if6() / 30 - 1);
+
+	updateSampleRate();
+	updateCenterFreqDisplay();
 }
 
 MainWindow::~MainWindow()
@@ -82,7 +97,17 @@ void MainWindow::updateCenterFreqDisplay()
 {
 	qint64 freq = m_settings.centerFreq();
 	ui->centerFreq->setText(QString("%1 kHz").arg(freq / 1000));
-	ui->freqScale->setRange(Unit::Frequency, freq - 250000.0, freq + 250000.0);
+	ui->freqScale->setRange(Unit::Frequency, freq - m_sampleRate / 2.0, freq + m_sampleRate / 2.0);
+}
+
+void MainWindow::updateSampleRate()
+{
+	qint64 freq = m_settings.centerFreq();
+	m_sampleRate = 4000000 / (1 << m_settings.decimation());
+	ui->freqScale->setRange(Unit::Frequency, freq - m_sampleRate / 2, freq + m_sampleRate / 2.0);
+
+	ui->freqDown->setText(tr("-%1k").arg(m_sampleRate / 1000 / 5));
+	ui->freqUp->setText(tr("+%1k").arg(m_sampleRate / 1000 / 5));
 }
 
 void MainWindow::updateStatus()
@@ -133,7 +158,7 @@ void MainWindow::on_action_Stop_triggered()
 
 void MainWindow::on_freqDown_clicked()
 {
-	m_settings.setCenterFreq(m_settings.centerFreq() - 100000);
+	m_settings.setCenterFreq(m_settings.centerFreq() - m_sampleRate / 5);
 	updateCenterFreqDisplay();
 }
 
@@ -151,7 +176,7 @@ void MainWindow::on_freqDown3_clicked()
 
 void MainWindow::on_freqUp_clicked()
 {
-	m_settings.setCenterFreq(m_settings.centerFreq() + 100000);
+	m_settings.setCenterFreq(m_settings.centerFreq() + m_sampleRate / 5);
 	updateCenterFreqDisplay();
 }
 
@@ -184,4 +209,62 @@ void MainWindow::on_fftSize_currentIndexChanged(const QString& str)
 void MainWindow::on_fftWindow_currentIndexChanged(int index)
 {
 	m_settings.setFFTWindow(index);
+}
+
+void MainWindow::on_iqSwap_toggled(bool checked)
+{
+	m_settings.setIQSwap(checked);
+}
+
+void MainWindow::on_decimation_currentIndexChanged(int index)
+{
+	m_settings.setDecimation(index + 2);
+	updateSampleRate();
+}
+
+void MainWindow::on_e4000LNAGain_currentIndexChanged(int index)
+{
+	m_settings.setE4000LNAGain(index * 25 - 50);
+}
+
+void MainWindow::on_e4000MixerGain_currentIndexChanged(int index)
+{
+	m_settings.setE4000MixerGain(index * 80 + 40);
+}
+
+void MainWindow::on_e4000MixerEnh_currentIndexChanged(int index)
+{
+	if(index == 0)
+		m_settings.setE4000MixerEnh(0);
+	else m_settings.setE4000MixerEnh(index * 20 - 10);
+}
+
+void MainWindow::on_e4000if1_currentIndexChanged(int index)
+{
+	m_settings.setE4000if1(index * 90 - 30);
+}
+
+void MainWindow::on_e4000if2_currentIndexChanged(int index)
+{
+	m_settings.setE4000if2(index * 30);
+}
+
+void MainWindow::on_e4000if3_currentIndexChanged(int index)
+{
+	m_settings.setE4000if3(index * 30);
+}
+
+void MainWindow::on_e4000if4_currentIndexChanged(int index)
+{
+	m_settings.setE4000if4(index * 10);
+}
+
+void MainWindow::on_e4000if5_currentIndexChanged(int index)
+{
+	m_settings.setE4000if5((index + 1) * 30);
+}
+
+void MainWindow::on_e4000if6_currentIndexChanged(int index)
+{
+	m_settings.setE4000if6((index + 1) * 30);
 }
