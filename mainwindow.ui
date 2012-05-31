@@ -663,15 +663,15 @@
     <addaction name="separator"/>
     <addaction name="action_Hardware"/>
    </widget>
-   <widget class="QMenu" name="menu_Aquisition">
+   <widget class="QMenu" name="menu_Acquisition">
     <property name="title">
-     <string>&amp;Aquisition</string>
+     <string>&amp;Acquisition</string>
     </property>
     <addaction name="action_Start"/>
     <addaction name="action_Stop"/>
    </widget>
    <addaction name="menu_File"/>
-   <addaction name="menu_Aquisition"/>
+   <addaction name="menu_Acquisition"/>
    <addaction name="menu_Settings"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
