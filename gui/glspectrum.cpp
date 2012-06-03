@@ -487,6 +487,7 @@ void GLSpectrum::applyChanges()
 		if(m_leftMarginTextureAllocated)
 			deleteTexture(m_leftMarginTexture);
 		m_leftMarginTexture = bindTexture(m_leftMarginPixmap);
+		m_leftMarginTextureAllocated = true;
 	}
 	{
 		m_frequencyPixmap = QPixmap(width(), m_frequencyScaleHeight);
@@ -511,6 +512,7 @@ void GLSpectrum::applyChanges()
 		if(m_frequencyTextureAllocated)
 			deleteTexture(m_frequencyTexture);
 		m_frequencyTexture = bindTexture(m_frequencyPixmap);
+		m_frequencyTextureAllocated = true;
 	}
 
 	if(!m_waterfallTextureAllocated) {
