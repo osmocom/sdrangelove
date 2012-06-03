@@ -31,15 +31,15 @@ SOURCES += main.cpp\
 	hardware/samplefifo.cpp \
 	dsp/dspengine.cpp \
 	gui/indicator.cpp \
-	gui/waterfall.cpp \
 	dsp/fftwindow.cpp \
-	gui/spectrohistogram.cpp \
 	settings.cpp \
 	hardware/osmosdrinput.cpp \
 	hardware/osmosdrthread.cpp \
 	hardware/samplesource.cpp \
-	gui/scalecalc.cpp \
-	gui/scale.cpp
+	gui/scale.cpp \
+    dsp/nco.cpp \
+    gui/glspectrum.cpp \
+    gui/scaleengine.cpp
 
 HEADERS  += mainwindow.h \
 	hardware/samplefifo.h \
@@ -47,16 +47,16 @@ HEADERS  += mainwindow.h \
 	gui/indicator.h \
 	dsp/kissfft.h \
 	dsp/dsptypes.h \
-	gui/waterfall.h \
 	dsp/fftwindow.h \
-	gui/spectrohistogram.h \
 	settings.h \
 	hardware/osmosdrinput.h \
 	hardware/osmosdrthread.h \
 	hardware/samplesource.h \
-	gui/scalecalc.h \
 	gui/scale.h \
-	gui/physicalunit.h
+	gui/physicalunit.h \
+    dsp/nco.h \
+    gui/glspectrum.h \
+    gui/scaleengine.h
 
 FORMS    += mainwindow.ui
 

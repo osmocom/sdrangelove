@@ -19,8 +19,7 @@
 #include "settings.h"
 #include "hardware/osmosdrinput.h"
 #include "hardware/samplefifo.h"
-#include "gui/waterfall.h"
-#include "gui/spectrohistogram.h"
+#include "gui/glspectrum.h"
 
 DSPEngine::DSPEngine(Settings* settings, QObject* parent) :
 	QThread(parent),
@@ -31,8 +30,11 @@ DSPEngine::DSPEngine(Settings* settings, QObject* parent) :
 	m_sampleSource(NULL),
 	m_fftSize(-1),
 	m_fftOverlap(30),
+	m_iOfs(0),
+	m_qOfs(0),
 	m_waterfall(NULL),
-	m_spectroHistogram(NULL)
+	m_spectroHistogram(NULL),
+	m_glSpectrum(NULL)
 {
 	moveToThread(this);
 }
@@ -43,14 +45,9 @@ DSPEngine::~DSPEngine()
 	wait();
 }
 
-void DSPEngine::setWaterfall(Waterfall* waterfall)
+void DSPEngine::setGLSpectrum(GLSpectrum* glSpectrum)
 {
-	m_waterfall = waterfall;
-}
-
-void DSPEngine::setSpectroHistogram(SpectroHistogram* spectroHistogram)
-{
-	m_spectroHistogram = spectroHistogram;
+	m_glSpectrum = glSpectrum;
 }
 
 void DSPEngine::start()
@@ -154,16 +151,34 @@ void DSPEngine::work()
 		m_sampleFifo->read(&m_fftSamples[0], 2 * m_fftRefillSize);
 		count += m_fftRefillSize;
 		// convert new samples to Complex()
-		qint16* s = &m_fftSamples[0];
+		const qint16* s = &m_fftSamples[0];
 		for(int i = m_fftOverlapSize; i < m_fftSize; i++) {
-			float j = *s++;
-			float q = *s++;
-			m_fftPreWindow[i] = Complex(j / 32768.0f, q / 32768.0f);
+			Real j = (*s++) / 32768.0f - m_iOfs;
+			Real q = (*s++) / 32768.0f - m_qOfs;
+			m_fftPreWindow[i] = Complex(j, q);
 		}
+
+//		m_iOfs = m_iOfs * 0.999 + (m_iOfs + ((m_iMax + m_iMin) / 2.0)) * 0.001;
+	//	m_qOfs = m_qOfs * 0.999 + (m_qOfs + ((m_qMax + m_qMin) / 2.0)) * 0.001;
+/*
+		qDebug("iOfs:%.6f qOfs:%.6f    (%.6f  %.6f) [%.6f %.6f  %.6f %.6f]",
+			   m_iOfs, m_qOfs,
+			   ((m_iMax + m_iMin) / 2.0), ((m_qMax + m_qMin) / 2.0),
+			   m_iMin, m_iMax, m_qMin, m_qMax);
+*/
 		// apply fft window
 		m_fftWindow.apply(m_fftPreWindow, &m_fftIn);
 		// calculate FFT
 		m_fft.transform(&m_fftIn[0], &m_fftOut[0]);
+
+		{
+			const Complex& c = (m_fftOut.at(0)) / (Real)m_fftSize;
+			if((fabs(c.real() < 1)) && (fabs(c.imag() < 1))) {
+				m_iOfs = m_iOfs * 0.99 + (m_iOfs + c.real()) * 0.01;
+				m_qOfs = m_qOfs * 0.99 + (m_qOfs + c.imag()) * 0.01;
+			}
+		}
+
 
 		// extract power spectrum and reorder buckets
 		for(int i = 0; i < m_fftSize; i++) {
@@ -171,14 +186,16 @@ void DSPEngine::work()
 			Real v = sqrt(c.real() * c.real() + c.imag() * c.imag());
 			v /= (Real)m_fftSize;
 			v = 20.0 * log10(v);
+			if(v < -96.0)
+				v = -96.0;
+			else if(v > 0.0)
+				v = 0.0;
 			m_logPowerSpectrum[i] = v;
 		}
 
 		// send new data to visualisation
-		if(m_waterfall != NULL)
-			m_waterfall->newSpectrum(m_logPowerSpectrum);
-		if(m_spectroHistogram != NULL)
-			m_spectroHistogram->newSpectrum(m_logPowerSpectrum);
+		if(m_glSpectrum != NULL)
+			m_glSpectrum->newSpectrum(m_logPowerSpectrum);
 	}
 
 	if(m_settings.isModifiedCenterFreq())

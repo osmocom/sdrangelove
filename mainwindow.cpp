@@ -30,14 +30,8 @@ MainWindow::MainWindow(QWidget* parent) :
 
 	ui->setupUi(this);
 	createStatusBar();
-	ui->freqScale->setOrientation(Qt::Horizontal);
-	ui->timeScale->setOrientation(Qt::Vertical);
-	ui->timeScale->setRange(Unit::Time, -1.0, 0.0);
-	ui->powerScale->setOrientation(Qt::Vertical);
-	ui->powerScale->setRange(Unit::DecibelMilliWatt, 0.0, -100.0);
 
-	m_dspEngine.setWaterfall(ui->waterfall);
-	m_dspEngine.setSpectroHistogram(ui->spectroHistogram);
+	m_dspEngine.setGLSpectrum(ui->glSpectrum);
 	m_dspEngine.start();
 	m_lastEngineState = (DSPEngine::State)-1;
 
@@ -97,15 +91,13 @@ void MainWindow::updateCenterFreqDisplay()
 {
 	qint64 freq = m_settings.centerFreq();
 	ui->centerFreq->setText(QString("%1 kHz").arg(freq / 1000));
-	ui->freqScale->setRange(Unit::Frequency, freq - m_sampleRate / 2.0, freq + m_sampleRate / 2.0);
+	ui->glSpectrum->setCenterFrequency(freq);
 }
 
 void MainWindow::updateSampleRate()
 {
-	qint64 freq = m_settings.centerFreq();
 	m_sampleRate = 4000000 / (1 << m_settings.decimation());
-	ui->freqScale->setRange(Unit::Frequency, freq - m_sampleRate / 2, freq + m_sampleRate / 2.0);
-
+	ui->glSpectrum->setSampleRate(m_sampleRate);
 	ui->freqDown->setText(tr("-%1k").arg(m_sampleRate / 1000 / 5));
 	ui->freqUp->setText(tr("+%1k").arg(m_sampleRate / 1000 / 5));
 }
@@ -197,7 +189,7 @@ void MainWindow::on_freqSet_clicked()
 	bool ok;
 	int freq = QInputDialog::getInt(this, tr("Frequency in kHz"), tr("kHz"), m_settings.centerFreq() / 1000, 0, INT_MAX, 250, &ok);
 	if(ok)
-		m_settings.setCenterFreq(freq * 1000);
+		m_settings.setCenterFreq((quint64)freq * 1000);
 	updateCenterFreqDisplay();
 }
 

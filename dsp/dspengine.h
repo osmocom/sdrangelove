@@ -30,6 +30,7 @@ class SampleSource;
 class SampleFifo;
 class Waterfall;
 class SpectroHistogram;
+class GLSpectrum;
 
 class DSPEngine : public QThread {
 	Q_OBJECT
@@ -45,8 +46,7 @@ public:
 	DSPEngine(Settings* settings, QObject* parent = NULL);
 	~DSPEngine();
 
-	void setWaterfall(Waterfall* waterfall);
-	void setSpectroHistogram(SpectroHistogram* spectroHistogram);
+	void setGLSpectrum(GLSpectrum* glSpectrum);
 
 	void start();
 	void stop();
@@ -81,8 +81,12 @@ private:
 	int m_fftOverlapSize;
 	int m_fftRefillSize;
 
+	Real m_iOfs;
+	Real m_qOfs;
+
 	Waterfall* m_waterfall;
 	SpectroHistogram* m_spectroHistogram;
+	GLSpectrum* m_glSpectrum;
 
 	KissFFT m_fft;
 	std::vector<qint16> m_fftSamples;

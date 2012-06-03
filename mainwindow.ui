@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1011</width>
-    <height>157</height>
+    <width>940</width>
+    <height>680</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,38 +15,17 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
+    <property name="margin">
+     <number>0</number>
+    </property>
     <item>
-     <widget class="QSplitter" name="splitter">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
+     <widget class="GLSpectrum" name="glSpectrum" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
-      <widget class="QWidget" name="layoutWidget">
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="Scale" name="timeScale" native="true"/>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-           <widget class="Waterfall" name="waterfall" native="true"/>
-          </item>
-          <item>
-           <widget class="Scale" name="freqScale" native="true"/>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="layoutWidget">
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <item>
-         <widget class="Scale" name="powerScale" native="true"/>
-        </item>
-        <item>
-         <widget class="SpectroHistogram" name="spectroHistogram" native="true"/>
-        </item>
-       </layout>
-      </widget>
      </widget>
     </item>
     <item>
@@ -645,7 +624,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1011</width>
+     <width>940</width>
      <height>21</height>
     </rect>
    </property>
@@ -721,21 +700,9 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>Waterfall</class>
+   <class>GLSpectrum</class>
    <extends>QWidget</extends>
-   <header>gui/waterfall.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>SpectroHistogram</class>
-   <extends>QWidget</extends>
-   <header>gui/spectrohistogram.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>Scale</class>
-   <extends>QWidget</extends>
-   <header>gui/scale.h</header>
+   <header>gui/glspectrum.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
