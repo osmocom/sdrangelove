@@ -48,24 +48,26 @@ private:
 
 	static inline Real bartlett(Real n, Real i)
 	{
-		return (2.0 / (n - 1.0)) * ( (n - 1.0) / 2.0 - fabs(i - (n - 1.0) / 2.0));
+		// amplitude correction = 2.0
+		return (2.0 / (n - 1.0)) * ( (n - 1.0) / 2.0 - fabs(i - (n - 1.0) / 2.0)) * 2.0;
 	}
 
 	static inline Real blackmanHarris(Real n, Real i)
 	{
-		return 0.35875 - 0.48829 * cos((2.0 * M_PI * i) / n) + 0.14128 * cos((4.0 * M_PI * i) / n) - 0.01168 * cos((6.0 * M_PI * i) / n);
+		// amplitude correction = 2.79
+		return (0.35875 - 0.48829 * cos((2.0 * M_PI * i) / n) + 0.14128 * cos((4.0 * M_PI * i) / n) - 0.01168 * cos((6.0 * M_PI * i) / n)) * 2.79;
 	}
 
 	static inline Real hamming(Real n, Real i)
 	{
 		// amplitude correction = 1.855, energy correction = 1.586
-		return 0.54 - 0.46 * cos((2.0 * M_PI * i) / n);
+		return (0.54 - 0.46 * cos((2.0 * M_PI * i) / n)) * 1.855;
 	}
 
 	static inline Real hanning(Real n, Real i)
 	{
 		// amplitude correction = 2.0, energy correction = 1.633
-		return 0.5 - 0.5 * cos((2.0 * M_PI * i) / n);
+		return (0.5 - 0.5 * cos((2.0 * M_PI * i) / n)) * 2.0;
 	}
 
 	static inline Real rectangle(Real, Real)
