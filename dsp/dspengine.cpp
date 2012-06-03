@@ -173,7 +173,7 @@ void DSPEngine::work()
 
 		{
 			const Complex& c = (m_fftOut.at(0)) / (Real)m_fftSize;
-			if((fabs(c.real() < 1)) && (fabs(c.imag() < 1))) {
+			if((fabs(c.real()) < 1) && (fabs(c.imag()) < 1)) {
 				m_iOfs = m_iOfs * 0.99 + (m_iOfs + c.real()) * 0.01;
 				m_qOfs = m_qOfs * 0.99 + (m_qOfs + c.imag()) * 0.01;
 			}
