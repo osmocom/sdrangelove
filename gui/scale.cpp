@@ -21,25 +21,24 @@
 Scale::Scale(QWidget* parent) :
 	QWidget(parent)
 {
-
 }
 
 void Scale::setOrientation(Qt::Orientation orientation)
 {
 	m_orientation = orientation;
-	m_scaleCalc.setOrientation(orientation);
-	m_scaleCalc.setFont(font());
+	m_scaleEngine.setOrientation(orientation);
+	m_scaleEngine.setFont(font());
 	QFontMetrics fm(font());
 	switch(m_orientation) {
 		case Qt::Horizontal:
-			m_scaleCalc.setSize(width());
+			m_scaleEngine.setSize(width());
 			setMinimumWidth(0);
 			setMaximumWidth(QWIDGETSIZE_MAX);
 			setMinimumHeight(3 + fontMetrics().ascent());
 			setMaximumHeight(3 + fontMetrics().ascent());
 			break;
 		case Qt::Vertical:
-			m_scaleCalc.setSize(height());
+			m_scaleEngine.setSize(height());
 			setMinimumWidth(30);
 			setMaximumWidth(30);
 			setMinimumHeight(0);
@@ -50,16 +49,16 @@ void Scale::setOrientation(Qt::Orientation orientation)
 
 void Scale::setRange(Unit::Physical physicalUnit, float rangeMin, float rangeMax)
 {
-	m_scaleCalc.setRange(physicalUnit, rangeMin, rangeMax);
+	m_scaleEngine.setRange(physicalUnit, rangeMin, rangeMax);
 	update();
 }
 
 void Scale::paintEvent(QPaintEvent*)
 {
 	QPainter painter(this);
-	const ScaleCalc::TickList& tickList = m_scaleCalc.getTickList();
+	const ScaleEngine::TickList& tickList = m_scaleEngine.getTickList();
 	QFontMetricsF fontMetrics(font());
-	const ScaleCalc::Tick* tick;
+	const ScaleEngine::Tick* tick;
 	int i;
 	float bottomLine;
 
@@ -121,10 +120,10 @@ void Scale::resizeEvent(QResizeEvent*)
 {
 	switch(m_orientation) {
 		case Qt::Horizontal:
-			m_scaleCalc.setSize(width());
+			m_scaleEngine.setSize(width());
 			break;
 		case Qt::Vertical:
-			m_scaleCalc.setSize(height());
+			m_scaleEngine.setSize(height());
 			break;
 	}
 }

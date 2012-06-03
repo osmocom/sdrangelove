@@ -16,7 +16,7 @@
 ///////////////////////////////////////////////////////////////////////////////////
 
 #include <QWidget>
-#include "scalecalc.h"
+#include "scaleengine.h"
 
 class Scale : public QWidget {
 	Q_OBJECT
@@ -29,7 +29,7 @@ public:
 
 private:
 	Qt::Orientation m_orientation;
-	ScaleCalc m_scaleCalc;
+	ScaleEngine m_scaleEngine;
 
 	void paintEvent(QPaintEvent*);
 	void resizeEvent(QResizeEvent*);
