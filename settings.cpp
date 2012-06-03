@@ -35,7 +35,7 @@ Settings::Settings(Settings* reference) :
 void Settings::defaults()
 {
 	m_fftSize = 1024;
-	m_fftOverlap = 30;
+	m_fftOverlap = 25;
 	m_fftWindow = 3;
 	m_centerFreq = 144500000;
 	m_iqSwap = false;
@@ -60,7 +60,7 @@ void Settings::load()
 		return;
 
 	m_fftSize = s.value("fftsize", 512).toInt();
-	m_fftOverlap = s.value("fftoverlap", 30).toInt();
+	m_fftOverlap = s.value("fftoverlap", 25).toInt();
 	m_fftWindow = s.value("fftwindow", 3).toInt();
 	m_centerFreq = s.value("centerfreq", 144500000).toLongLong();;
 	m_iqSwap = s.value("iqswap", false).toBool();
@@ -87,6 +87,7 @@ void Settings::save()
 	s.setValue("fftwindow", m_fftWindow);
 	s.setValue("centerfreq", m_centerFreq);
 	s.setValue("iqswap", m_iqSwap);
+	s.setValue("decimation", m_decimation);
 	s.setValue("e4000_lnagain", m_e4000LNAGain);
 	s.setValue("e4000_mixergain", m_e4000MixerGain);
 	s.setValue("e4000_mixerenh", m_e4000MixerEnh);
