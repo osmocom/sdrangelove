@@ -22,7 +22,7 @@ GLSpectrum::GLSpectrum(QWidget* parent) :
 	m_changesPending(true),
 	m_centerFrequency(100000000),
 	m_sampleRate(500000),
-	m_fftSize(0),
+	m_fftSize(512),
 	m_leftMarginTextureAllocated(false),
 	m_frequencyTextureAllocated(false),
 	m_waterfallBuffer(NULL),
