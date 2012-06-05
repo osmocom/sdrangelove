@@ -15,14 +15,17 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
+#include <QMouseEvent>
 #include "glspectrum.h"
 
 GLSpectrum::GLSpectrum(QWidget* parent) :
 	QGLWidget(parent),
+	m_cursorState(CSNormal),
 	m_changesPending(true),
 	m_centerFrequency(100000000),
 	m_sampleRate(500000),
 	m_fftSize(512),
+	m_waterfallHeight(100),
 	m_leftMarginTextureAllocated(false),
 	m_frequencyTextureAllocated(false),
 	m_waterfallBuffer(NULL),
@@ -36,8 +39,9 @@ GLSpectrum::GLSpectrum(QWidget* parent) :
 	setAutoFillBackground(false);
 	setAttribute(Qt::WA_OpaquePaintEvent, true);
 	setAttribute(Qt::WA_NoSystemBackground, true);
+	setMouseTracking(true);
 
-	setMinimumHeight(512);
+	setMinimumHeight(300);
 
 	for(int i = 0; i <= 239; i++) {
 		 QColor c;
@@ -78,6 +82,8 @@ GLSpectrum::GLSpectrum(QWidget* parent) :
 
 	connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
 	m_timer.start(50);
+
+	m_waterfallHeight = height() * 0.7;
 }
 
 GLSpectrum::~GLSpectrum()
@@ -156,7 +162,7 @@ void GLSpectrum::newSpectrum(const std::vector<Real>& spectrum)
 		quint32* pix = (quint32*)m_waterfallBuffer->scanLine(m_waterfallBufferPos);
 
 		for(int i = 0; i < m_fftSize; i++) {
-			Real vr = 2.4 * (spectrum[i] + 96.0);
+			Real vr = 2.4 * (spectrum[i] + 99.0);
 			int v = (int)vr;
 
 			if(v > 239)
@@ -196,7 +202,7 @@ void GLSpectrum::newSpectrum(const std::vector<Real>& spectrum)
 		b = m_histogram;
 		h = m_histogramHoldoff;
 		for(size_t i = 0; i < spectrum.size(); i++) {
-			Real vr = spectrum[i] + 96.0;
+			Real vr = spectrum[i] + 99.0;
 			int v = (int)vr;
 			if((v >= 0) && (v <= 99)) {
 				if(*(b + v) < 220)
@@ -440,7 +446,6 @@ void GLSpectrum::applyChanges()
 	m_topMargin = fm.ascent() * 1.5;
 	m_bottomMargin = fm.ascent() * 1.5;
 
-	m_waterfallHeight = height() * 0.7;
 	if(m_waterfallHeight < 0)
 		m_waterfallHeight = 0;
 	m_frequencyScaleHeight = fm.height() * 2;
@@ -468,7 +473,7 @@ void GLSpectrum::applyChanges()
 		m_leftMarginPixmap.fill(Qt::black);
 		{
 			QPainter painter(&m_leftMarginPixmap);
-			painter.setPen(Qt::gray);
+			painter.setPen(QColor(0xf0, 0xf0, 0xff));
 			const ScaleEngine::TickList* tickList = &m_timeScale.getTickList();
 			const ScaleEngine::Tick* tick;
 			for(int i = 0; i < tickList->count(); i++) {
@@ -500,7 +505,7 @@ void GLSpectrum::applyChanges()
 			painter.setPen(Qt::NoPen);
 			painter.setBrush(Qt::black);
 			painter.drawRect(m_leftMargin, 0, width() - m_leftMargin, m_frequencyScaleHeight);
-			painter.setPen(Qt::gray);
+			painter.setPen(QColor(0xf0, 0xf0, 0xff));
 			const ScaleEngine::TickList* tickList = &m_frequencyScale.getTickList();
 			const ScaleEngine::Tick* tick;
 			for(int i = 0; i < tickList->count(); i++) {
@@ -593,6 +598,54 @@ void GLSpectrum::applyChanges()
 	}
 
 	m_changesPending = false;
+}
+
+void GLSpectrum::mouseMoveEvent(QMouseEvent* event)
+{
+	if(m_cursorState == CSSplitterMoving) {
+		int d = event->y() - m_splitterRef;
+		if(m_waterfallHeight + d > 50)
+			m_waterfallHeight += d;
+		m_frequencyScaleTop = m_topMargin + m_waterfallHeight;
+		m_histogramTop = m_topMargin + m_waterfallHeight + m_frequencyScaleHeight;
+		m_changesPending = true;
+		update();
+		m_splitterRef = event->y();
+		return;
+	}
+
+	if(((event->x() > m_leftMargin) && (event->x() < width() - m_rightMargin)) &&
+		((event->y() > m_frequencyScaleTop) && (event->y() <= m_frequencyScaleTop + m_frequencyScaleHeight))) {
+		if(m_cursorState == CSNormal) {
+			setCursor(Qt::SizeVerCursor);
+			m_cursorState = CSSplitter;
+		}
+	} else {
+		if(m_cursorState == CSSplitter) {
+			setCursor(Qt::ArrowCursor);
+			m_cursorState = CSNormal;
+		}
+	}
+}
+
+void GLSpectrum::mousePressEvent(QMouseEvent* event)
+{
+	if(event->button() != 1)
+		return;
+
+	if(m_cursorState == CSSplitter) {
+		m_splitterRef = event->y();
+		grabMouse();
+		m_cursorState = CSSplitterMoving;
+	}
+}
+
+void GLSpectrum::mouseReleaseEvent(QMouseEvent* event)
+{
+	if(m_cursorState == CSSplitterMoving) {
+		releaseMouse();
+		m_cursorState = CSSplitter;
+	}
 }
 
 void GLSpectrum::tick()

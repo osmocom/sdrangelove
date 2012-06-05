@@ -36,6 +36,15 @@ public:
 	void newSpectrum(const std::vector<Real>& spectrum);
 
 private:
+	enum CursorState {
+		CSNormal,
+		CSSplitter,
+		CSSplitterMoving,
+	};
+
+	CursorState m_cursorState;
+	int m_splitterRef;
+
 	QTimer m_timer;
 	QMutex m_mutex;
 	bool m_changesPending;
@@ -87,6 +96,10 @@ private:
 	void paintGL();
 
 	void applyChanges();
+
+	void mouseMoveEvent(QMouseEvent* event);
+	void mousePressEvent(QMouseEvent* event);
+	void mouseReleaseEvent(QMouseEvent* event);
 
 private slots:
 	void tick();
