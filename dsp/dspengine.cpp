@@ -158,24 +158,20 @@ void DSPEngine::work()
 			m_fftPreWindow[i] = Complex(j, q);
 		}
 
-//		m_iOfs = m_iOfs * 0.999 + (m_iOfs + ((m_iMax + m_iMin) / 2.0)) * 0.001;
-	//	m_qOfs = m_qOfs * 0.999 + (m_qOfs + ((m_qMax + m_qMin) / 2.0)) * 0.001;
-/*
-		qDebug("iOfs:%.6f qOfs:%.6f    (%.6f  %.6f) [%.6f %.6f  %.6f %.6f]",
-			   m_iOfs, m_qOfs,
-			   ((m_iMax + m_iMin) / 2.0), ((m_qMax + m_qMin) / 2.0),
-			   m_iMin, m_iMax, m_qMin, m_qMax);
-*/
 		// apply fft window
 		m_fftWindow.apply(m_fftPreWindow, &m_fftIn);
+
 		// calculate FFT
 		m_fft.transform(&m_fftIn[0], &m_fftOut[0]);
 
 		{
-			const Complex& c = (m_fftOut.at(0)) / (Real)m_fftSize;
-			if((fabs(c.real()) < 1) && (fabs(c.imag()) < 1)) {
-				m_iOfs = m_iOfs * 0.99 + (m_iOfs + c.real()) * 0.01;
-				m_qOfs = m_qOfs * 0.99 + (m_qOfs + c.imag()) * 0.01;
+			const Complex& c = m_fftOut[0] / (Real)m_fftSize;
+			if((fabs(m_iOfs - c.real()) > 0.001) || (fabs(m_qOfs - c.imag()) > 0.001))  {
+				m_iOfs = m_iOfs * 0.995 + (m_iOfs + c.real()) * 0.005;
+				m_qOfs = m_qOfs * 0.995 + (m_qOfs + c.imag()) * 0.005;
+			} else {
+				m_iOfs = m_iOfs * 0.999995 + (m_iOfs + c.real()) * 0.000005;
+				m_qOfs = m_qOfs * 0.999995 + (m_qOfs + c.imag()) * 0.000005;
 			}
 		}
 
