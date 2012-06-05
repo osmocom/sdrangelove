@@ -153,10 +153,8 @@ void GLSpectrum::newSpectrum(const std::vector<Real>& spectrum)
 		return;
 	}
 
-	if(m_waterfallBufferPos >= m_waterfallBuffer->height()) {
-		m_mutex.unlock();
+	if(m_waterfallBufferPos >= m_waterfallBuffer->height())
 		return;
-	}
 
 	{
 		quint32* pix = (quint32*)m_waterfallBuffer->scanLine(m_waterfallBufferPos);
