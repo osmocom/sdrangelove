@@ -39,6 +39,7 @@ private:
 	int m_digitHeight;
 	int m_hightlightedDigit;
 	int m_cursor;
+	bool m_cursorState;
 	quint64 m_value;
 	quint64 m_valueMax;
 	quint64 m_valueMin;
@@ -48,16 +49,21 @@ private:
 	QString m_textNew;
 	int m_animationState;
 	QTimer m_animationTimer;
+	QTimer m_blinkTimer;
 
+	quint64 findExponent(int digit);
 	QChar digitNeigh(QChar c, bool dir);
 	QString formatText(quint64 value);
 
 	void paintEvent(QPaintEvent*);
 
+	void mousePressEvent(QMouseEvent*);
 	void mouseMoveEvent(QMouseEvent*);
 	void wheelEvent(QWheelEvent*);
 	void leaveEvent(QEvent*);
+	void keyPressEvent(QKeyEvent*);
 
 private slots:
-	void tick();
+	void animate();
+	void blink();
 };

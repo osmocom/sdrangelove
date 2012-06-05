@@ -18,6 +18,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QWheelEvent>
+#include <QKeyEvent>
 #include "valuedial.h"
 
 ValueDial::ValueDial(QWidget* parent) :
@@ -28,6 +29,7 @@ ValueDial::ValueDial(QWidget* parent) :
 	setAttribute(Qt::WA_OpaquePaintEvent, true);
 	setAttribute(Qt::WA_NoSystemBackground, true);
 	setMouseTracking(true);
+	setFocusPolicy(Qt::StrongFocus);
 
 	m_background.setStart(0, 0);
 	m_background.setFinalStop(0, 1);
@@ -46,12 +48,14 @@ ValueDial::ValueDial(QWidget* parent) :
 	m_valueMax = 2200000;
 	m_numDigits = 10;
 	m_numDecimalPoints = m_numDigits / 3;
-	m_cursor = 3;
+	m_cursor = -1;
 
 	m_hightlightedDigit = -1;
 	m_text = formatText(m_value);
+	m_cursorState = false;
 
-	connect(&m_animationTimer, SIGNAL(timeout()), this, SLOT(tick()));
+	connect(&m_animationTimer, SIGNAL(timeout()), this, SLOT(animate()));
+	connect(&m_blinkTimer, SIGNAL(timeout()), this, SLOT(blink()));
 }
 
 void ValueDial::setFont(const QFont& font)
@@ -68,6 +72,10 @@ void ValueDial::setFont(const QFont& font)
 void ValueDial::setValue(quint64 value)
 {
 	m_valueNew = value;
+	if(m_valueNew < m_valueMin)
+		m_valueNew = m_valueMin;
+	else if(m_valueNew > m_valueMax)
+		m_valueNew = m_valueMax;
 	if(m_valueNew < m_value)
 		m_animationState = 3;
 	else if(m_valueNew > m_value)
@@ -86,6 +94,16 @@ void ValueDial::setValueRange(quint64 min, quint64 max)
 		setValue(min);
 	else if(m_value > max)
 		setValue(max);
+}
+
+quint64 ValueDial::findExponent(int digit)
+{
+	quint64 e = 1;
+	int d = (m_numDigits + m_numDecimalPoints) - digit;
+	d = d - (d / 4) - 1;
+	for(int i = 0; i < d; i++)
+		e *= 10;
+	return e;
 }
 
 QChar ValueDial::digitNeigh(QChar c, bool dir)
@@ -149,13 +167,11 @@ void ValueDial::paintEvent(QPaintEvent*)
 			}
 			painter.setClipping(false);
 		}
-/*
-		if(m_cursor >= 0) {
+		if((m_cursor >= 0) && (m_cursorState)) {
 			painter.setPen(Qt::NoPen);
 			painter.setBrush(QColor(0x10, 0x10, 0x10));
 			painter.drawRect(4 + m_cursor * m_digitWidth, 1 + m_digitHeight * 1.5, m_digitWidth - 5, m_digitHeight / 6);
 		}
-*/
 	} else {
 		if(m_animationState != 0) {
 			for(int i = 0; i < m_text.length(); i++) {
@@ -184,6 +200,22 @@ void ValueDial::paintEvent(QPaintEvent*)
 	}
 }
 
+void ValueDial::mousePressEvent(QMouseEvent* event)
+{
+	int i;
+
+	i = (event->x() - 1) / m_digitWidth;
+	if(m_text[i] == QChar('.')) {
+		i++;
+		if(i > m_numDigits + m_numDecimalPoints)
+			return;
+	}
+	m_cursor = i;
+	m_cursorState = true;
+	m_blinkTimer.start(400);
+	update();
+}
+
 void ValueDial::mouseMoveEvent(QMouseEvent* event)
 {
 	int i;
@@ -204,11 +236,12 @@ void ValueDial::wheelEvent(QWheelEvent* event)
 		return;
 	if(m_text[m_hightlightedDigit] == QChar('.'))
 		return;
-	int d = (m_numDigits + m_numDecimalPoints) - m_hightlightedDigit;
-	d = d - (d / 4) - 1;
-	quint64 e = 1;
-	for(int i = 0; i < d; i++)
-		e *= 10;
+	if(m_cursor >= 0) {
+		m_cursor = -1;
+		m_blinkTimer.stop();
+		update();
+	}
+	quint64 e = findExponent(m_hightlightedDigit);
 
 	if(m_animationState == 0) {
 		if(event->delta() < 0) {
@@ -220,13 +253,7 @@ void ValueDial::wheelEvent(QWheelEvent* event)
 				m_valueNew = m_valueMax;
 			else m_valueNew = m_value + e;
 		}
-		if(m_valueNew < m_value)
-			m_animationState = 3;
-		else if(m_valueNew > m_value)
-			m_animationState = -3;
-		else return;
-		m_animationTimer.start(20);
-		m_textNew = formatText(m_valueNew);
+		setValue(m_valueNew);
 		emit changed(m_valueNew);
 	}
 }
@@ -239,7 +266,45 @@ void ValueDial::leaveEvent(QEvent*)
 	}
 }
 
-void ValueDial::tick()
+void ValueDial::keyPressEvent(QKeyEvent* value)
+{
+	if(m_cursor < 0)
+		return;
+
+	if((value->key() == Qt::Key_Return) || (value->key() == Qt::Key_Enter)) {
+		m_cursor = -1;
+		m_cursorState = false;
+		m_blinkTimer.stop();
+		update();
+		return;
+	}
+
+	if(value->text().length() != 1)
+		return;
+	QChar c = value->text()[0];
+	if(c >= QChar('0') && (c <= QChar('9'))) {
+		int d = c.toAscii() - '0';
+		quint64 e = findExponent(m_cursor);
+		quint64 v = m_value / e;
+		v %= 10;
+		v = m_value - v * e;
+		v += d * e;
+		setValue(v);
+		emit changed(m_valueNew);
+		m_cursor++;
+		if(m_text[m_cursor] == QChar('.'))
+		   m_cursor++;
+		if(m_cursor >= m_numDigits + m_numDecimalPoints) {
+			m_cursor = -1;
+			m_blinkTimer.stop();
+		} else {
+			m_cursorState = true;
+		}
+		update();
+	}
+}
+
+void ValueDial::animate()
 {
 	update();
 
@@ -252,5 +317,13 @@ void ValueDial::tick()
 		m_animationTimer.stop();
 		m_value = m_valueNew;
 		m_text = m_textNew;
+	}
+}
+
+void ValueDial::blink()
+{
+	if(m_cursor >= 0) {
+		m_cursorState = !m_cursorState;
+		update();
 	}
 }
