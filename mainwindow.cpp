@@ -273,4 +273,5 @@ void MainWindow::on_debug_clicked()
 void MainWindow::on_centerFrequency_changed(quint64 value)
 {
 	m_settings.setCenterFreq(value);
+	updateCenterFreqDisplay();
 }
