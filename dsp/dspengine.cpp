@@ -199,8 +199,11 @@ void DSPEngine::work()
 	if(m_settings.isModifiedIQSwap())
 		m_sampleSource->setIQSwap(m_settings.iqSwap());
 
-	if(m_settings.isModifiedDecimation())
+	if(m_settings.isModifiedDecimation()) {
 		m_sampleSource->setDecimation(m_settings.decimation());
+		m_sampleRate = 4000000 / (1 << m_settings.decimation());
+		qDebug("New rate: %d", m_sampleRate);
+	}
 
 	if(m_settings.isModifiedFFTSize() || m_settings.isModifiedFFTOverlap() || m_settings.isModifiedFFTWindow()) {
 		m_fftSize = m_settings.fftSize();
@@ -339,7 +342,7 @@ DSPEngine::State DSPEngine::gotoRunning()
 	m_fftOverlapSize = (m_fftSize * m_fftOverlap) / 100;
 	m_fftRefillSize = m_fftSize - m_fftOverlapSize;
 
-	if(!m_sampleFifo->setSize(2 * 250 * m_sampleRate / 1000))
+	if(!m_sampleFifo->setSize(2 * 500000))
 	   return gotoError("could not allocate SampleFifo");
 
 	if(!m_sampleSource->startInput(0, 4000000))
