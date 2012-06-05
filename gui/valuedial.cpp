@@ -69,9 +69,9 @@ void ValueDial::setValue(quint64 value)
 {
 	m_valueNew = value;
 	if(m_valueNew < m_value)
-		m_animationState = -3;
-	else if(m_valueNew > m_value)
 		m_animationState = 3;
+	else if(m_valueNew > m_value)
+		m_animationState = -3;
 	else return;
 	m_animationTimer.start(20);
 	m_textNew = formatText(m_valueNew);
@@ -144,8 +144,8 @@ void ValueDial::paintEvent(QPaintEvent*)
 			painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 1.4, m_text.mid(i, 1));
 			if(m_text[i] != QChar('.')) {
 				painter.setPen(QColor(0x00, 0x00, 0x00));
-				painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 0.1, digitNeigh(m_text[i], false));
-				painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 2.7, digitNeigh(m_text[i], true));
+				painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 0.1, digitNeigh(m_text[i], true));
+				painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 2.7, digitNeigh(m_text[i], false));
 			}
 			painter.setClipping(false);
 		}
@@ -165,8 +165,8 @@ void ValueDial::paintEvent(QPaintEvent*)
 					painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 1.4, m_text.mid(i, 1));
 					if(m_text[i] != QChar('.')) {
 						painter.setPen(QColor(0x00, 0x00, 0x00));
-						painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 0.1, digitNeigh(m_text[i], false));
-						painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 2.7, digitNeigh(m_text[i], true));
+						painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 0.1, digitNeigh(m_text[i], true));
+						painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 2.7, digitNeigh(m_text[i], false));
 					}
 				} else {
 					int h = 1 + m_digitHeight * 1.4 - m_digitHeight * m_animationState / 2;
@@ -175,8 +175,8 @@ void ValueDial::paintEvent(QPaintEvent*)
 					painter.drawText(1 + i * m_digitWidth, h, m_textNew.mid(i, 1));
 					if(m_text[i] != QChar('.')) {
 						painter.setPen(QColor(0x00, 0x00, 0x00));
-						painter.drawText(1 + i * m_digitWidth, h - m_digitHeight * 1.3, digitNeigh(m_textNew[i], false));
-						painter.drawText(1 + i * m_digitWidth, h + m_digitHeight * 1.3, digitNeigh(m_textNew[i], true));
+						painter.drawText(1 + i * m_digitWidth, h - m_digitHeight * 1.3, digitNeigh(m_textNew[i], true));
+						painter.drawText(1 + i * m_digitWidth, h + m_digitHeight * 1.3, digitNeigh(m_textNew[i], false));
 					}
 				}
 			}
@@ -221,9 +221,9 @@ void ValueDial::wheelEvent(QWheelEvent* event)
 			else m_valueNew = m_value + e;
 		}
 		if(m_valueNew < m_value)
-			m_animationState = -3;
-		else if(m_valueNew > m_value)
 			m_animationState = 3;
+		else if(m_valueNew > m_value)
+			m_animationState = -3;
 		else return;
 		m_animationTimer.start(20);
 		m_textNew = formatText(m_valueNew);
