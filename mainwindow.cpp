@@ -104,6 +104,7 @@ void MainWindow::updateSampleRate()
 	ui->glSpectrum->setSampleRate(m_sampleRate);
 	ui->freqDown->setText(tr("-%1k").arg(m_sampleRate / 1000 / 5));
 	ui->freqUp->setText(tr("+%1k").arg(m_sampleRate / 1000 / 5));
+	ui->sampleRate->setText(tr("%1k").arg((float)m_sampleRate / 1000));
 }
 
 void MainWindow::updateStatus()
