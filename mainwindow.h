@@ -61,13 +61,6 @@ private slots:
 	void updateStatus();
 	void on_action_Start_triggered();
 	void on_action_Stop_triggered();
-	void on_freqDown_clicked();
-	void on_freqDown2_clicked();
-	void on_freqDown3_clicked();
-	void on_freqUp_clicked();
-	void on_freqUp2_clicked();
-	void on_freqUp3_clicked();
-	void on_freqSet_clicked();
 	void on_fftSize_currentIndexChanged(const QString& str);
 	void on_fftWindow_currentIndexChanged(int index);
 	void on_iqSwap_toggled(bool checked);

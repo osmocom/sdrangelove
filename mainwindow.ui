@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>936</width>
-    <height>676</height>
+    <width>934</width>
+    <height>674</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,7 +33,7 @@
       <property name="spacing">
        <number>0</number>
       </property>
-      <item row="2" column="8">
+      <item row="2" column="6">
        <widget class="QLabel" name="label_5">
         <property name="text">
          <string>Mixer</string>
@@ -43,7 +43,7 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="8">
+      <item row="4" column="6">
        <widget class="QLabel" name="label_6">
         <property name="text">
          <string>MixerEnh</string>
@@ -53,7 +53,7 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="5">
+      <item row="1" column="3">
        <widget class="QComboBox" name="fftSize">
         <item>
          <property name="text">
@@ -88,55 +88,6 @@
        </widget>
       </item>
       <item row="2" column="3">
-       <widget class="QPushButton" name="freqUp2">
-        <property name="text">
-         <string>+500k</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QPushButton" name="freqDown">
-        <property name="text">
-         <string>-100k</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="2">
-       <widget class="QPushButton" name="freqDown3">
-        <property name="text">
-         <string>-1M</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QPushButton" name="freqSet">
-        <property name="text">
-         <string>Enter...</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="3">
-       <widget class="QPushButton" name="freqUp">
-        <property name="text">
-         <string>+100k</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="2">
-       <widget class="QPushButton" name="freqDown2">
-        <property name="text">
-         <string>-500k</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="3">
-       <widget class="QPushButton" name="freqUp3">
-        <property name="text">
-         <string>+1M</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="5">
        <widget class="QComboBox" name="fftWindow">
         <item>
          <property name="text">
@@ -170,7 +121,7 @@
         </item>
        </widget>
       </item>
-      <item row="2" column="12">
+      <item row="2" column="10">
        <widget class="QLabel" name="label_21">
         <property name="text">
          <string>IF5</string>
@@ -180,7 +131,7 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="6">
+      <item row="1" column="4">
        <widget class="QLabel" name="label_3">
         <property name="text">
          <string>Dec</string>
@@ -190,7 +141,7 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="4">
+      <item row="2" column="2">
        <widget class="QLabel" name="label_2">
         <property name="text">
          <string>Window</string>
@@ -200,14 +151,14 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="5">
+      <item row="4" column="3">
        <widget class="QCheckBox" name="iqSwap">
         <property name="text">
          <string>Swap I/Q</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="4">
+      <item row="1" column="2">
        <widget class="QLabel" name="label">
         <property name="text">
          <string>FFT</string>
@@ -217,7 +168,7 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="7">
+      <item row="1" column="5">
        <widget class="QComboBox" name="decimation">
         <item>
          <property name="text">
@@ -246,7 +197,7 @@
         </item>
        </widget>
       </item>
-      <item row="1" column="9">
+      <item row="1" column="7">
        <widget class="QComboBox" name="e4000LNAGain">
         <item>
          <property name="text">
@@ -325,7 +276,7 @@
         </item>
        </widget>
       </item>
-      <item row="4" column="9">
+      <item row="4" column="7">
        <widget class="QComboBox" name="e4000MixerEnh">
         <item>
          <property name="text">
@@ -354,7 +305,7 @@
         </item>
        </widget>
       </item>
-      <item row="2" column="9">
+      <item row="2" column="7">
        <widget class="QComboBox" name="e4000MixerGain">
         <item>
          <property name="text">
@@ -368,7 +319,7 @@
         </item>
        </widget>
       </item>
-      <item row="1" column="8">
+      <item row="1" column="6">
        <widget class="QLabel" name="label_4">
         <property name="text">
          <string>LNA</string>
@@ -378,7 +329,7 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="10">
+      <item row="1" column="8">
        <widget class="QLabel" name="label_7">
         <property name="text">
          <string>IF1</string>
@@ -388,7 +339,7 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="10">
+      <item row="2" column="8">
        <widget class="QLabel" name="label_8">
         <property name="text">
          <string>IF2</string>
@@ -411,7 +362,7 @@
         </property>
        </spacer>
       </item>
-      <item row="4" column="10">
+      <item row="4" column="8">
        <widget class="QLabel" name="label_9">
         <property name="text">
          <string>IF3</string>
@@ -421,7 +372,7 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="11">
+      <item row="1" column="9">
        <widget class="QComboBox" name="e4000if1">
         <item>
          <property name="text">
@@ -435,7 +386,7 @@
         </item>
        </widget>
       </item>
-      <item row="2" column="11">
+      <item row="2" column="9">
        <widget class="QComboBox" name="e4000if2">
         <item>
          <property name="text">
@@ -459,7 +410,7 @@
         </item>
        </widget>
       </item>
-      <item row="4" column="11">
+      <item row="4" column="9">
        <widget class="QComboBox" name="e4000if3">
         <item>
          <property name="text">
@@ -483,7 +434,7 @@
         </item>
        </widget>
       </item>
-      <item row="1" column="12">
+      <item row="1" column="10">
        <widget class="QLabel" name="label_10">
         <property name="text">
          <string>IF4</string>
@@ -493,7 +444,7 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="12">
+      <item row="4" column="10">
        <widget class="QLabel" name="label_22">
         <property name="text">
          <string>IF6</string>
@@ -503,7 +454,7 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="13">
+      <item row="1" column="11">
        <widget class="QComboBox" name="e4000if4">
         <item>
          <property name="text">
@@ -522,7 +473,7 @@
         </item>
        </widget>
       </item>
-      <item row="2" column="13">
+      <item row="2" column="11">
        <widget class="QComboBox" name="e4000if5">
         <item>
          <property name="text">
@@ -551,7 +502,7 @@
         </item>
        </widget>
       </item>
-      <item row="4" column="13">
+      <item row="4" column="11">
        <widget class="QComboBox" name="e4000if6">
         <item>
          <property name="text">
@@ -580,7 +531,7 @@
         </item>
        </widget>
       </item>
-      <item row="1" column="14">
+      <item row="1" column="12">
        <spacer name="horizontalSpacer_2">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -593,27 +544,26 @@
         </property>
        </spacer>
       </item>
-      <item row="1" column="1" rowspan="2">
+      <item row="1" column="1" rowspan="4">
        <widget class="ValueDial" name="centerFrequency" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>32</width>
+          <height>16</height>
+         </size>
+        </property>
         <property name="font">
          <font>
           <family>Monospace</family>
-          <pointsize>16</pointsize>
+          <pointsize>20</pointsize>
          </font>
         </property>
-       </widget>
-      </item>
-      <item row="4" column="14">
-       <widget class="QLabel" name="label_13">
-        <property name="text">
-         <string>Fs</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        <property name="focusPolicy">
+         <enum>Qt::StrongFocus</enum>
         </property>
        </widget>
       </item>
-      <item row="2" column="6">
+      <item row="2" column="4">
        <widget class="QLabel" name="label_11">
         <property name="text">
          <string>Fs</string>
@@ -623,7 +573,7 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="7">
+      <item row="2" column="5">
        <widget class="QLabel" name="sampleRate">
         <property name="text">
          <string>0k</string>
@@ -642,7 +592,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>936</width>
+     <width>934</width>
      <height>21</height>
     </rect>
    </property>
@@ -730,6 +680,22 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>centerFrequency</tabstop>
+  <tabstop>fftSize</tabstop>
+  <tabstop>fftWindow</tabstop>
+  <tabstop>iqSwap</tabstop>
+  <tabstop>decimation</tabstop>
+  <tabstop>e4000LNAGain</tabstop>
+  <tabstop>e4000MixerGain</tabstop>
+  <tabstop>e4000MixerEnh</tabstop>
+  <tabstop>e4000if1</tabstop>
+  <tabstop>e4000if2</tabstop>
+  <tabstop>e4000if3</tabstop>
+  <tabstop>e4000if4</tabstop>
+  <tabstop>e4000if5</tabstop>
+  <tabstop>e4000if6</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

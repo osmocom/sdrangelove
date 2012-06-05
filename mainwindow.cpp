@@ -15,7 +15,6 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QInputDialog>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "gui/indicator.h"
@@ -40,7 +39,7 @@ MainWindow::MainWindow(QWidget* parent) :
 
 	statusBar()->showMessage("Welcome to SDRangelove", 3000);
 
-	ui->centerFrequency->setValueRange(0, 2200000000U);
+	ui->centerFrequency->setValueRange(20000000U, 2200000000U);
 
 	for(int i = 0; i < ui->fftSize->count(); i++) {
 		if(ui->fftSize->itemText(i).toInt() == m_settings.fftSize()) {
@@ -102,8 +101,6 @@ void MainWindow::updateSampleRate()
 {
 	m_sampleRate = 4000000 / (1 << m_settings.decimation());
 	ui->glSpectrum->setSampleRate(m_sampleRate);
-	ui->freqDown->setText(tr("-%1k").arg(m_sampleRate / 1000 / 5));
-	ui->freqUp->setText(tr("+%1k").arg(m_sampleRate / 1000 / 5));
 	ui->sampleRate->setText(tr("%1k").arg((float)m_sampleRate / 1000));
 }
 
@@ -151,51 +148,6 @@ void MainWindow::on_action_Start_triggered()
 void MainWindow::on_action_Stop_triggered()
 {
 	m_dspEngine.stopAcquistion();
-}
-
-void MainWindow::on_freqDown_clicked()
-{
-	m_settings.setCenterFreq(m_settings.centerFreq() - m_sampleRate / 5);
-	updateCenterFreqDisplay();
-}
-
-void MainWindow::on_freqDown2_clicked()
-{
-	m_settings.setCenterFreq(m_settings.centerFreq() - 500000);
-	updateCenterFreqDisplay();
-}
-
-void MainWindow::on_freqDown3_clicked()
-{
-	m_settings.setCenterFreq(m_settings.centerFreq() - 1000000);
-	updateCenterFreqDisplay();
-}
-
-void MainWindow::on_freqUp_clicked()
-{
-	m_settings.setCenterFreq(m_settings.centerFreq() + m_sampleRate / 5);
-	updateCenterFreqDisplay();
-}
-
-void MainWindow::on_freqUp2_clicked()
-{
-	m_settings.setCenterFreq(m_settings.centerFreq() + 500000);
-	updateCenterFreqDisplay();
-}
-
-void MainWindow::on_freqUp3_clicked()
-{
-	m_settings.setCenterFreq(m_settings.centerFreq() + 1000000);
-	updateCenterFreqDisplay();
-}
-
-void MainWindow::on_freqSet_clicked()
-{
-	bool ok;
-	int freq = QInputDialog::getInt(this, tr("Frequency in kHz"), tr("kHz"), m_settings.centerFreq() / 1000, 0, INT_MAX, 250, &ok);
-	if(ok)
-		m_settings.setCenterFreq((quint64)freq * 1000);
-	updateCenterFreqDisplay();
 }
 
 void MainWindow::on_fftSize_currentIndexChanged(const QString& str)
