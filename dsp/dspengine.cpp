@@ -130,7 +130,7 @@ void DSPEngine::run()
 
 			case StRunning:
 				work();
-				msleep(20);
+				msleep(5);
 				break;
 
 			case StError:
