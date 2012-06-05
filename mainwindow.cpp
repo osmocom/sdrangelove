@@ -40,6 +40,8 @@ MainWindow::MainWindow(QWidget* parent) :
 
 	statusBar()->showMessage("Welcome to SDRangelove", 3000);
 
+	ui->centerFrequency->setValueRange(0, 2200000000U);
+
 	for(int i = 0; i < ui->fftSize->count(); i++) {
 		if(ui->fftSize->itemText(i).toInt() == m_settings.fftSize()) {
 			ui->fftSize->setCurrentIndex(i);
@@ -68,6 +70,8 @@ MainWindow::MainWindow(QWidget* parent) :
 
 MainWindow::~MainWindow()
 {
+	m_dspEngine.stop();
+
 	m_settings.save();
 	delete ui;
 }
@@ -90,7 +94,7 @@ void MainWindow::createStatusBar()
 void MainWindow::updateCenterFreqDisplay()
 {
 	qint64 freq = m_settings.centerFreq();
-	ui->centerFreq->setText(QString("%1 kHz").arg(freq / 1000));
+	ui->centerFrequency->setValue(freq);
 	ui->glSpectrum->setCenterFrequency(freq);
 }
 
@@ -259,4 +263,14 @@ void MainWindow::on_e4000if5_currentIndexChanged(int index)
 void MainWindow::on_e4000if6_currentIndexChanged(int index)
 {
 	m_settings.setE4000if6((index + 1) * 30);
+}
+
+void MainWindow::on_debug_clicked()
+{
+	m_dspEngine.debug();
+}
+
+void MainWindow::on_centerFrequency_changed(quint64 value)
+{
+	m_settings.setCenterFreq(value);
 }

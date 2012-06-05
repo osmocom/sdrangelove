@@ -81,6 +81,8 @@ private slots:
 	void on_e4000if4_currentIndexChanged(int index);
 	void on_e4000if5_currentIndexChanged(int index);
 	void on_e4000if6_currentIndexChanged(int index);
+	void on_debug_clicked();
+	void on_centerFrequency_changed(quint64 value);
 };
 
 #endif // INCLUDE_MAINWINDOW_H

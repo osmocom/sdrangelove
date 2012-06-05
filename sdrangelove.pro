@@ -39,7 +39,8 @@ SOURCES += main.cpp\
 	gui/scale.cpp \
     dsp/nco.cpp \
     gui/glspectrum.cpp \
-    gui/scaleengine.cpp
+    gui/scaleengine.cpp \
+    gui/valuedial.cpp
 
 HEADERS  += mainwindow.h \
 	hardware/samplefifo.h \
@@ -56,7 +57,8 @@ HEADERS  += mainwindow.h \
 	gui/physicalunit.h \
     dsp/nco.h \
     gui/glspectrum.h \
-    gui/scaleengine.h
+    gui/scaleengine.h \
+    gui/valuedial.h
 
 FORMS    += mainwindow.ui
 
