@@ -211,7 +211,7 @@ void ValueDial::wheelEvent(QWheelEvent* event)
 		e *= 10;
 
 	if(m_animationState == 0) {
-		if(event->delta() > 0) {
+		if(event->delta() < 0) {
 			if(m_value < e)
 				m_valueNew = m_valueMin;
 			else m_valueNew = m_value - e;
