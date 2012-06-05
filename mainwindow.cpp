@@ -265,11 +265,6 @@ void MainWindow::on_e4000if6_currentIndexChanged(int index)
 	m_settings.setE4000if6((index + 1) * 30);
 }
 
-void MainWindow::on_debug_clicked()
-{
-	m_dspEngine.debug();
-}
-
 void MainWindow::on_centerFrequency_changed(quint64 value)
 {
 	m_settings.setCenterFreq(value);
