@@ -268,25 +268,82 @@ void ValueDial::leaveEvent(QEvent*)
 
 void ValueDial::keyPressEvent(QKeyEvent* value)
 {
+	if(m_cursor >= 0) {
+		if((value->key() == Qt::Key_Return) || (value->key() == Qt::Key_Enter)) {
+			m_cursor = -1;
+			m_cursorState = false;
+			m_blinkTimer.stop();
+			update();
+			return;
+		}
+	}
+
+	if((m_cursor < 0) && (m_hightlightedDigit >= 0)) {
+		m_cursor = m_hightlightedDigit;
+		if(m_text[m_cursor] == QChar('.'))
+		   m_cursor++;
+		if(m_cursor >= m_numDigits + m_numDecimalPoints)
+			return;
+		m_cursorState = true;
+		m_blinkTimer.start(400);
+		update();
+	}
+
 	if(m_cursor < 0)
 		return;
 
-	if((value->key() == Qt::Key_Return) || (value->key() == Qt::Key_Enter)) {
-		m_cursor = -1;
-		m_cursorState = false;
-		m_blinkTimer.stop();
-		update();
-		return;
+	if((value->key() == Qt::Key_Left) || (value->key() == Qt::Key_Backspace)) {
+		if(m_cursor > 0) {
+			m_cursor--;
+			if(m_text[m_cursor] == QChar('.'))
+				m_cursor--;
+			if(m_cursor < 0)
+				m_cursor++;
+			m_cursorState = true;
+			update();
+			return;
+		}
+	} else if(value->key() == Qt::Key_Right) {
+		if(m_cursor < m_numDecimalPoints + m_numDigits) {
+			m_cursor++;
+			if(m_text[m_cursor] == QChar('.'))
+				m_cursor++;
+			if(m_cursor >= m_numDecimalPoints + m_numDigits)
+				m_cursor--;
+			m_cursorState = true;
+			update();
+			return;
+		}
+	} else if(value->key() == Qt::Key_Up) {
+		quint64 e = findExponent(m_cursor);
+		if(m_animationState != 0)
+			m_value = m_valueNew;
+		if(m_valueMax - m_value < e)
+			m_valueNew = m_valueMax;
+		else m_valueNew = m_value + e;
+		setValue(m_valueNew);
+		emit changed(m_valueNew);
+	} else if(value->key() == Qt::Key_Down) {
+		quint64 e = findExponent(m_cursor);
+		if(m_animationState != 0)
+			m_value = m_valueNew;
+		if(m_value < e)
+			m_valueNew = m_valueMin;
+		else m_valueNew = m_value - e;
+		setValue(m_valueNew);
+		emit changed(m_valueNew);
 	}
 
 	if(value->text().length() != 1)
 		return;
 	QChar c = value->text()[0];
+
 	if(c >= QChar('0') && (c <= QChar('9'))) {
 		int d = c.toAscii() - '0';
 		quint64 e = findExponent(m_cursor);
-		quint64 v = m_value / e;
-		v %= 10;
+		quint64 v = (m_value / e) % 10;
+		if(m_animationState != 0)
+			m_value = m_valueNew;
 		v = m_value - v * e;
 		v += d * e;
 		setValue(v);
