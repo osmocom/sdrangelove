@@ -181,8 +181,8 @@ void DSPEngine::work()
 			Real v = sqrt(c.real() * c.real() + c.imag() * c.imag());
 			v /= (Real)m_fftSize;
 			v = 20.0 * log10(v);
-			if(v < -96.0)
-				v = -96.0;
+			if(v < -99.0)
+				v = -99.0;
 			else if(v > 0.0)
 				v = 0.0;
 			m_logPowerSpectrum[i] = v;
