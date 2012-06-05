@@ -1,0 +1,256 @@
+///////////////////////////////////////////////////////////////////////////////////
+// Copyright (C) 2012 maintech GmbH, Otto-Hahn-Str. 15, 97204 Hoechberg, Germany //
+// written by Christian Daniel                                                   //
+//                                                                               //
+// This program is free software; you can redistribute it and/or modify          //
+// it under the terms of the GNU General Public License as published by          //
+// the Free Software Foundation as version 3 of the License, or                  //
+//                                                                               //
+// This program is distributed in the hope that it will be useful,               //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of                //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the                  //
+// GNU General Public License V3 for more details.                               //
+//                                                                               //
+// You should have received a copy of the GNU General Public License             //
+// along with this program. If not, see <http://www.gnu.org/licenses/>.          //
+///////////////////////////////////////////////////////////////////////////////////
+
+#include <QPainter>
+#include <QMouseEvent>
+#include <QWheelEvent>
+#include "valuedial.h"
+
+ValueDial::ValueDial(QWidget* parent) :
+	QWidget(parent),
+	m_animationState(0)
+{
+	setAutoFillBackground(false);
+	setAttribute(Qt::WA_OpaquePaintEvent, true);
+	setAttribute(Qt::WA_NoSystemBackground, true);
+	setMouseTracking(true);
+
+	m_background.setStart(0, 0);
+	m_background.setFinalStop(0, 1);
+	m_background.setCoordinateMode(QGradient::ObjectBoundingMode);
+
+	m_background.setColorAt(0.0, QColor(0x40, 0x40, 0x40));
+	m_background.setColorAt(0.1, QColor(0xc0, 0xc0, 0xc0));
+	m_background.setColorAt(0.2, QColor(0xf0, 0xf0, 0xf0));
+	m_background.setColorAt(0.5, QColor(0xff, 0xff, 0xff));
+	m_background.setColorAt(0.8, QColor(0xd0, 0xd0, 0xd0));
+	m_background.setColorAt(0.9, QColor(0xa0, 0xa0, 0xa0));
+	m_background.setColorAt(1.0, QColor(0x40, 0x40, 0x40));
+
+	m_value =  0;
+	m_valueMin = 0;
+	m_valueMax = 2200000;
+	m_numDigits = 10;
+	m_numDecimalPoints = m_numDigits / 3;
+	m_cursor = 3;
+
+	m_hightlightedDigit = -1;
+	m_text = formatText(m_value);
+
+	connect(&m_animationTimer, SIGNAL(timeout()), this, SLOT(tick()));
+}
+
+void ValueDial::setFont(const QFont& font)
+{
+	QWidget::setFont(font);
+
+	QFontMetrics fm(font);
+	m_digitWidth = fm.width('0');
+	m_digitHeight = fm.ascent();
+	setFixedWidth((m_numDigits + m_numDecimalPoints) * m_digitWidth + 2);
+	setFixedHeight(m_digitHeight * 2 + 2);
+}
+
+void ValueDial::setValue(quint64 value)
+{
+	m_valueNew = value;
+	if(m_valueNew < m_value)
+		m_animationState = -3;
+	else if(m_valueNew > m_value)
+		m_animationState = 3;
+	else return;
+	m_animationTimer.start(20);
+	m_textNew = formatText(m_valueNew);
+}
+
+void ValueDial::setValueRange(quint64 min, quint64 max)
+{
+	m_valueMin = min;
+	m_valueMax = max;
+
+	if(m_value < min)
+		setValue(min);
+	else if(m_value > max)
+		setValue(max);
+}
+
+QChar ValueDial::digitNeigh(QChar c, bool dir)
+{
+	if(dir) {
+		if(c == QChar('0'))
+			return QChar('9');
+		else return QChar::fromAscii(c.toAscii() - 1);
+	} else {
+		if(c == QChar('9'))
+			return QChar('0');
+		else return QChar::fromAscii(c.toAscii() + 1);
+	}
+}
+
+QString ValueDial::formatText(quint64 value)
+{
+	QString str = QString("%1").arg(value, m_numDigits, 10, QChar('0'));
+	for(int i = 0; i < m_numDecimalPoints; i++)
+		str.insert(m_numDigits - 3 - 3 * i, ".");
+	return str;
+}
+
+void ValueDial::paintEvent(QPaintEvent*)
+{
+	QPainter painter(this);
+
+	painter.setPen(Qt::black);
+	painter.setBrush(m_background);
+
+	painter.drawRect(0, 0, width() - 1, height() - 1);
+
+	painter.setPen(QColor(0x20, 0x20, 0x20));
+	painter.setBrush(Qt::NoBrush);
+	for(int i = 1; i < m_numDigits + m_numDecimalPoints; i++) {
+		painter.setPen(QColor(0x20, 0x20, 0x20));
+		painter.drawLine(1 + i * m_digitWidth, 1, 1 + i * m_digitWidth, height() - 1);
+		painter.setPen(QColor(0x00, 0x00, 0x00, 0x20));
+		painter.drawLine(0 + i * m_digitWidth, 1, 0 + i * m_digitWidth, height() - 1);
+		painter.drawLine(2 + i * m_digitWidth, 1, 2 + i * m_digitWidth, height() - 1);
+	}
+	painter.setPen(QColor(0x00, 0x00, 0x00, 0x20));
+	painter.drawLine(1, 1, 1, height() - 1);
+	painter.drawLine(width() - 2, 1, width() - 2, height() - 1);
+
+	if(m_hightlightedDigit >= 0) {
+		painter.setPen(Qt::NoPen);
+		painter.setBrush(QColor(0xff, 0x00, 0x00, 0x20));
+		painter.drawRect(2 + m_hightlightedDigit * m_digitWidth, 1, m_digitWidth - 1, height() - 1);
+	}
+
+	if(m_animationState == 0) {
+		for(int i = 0; i < m_text.length(); i++) {
+			painter.setClipRect(1 + i * m_digitWidth, 1, m_digitWidth, m_digitHeight * 2);
+			painter.setPen(QColor(0x10, 0x10, 0x10));
+			painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 1.4, m_text.mid(i, 1));
+			if(m_text[i] != QChar('.')) {
+				painter.setPen(QColor(0x00, 0x00, 0x00));
+				painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 0.1, digitNeigh(m_text[i], false));
+				painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 2.7, digitNeigh(m_text[i], true));
+			}
+			painter.setClipping(false);
+		}
+/*
+		if(m_cursor >= 0) {
+			painter.setPen(Qt::NoPen);
+			painter.setBrush(QColor(0x10, 0x10, 0x10));
+			painter.drawRect(4 + m_cursor * m_digitWidth, 1 + m_digitHeight * 1.5, m_digitWidth - 5, m_digitHeight / 6);
+		}
+*/
+	} else {
+		if(m_animationState != 0) {
+			for(int i = 0; i < m_text.length(); i++) {
+				if(m_text[i] == m_textNew[i]) {
+					painter.setClipRect(1 + i * m_digitWidth, 1, m_digitWidth, m_digitHeight * 2);
+					painter.setPen(QColor(0x10, 0x10, 0x10));
+					painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 1.4, m_text.mid(i, 1));
+					if(m_text[i] != QChar('.')) {
+						painter.setPen(QColor(0x00, 0x00, 0x00));
+						painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 0.1, digitNeigh(m_text[i], false));
+						painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 2.7, digitNeigh(m_text[i], true));
+					}
+				} else {
+					int h = 1 + m_digitHeight * 1.4 - m_digitHeight * m_animationState / 2;
+					painter.setClipRect(1 + i * m_digitWidth, 1, m_digitWidth, m_digitHeight * 2);
+					painter.setPen(QColor(0x10, 0x10, 0x10));
+					painter.drawText(1 + i * m_digitWidth, h, m_textNew.mid(i, 1));
+					if(m_text[i] != QChar('.')) {
+						painter.setPen(QColor(0x00, 0x00, 0x00));
+						painter.drawText(1 + i * m_digitWidth, h - m_digitHeight * 1.3, digitNeigh(m_textNew[i], false));
+						painter.drawText(1 + i * m_digitWidth, h + m_digitHeight * 1.3, digitNeigh(m_textNew[i], true));
+					}
+				}
+			}
+		}
+	}
+}
+
+void ValueDial::mouseMoveEvent(QMouseEvent* event)
+{
+	int i;
+
+	i = (event->x() - 1) / m_digitWidth;
+	if(m_text[i] == QChar('.'))
+		i = -1;
+
+	if(i != m_hightlightedDigit) {
+		m_hightlightedDigit = i;
+		update();
+	}
+}
+
+void ValueDial::wheelEvent(QWheelEvent* event)
+{
+	if(m_hightlightedDigit < 0)
+		return;
+	if(m_text[m_hightlightedDigit] == QChar('.'))
+		return;
+	int d = (m_numDigits + m_numDecimalPoints) - m_hightlightedDigit;
+	d = d - (d / 4) - 1;
+	quint64 e = 1;
+	for(int i = 0; i < d; i++)
+		e *= 10;
+
+	if(m_animationState == 0) {
+		if(event->delta() > 0) {
+			if(m_value < e)
+				m_valueNew = m_valueMin;
+			else m_valueNew = m_value - e;
+		} else {
+			if(m_valueMax - m_value < e)
+				m_valueNew = m_valueMax;
+			else m_valueNew = m_value + e;
+		}
+		if(m_valueNew < m_value)
+			m_animationState = -3;
+		else if(m_valueNew > m_value)
+			m_animationState = 3;
+		else return;
+		m_animationTimer.start(20);
+		m_textNew = formatText(m_valueNew);
+		emit changed(m_valueNew);
+	}
+}
+
+void ValueDial::leaveEvent(QEvent*)
+{
+	if(m_hightlightedDigit != -1) {
+		m_hightlightedDigit = -1;
+		update();
+	}
+}
+
+void ValueDial::tick()
+{
+	update();
+
+	if(m_animationState > 0)
+		m_animationState--;
+	else if(m_animationState < 0)
+		m_animationState++;
+
+	if(m_animationState == 0) {
+		m_animationTimer.stop();
+		m_value = m_valueNew;
+		m_text = m_textNew;
+	}
+}
