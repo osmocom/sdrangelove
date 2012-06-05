@@ -177,7 +177,7 @@ void DSPEngine::work()
 
 		// extract power spectrum and reorder buckets
 		for(int i = 0; i < m_fftSize; i++) {
-			Complex c = m_fftOut[((i + m_fftOut.size() / 2) % m_fftOut.size())];
+			Complex c = m_fftOut[((i + (m_fftOut.size() >> 1)) & (m_fftOut.size() - 1))];
 			Real v = sqrt(c.real() * c.real() + c.imag() * c.imag());
 			v /= (Real)m_fftSize;
 			v = 20.0 * log10(v);
