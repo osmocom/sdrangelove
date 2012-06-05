@@ -43,6 +43,8 @@ GLSpectrum::GLSpectrum(QWidget* parent) :
 
 	setMinimumHeight(300);
 
+	m_waterfallShare = 0.7;
+
 	for(int i = 0; i <= 239; i++) {
 		 QColor c;
 		 c.setHsv(239 - i, 255, 15 + i);
@@ -82,8 +84,6 @@ GLSpectrum::GLSpectrum(QWidget* parent) :
 
 	connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
 	m_timer.start(50);
-
-	m_waterfallHeight = height() * 0.7;
 }
 
 GLSpectrum::~GLSpectrum()
@@ -444,6 +444,7 @@ void GLSpectrum::applyChanges()
 	m_topMargin = fm.ascent() * 1.5;
 	m_bottomMargin = fm.ascent() * 1.5;
 
+	m_waterfallHeight = height() * m_waterfallShare;
 	if(m_waterfallHeight < 0)
 		m_waterfallHeight = 0;
 	m_frequencyScaleHeight = fm.height() * 2;
@@ -601,14 +602,14 @@ void GLSpectrum::applyChanges()
 void GLSpectrum::mouseMoveEvent(QMouseEvent* event)
 {
 	if(m_cursorState == CSSplitterMoving) {
-		int d = event->y() - m_splitterRef;
-		if(m_waterfallHeight + d > 50)
-			m_waterfallHeight += d;
-		m_frequencyScaleTop = m_topMargin + m_waterfallHeight;
-		m_histogramTop = m_topMargin + m_waterfallHeight + m_frequencyScaleHeight;
+		Real newShare = (Real)(event->y() - m_bottomMargin - m_topMargin) / (Real)height();
+		if(newShare < 0.1)
+			newShare = 0.1;
+		else if(newShare > 0.8)
+			newShare = 0.8;
+		m_waterfallShare = newShare;
 		m_changesPending = true;
 		update();
-		m_splitterRef = event->y();
 		return;
 	}
 
@@ -632,13 +633,12 @@ void GLSpectrum::mousePressEvent(QMouseEvent* event)
 		return;
 
 	if(m_cursorState == CSSplitter) {
-		m_splitterRef = event->y();
 		grabMouse();
 		m_cursorState = CSSplitterMoving;
 	}
 }
 
-void GLSpectrum::mouseReleaseEvent(QMouseEvent* event)
+void GLSpectrum::mouseReleaseEvent(QMouseEvent*)
 {
 	if(m_cursorState == CSSplitterMoving) {
 		releaseMouse();

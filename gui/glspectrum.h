@@ -43,7 +43,6 @@ private:
 	};
 
 	CursorState m_cursorState;
-	int m_splitterRef;
 
 	QTimer m_timer;
 	QMutex m_mutex;
@@ -54,6 +53,7 @@ private:
 
 	int m_fftSize;
 
+	Real m_waterfallShare;
 	int m_waterfallHeight;
 	int m_frequencyScaleTop;
 	int m_frequencyScaleHeight;
