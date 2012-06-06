@@ -32,6 +32,8 @@ DSPEngine::DSPEngine(Settings* settings, QObject* parent) :
 	m_fftOverlap(30),
 	m_iOfs(0),
 	m_qOfs(0),
+	m_iRange(1),
+	m_qRange(1),
 	m_waterfall(NULL),
 	m_spectroHistogram(NULL),
 	m_glSpectrum(NULL)
@@ -113,6 +115,10 @@ void DSPEngine::run()
 void DSPEngine::work()
 {
 	int count = 0;
+	Real iMin = 0;
+	Real iMax = 0;
+	Real qMin = 0;
+	Real qMax = 0;
 
 	while((m_sampleFifo->fill() > 2 * m_fftRefillSize) && (m_state == m_nextState) && (count < m_sampleRate)) {
 		// advance buffer respecting the fft overlap factor
@@ -124,7 +130,22 @@ void DSPEngine::work()
 		const qint16* s = &m_fftSamples[0];
 		for(int i = m_fftOverlapSize; i < m_fftSize; i++) {
 			Real j = (*s++) / 32768.0f - m_iOfs;
-			Real q = (*s++) / 32768.0f - m_qOfs;
+			Real q = ((*s++) / 32768.0f - m_qOfs) * m_imbalance;
+			if(i == m_fftOverlapSize) {
+				iMin = j;
+				iMax = j;
+				qMin = q;
+				qMax = q;
+			} else {
+				if(j < iMin)
+					iMin = j;
+				else if(j > iMax)
+					iMax = j;
+				if(q < qMin)
+					qMin = q;
+				else if(q > qMax)
+					qMax = q;
+			}
 			m_fftPreWindow[i] = Complex(j, q);
 		}
 
@@ -136,14 +157,17 @@ void DSPEngine::work()
 
 		// update DC offset
 		{
-			const Complex& c = m_fftOut[0] / (Real)m_fftSize;
-			if((fabs(m_iOfs - c.real()) > 0.001) || (fabs(m_qOfs - c.imag()) > 0.001))  {
-				m_iOfs = m_iOfs * 0.995 + (m_iOfs + c.real()) * 0.005;
-				m_qOfs = m_qOfs * 0.995 + (m_qOfs + c.imag()) * 0.005;
-			} else {
-				m_iOfs = m_iOfs * 0.999995 + (m_iOfs + c.real()) * 0.000005;
-				m_qOfs = m_qOfs * 0.999995 + (m_qOfs + c.imag()) * 0.000005;
-			}
+			const Complex& c = m_fftOut[0] /*/ (Real)m_fftSize*/ ;
+			if(!isnan(c.real()))
+				m_iOfs = m_iOfs * 0.999 + c.real() * 0.001;
+			if(!isnan(c.imag()))
+				m_qOfs = m_qOfs * 0.999 + c.imag() * 0.001;
+		}
+		// update I/Q imbalance
+		{
+			m_iRange = m_iRange * 0.999 + (iMax - iMin) * 0.001;
+			m_qRange = m_qRange * 0.999 + (qMax - qMin) * 0.001;
+			m_imbalance = m_iRange / m_qRange;
 		}
 
 		// extract power spectrum and reorder buckets

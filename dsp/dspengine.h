@@ -85,6 +85,9 @@ private:
 
 	Real m_iOfs;
 	Real m_qOfs;
+	Real m_iRange;
+	Real m_qRange;
+	Real m_imbalance;
 
 	Waterfall* m_waterfall;
 	SpectroHistogram* m_spectroHistogram;
