@@ -102,42 +102,12 @@ QString DSPEngine::errorMsg()
 
 void DSPEngine::run()
 {
-	static const char* stateNames[4] = {
-		"StNotRunning", "StIdle", "StRunning", "StError"
-	};
-
 	m_ready = createMembers();
 
 	m_state = StIdle;
 	m_stateWaiter.wakeAll();
 
-	while(m_state != StNotStarted) {
-		if(m_state != m_nextState) {
-			changeState();
-			m_nextState = m_state;
-			m_stateWaiter.wakeAll();
-
-			qDebug("new state: %d: %s", m_state, stateNames[m_state]);
-		}
-
-		switch(m_state) {
-			case StNotStarted:
-				return;
-
-			case StIdle:
-				msleep(250);
-				break;
-
-			case StRunning:
-				work();
-				msleep(5);
-				break;
-
-			case StError:
-				msleep(250);
-				break;
-		}
-	}
+	exec();
 }
 
 void DSPEngine::work()
@@ -164,6 +134,7 @@ void DSPEngine::work()
 		// calculate FFT
 		m_fft.transform(&m_fftIn[0], &m_fftOut[0]);
 
+		// update DC offset
 		{
 			const Complex& c = m_fftOut[0] / (Real)m_fftSize;
 			if((fabs(m_iOfs - c.real()) > 0.001) || (fabs(m_qOfs - c.imag()) > 0.001))  {
@@ -195,7 +166,11 @@ void DSPEngine::work()
 
 	if(m_settings.isModifiedCenterFreq())
 		m_sampleSource->setCenterFrequency(m_settings.centerFreq());
+}
 
+void DSPEngine::applyConfig()
+{
+	// apply changed configuration
 	if(m_settings.isModifiedIQSwap())
 		m_sampleSource->setIQSwap(m_settings.iqSwap());
 
@@ -305,7 +280,7 @@ DSPEngine::State DSPEngine::gotoRunning()
 	}
 
 	if(!m_ready)
-		return gotoError("DSP engine is not ready");
+		return gotoError("DSP engine is not ready to be started");
 
 	m_settings.isModifiedFFTSize();
 	m_settings.isModifiedFFTOverlap();
@@ -374,8 +349,15 @@ DSPEngine::State DSPEngine::gotoError(const QString& errorMsg)
 
 bool DSPEngine::createMembers()
 {
-	if((m_sampleFifo = new SampleFifo()) == NULL)
+	if((m_sampleFifo = new SampleFifo(this)) == NULL)
 		return false;
+	connect(m_sampleFifo, SIGNAL(dataReady()), this, SLOT(handleData()), Qt::QueuedConnection);
+
+	if((m_timer = new QTimer(this)) == NULL)
+		return false;
+	connect(m_timer, SIGNAL(timeout()), this, SLOT(tick()));
+	m_timer->start(250);
+
 	if((m_sampleSource = new OsmoSDRInput(m_sampleFifo)) == NULL)
 		return false;
 
@@ -391,5 +373,39 @@ void DSPEngine::destroyMembers()
 	if(m_sampleFifo != NULL) {
 		delete m_sampleFifo;
 		m_sampleFifo = NULL;
+	}
+}
+
+void DSPEngine::handleData()
+{
+	if(m_state == StRunning)
+		work();
+}
+
+void DSPEngine::tick()
+{
+	static const char* stateNames[4] = {
+		"StNotRunning", "StIdle", "StRunning", "StError"
+	};
+
+	if(m_state != m_nextState) {
+		changeState();
+		m_nextState = m_state;
+		m_stateWaiter.wakeAll();
+
+		qDebug("New state: %d: %s", m_state, stateNames[m_state]);
+	}
+
+	switch(m_state) {
+		case StNotStarted:
+			exit();
+			break;
+
+		case StRunning:
+			applyConfig();
+			break;
+
+		default:
+			break;
 	}
 }

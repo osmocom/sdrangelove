@@ -39,7 +39,8 @@ void SampleFifo::create(int s)
 	m_size = s;
 }
 
-SampleFifo::SampleFifo()
+SampleFifo::SampleFifo(QObject* parent) :
+	QObject(parent)
 {
 	m_suppressed = -1;
 	m_data = NULL;
@@ -49,7 +50,8 @@ SampleFifo::SampleFifo()
 	m_tail = 0;
 }
 
-SampleFifo::SampleFifo(int size)
+SampleFifo::SampleFifo(int size, QObject* parent) :
+	QObject(parent)
 {
 	m_suppressed = -1;
 	m_data = NULL;
@@ -113,6 +115,9 @@ int SampleFifo::write(const qint16* samples, int count)
 		samples += len;
 		remaining -= len;
 	}
+
+	if(m_fill > 0)
+		emit dataReady();
 
 	return total;
 }

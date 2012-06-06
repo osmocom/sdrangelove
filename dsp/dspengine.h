@@ -19,6 +19,7 @@
 #define INCLUDE_DSPENGINE_H
 
 #include <QThread>
+#include <QTimer>
 #include <QMutex>
 #include <QWaitCondition>
 #include "dsptypes.h"
@@ -72,6 +73,7 @@ private:
 	QMutex m_errorMsgMutex;
 	QString m_errorMsg;
 
+	QTimer* m_timer;
 	SampleFifo* m_sampleFifo;
 	SampleSource* m_sampleSource;
 
@@ -99,6 +101,7 @@ private:
 	void run();
 
 	void work();
+	void applyConfig();
 	void changeState();
 
 	State gotoIdle();
@@ -107,6 +110,10 @@ private:
 
 	bool createMembers();
 	void destroyMembers();
+
+private slots:
+	void handleData();
+	void tick();
 };
 
 #endif // INCLUDE_DSPENGINE_H

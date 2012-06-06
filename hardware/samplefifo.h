@@ -18,10 +18,13 @@
 #ifndef INCLUDE_SAMPLEFIFO_H
 #define INCLUDE_SAMPLEFIFO_H
 
+#include <QObject>
 #include <QMutex>
 #include <QTime>
 
-class SampleFifo {
+class SampleFifo : public QObject {
+	Q_OBJECT
+
 private:
 	QMutex m_mutex;
 	QTime m_msgRateTimer;
@@ -37,8 +40,8 @@ private:
 	void create(int s);
 
 public:
-	SampleFifo();
-	SampleFifo(int size);
+	SampleFifo(QObject* parent = NULL);
+	SampleFifo(int size, QObject* parent = NULL);
 	~SampleFifo();
 
 	bool setSize(int size);
@@ -48,6 +51,9 @@ public:
 	int read(qint16* samples, int count);
 
 	int drain(int count);
+
+signals:
+	void dataReady();
 };
 
 #endif // INCLUDE_SAMPLEFIFO_H
