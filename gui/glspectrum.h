@@ -91,6 +91,11 @@ private:
 	int m_histogramHoldoffCount;
 	int m_histogramLateHoldoff;
 
+	bool m_displayChanged;
+
+	void updateWaterfall(const std::vector<Real>& spectrum);
+	void updateHistogram(const std::vector<Real>& spectrum);
+
 	void initializeGL();
 	void resizeGL(int width, int height);
 	void paintGL();

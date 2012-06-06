@@ -34,7 +34,8 @@ GLSpectrum::GLSpectrum(QWidget* parent) :
 	m_histogramBuffer(NULL),
 	m_histogram(NULL),
 	m_histogramHoldoff(NULL),
-	m_histogramTextureAllocated(false)
+	m_histogramTextureAllocated(false),
+	m_displayChanged(false)
 {
 	setAutoFillBackground(false);
 	setAttribute(Qt::WA_OpaquePaintEvent, true);
@@ -43,7 +44,7 @@ GLSpectrum::GLSpectrum(QWidget* parent) :
 
 	setMinimumHeight(300);
 
-	m_waterfallShare = 0.7;
+	m_waterfallShare = 0.5;
 
 	for(int i = 0; i <= 239; i++) {
 		 QColor c;
@@ -142,6 +143,8 @@ void GLSpectrum::newSpectrum(const std::vector<Real>& spectrum)
 {
 	QMutexLocker mutexLocker(&m_mutex);
 
+	m_displayChanged = true;
+
 	if(m_changesPending) {
 		m_fftSize = spectrum.size();
 		return;
@@ -153,10 +156,13 @@ void GLSpectrum::newSpectrum(const std::vector<Real>& spectrum)
 		return;
 	}
 
-	if(m_waterfallBufferPos >= m_waterfallBuffer->height())
-		return;
+	updateWaterfall(spectrum);
+	updateHistogram(spectrum);
+}
 
-	{
+void GLSpectrum::updateWaterfall(const std::vector<Real>& spectrum)
+{
+	if(m_waterfallBufferPos < m_waterfallBuffer->height()) {
 		quint32* pix = (quint32*)m_waterfallBuffer->scanLine(m_waterfallBufferPos);
 
 		for(int i = 0; i < m_fftSize; i++) {
@@ -173,46 +179,47 @@ void GLSpectrum::newSpectrum(const std::vector<Real>& spectrum)
 
 		m_waterfallBufferPos++;
 	}
+}
 
-	{
-		quint8* b = m_histogram;
-		quint8* h = m_histogramHoldoff;
+void GLSpectrum::updateHistogram(const std::vector<Real>& spectrum)
+{
+	quint8* b = m_histogram;
+	quint8* h = m_histogramHoldoff;
 
-		m_histogramHoldoffCount--;
-		if(m_histogramHoldoffCount <= 0) {
-			for(int i = 0; i < 100 * m_fftSize; i++) {
-				if(*b > 20) {
+	m_histogramHoldoffCount--;
+	if(m_histogramHoldoffCount <= 0) {
+		for(int i = 0; i < 100 * m_fftSize; i++) {
+			if(*b > 20) {
+				*b = *b - 1;
+			} else if(*b > 0) {
+				if(*h > 0) {
+					*h = *h - 1;
+				} else {
+					*h = m_histogramLateHoldoff;
 					*b = *b - 1;
-				} else if(*b > 0) {
-					if(*h > 0) {
-						*h = *h - 1;
-					} else {
-						*h = m_histogramLateHoldoff;
-						*b = *b - 1;
-					}
 				}
-				b++;
-				h++;
 			}
-			m_histogramHoldoffCount = m_histogramHoldoffBase;
+			b++;
+			h++;
+		}
+		m_histogramHoldoffCount = m_histogramHoldoffBase;
+	}
+
+	b = m_histogram;
+	h = m_histogramHoldoff;
+	for(size_t i = 0; i < spectrum.size(); i++) {
+		Real vr = spectrum[i] + 99.0;
+		int v = (int)vr;
+		if((v >= 0) && (v <= 99)) {
+			if(*(b + v) < 220)
+				(*(b + v)) += 4;
+			else if(*(b + v) < 239)
+				(*(b + v)) += 1;
+			//*h = m_lateHoldOff;
 		}
 
-		b = m_histogram;
-		h = m_histogramHoldoff;
-		for(size_t i = 0; i < spectrum.size(); i++) {
-			Real vr = spectrum[i] + 99.0;
-			int v = (int)vr;
-			if((v >= 0) && (v <= 99)) {
-				if(*(b + v) < 220)
-					(*(b + v)) += 4;
-				else if(*(b + v) < 239)
-					(*(b + v)) += 1;
-				//*h = m_lateHoldOff;
-			}
-
-			b += 100;
-			h += 100;
-		}
+		b += 100;
+		h += 100;
 	}
 }
 
@@ -648,5 +655,8 @@ void GLSpectrum::mouseReleaseEvent(QMouseEvent*)
 
 void GLSpectrum::tick()
 {
-	update();
+	if(m_displayChanged) {
+		m_displayChanged = false;
+		update();
+	}
 }
