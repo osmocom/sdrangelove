@@ -41,6 +41,10 @@ public:
 	void setFFTWindow(int v);
 	bool isModifiedFFTWindow();
 
+	int liveSpectrumAlpha() const;
+	void setLiveSpectrumAlpha(int v);
+	bool isModifiedLiveSpectrumAlpha();
+
 	qint64 centerFreq() const;
 	void setCenterFreq(qint64 v);
 	bool isModifiedCenterFreq();
@@ -104,6 +108,7 @@ private:
 	int m_fftSize;
 	int m_fftOverlap;
 	int m_fftWindow;
+	int m_liveSpectrumAlpha;
 	qint64 m_centerFreq;
 	bool m_iqSwap;
 	int m_decimation;

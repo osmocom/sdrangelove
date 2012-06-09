@@ -48,6 +48,8 @@ MainWindow::MainWindow(QWidget* parent) :
 		}
 	}
 	ui->fftWindow->setCurrentIndex(m_settings.fftWindow());
+	ui->liveSpectrum->setValue(m_settings.liveSpectrumAlpha());
+	ui->glSpectrum->setLiveSpectrumAlpha(m_settings.liveSpectrumAlpha());
 	ui->iqSwap->setChecked(m_settings.iqSwap());
 	ui->decimation->setCurrentIndex(m_settings.decimation() - 2);
 	ui->dcOffset->setChecked(m_settings.dcOffsetCorrection());
@@ -239,4 +241,9 @@ void MainWindow::on_dcOffset_toggled(bool checked)
 void MainWindow::on_iqImbalance_toggled(bool checked)
 {
 	m_settings.setIQImbalanceCorrection(checked);
+}
+
+void MainWindow::on_liveSpectrum_sliderMoved(int position)
+{
+	ui->glSpectrum->setLiveSpectrumAlpha(position);
 }

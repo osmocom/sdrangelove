@@ -78,6 +78,7 @@ private slots:
 	void on_action_Debug_triggered();
 	void on_dcOffset_toggled(bool checked);
 	void on_iqImbalance_toggled(bool checked);
+	void on_liveSpectrum_sliderMoved(int position);
 };
 
 #endif // INCLUDE_MAINWINDOW_H

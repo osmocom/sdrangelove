@@ -37,6 +37,7 @@ void Settings::defaults()
 	m_fftSize = 1024;
 	m_fftOverlap = 25;
 	m_fftWindow = 3;
+	m_liveSpectrumAlpha = 30;
 	m_centerFreq = 144500000;
 	m_iqSwap = false;
 	m_decimation = 3;
@@ -64,6 +65,7 @@ void Settings::load()
 	m_fftSize = s.value("fftsize", 512).toInt();
 	m_fftOverlap = s.value("fftoverlap", 25).toInt();
 	m_fftWindow = s.value("fftwindow", 3).toInt();
+	m_liveSpectrumAlpha = s.value("livespectrumalpha", 30).toInt();
 	m_centerFreq = s.value("centerfreq", 144500000).toLongLong();;
 	m_iqSwap = s.value("iqswap", false).toBool();
 	m_decimation = s.value("decimation", 3).toInt();
@@ -89,6 +91,7 @@ void Settings::save()
 	s.setValue("fftsize", m_fftSize);
 	s.setValue("fftoverlap", m_fftOverlap);
 	s.setValue("fftwindow", m_fftWindow);
+	s.setValue("livespectrumalpha", m_liveSpectrumAlpha);
 	s.setValue("centerfreq", m_centerFreq);
 	s.setValue("iqswap", m_iqSwap);
 	s.setValue("decimation", m_decimation);
@@ -162,6 +165,27 @@ bool Settings::isModifiedFFTWindow()
 {
 	if(m_reference->m_fftWindow != m_fftWindow) {
 		m_fftWindow = m_reference->m_fftWindow;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+int Settings::liveSpectrumAlpha() const
+{
+	return m_liveSpectrumAlpha;
+}
+
+void Settings::setLiveSpectrumAlpha(int v)
+{
+	m_liveSpectrumAlpha = v;
+	m_changed = true;
+}
+
+bool Settings::isModifiedLiveSpectrumAlpha()
+{
+	if(m_reference->m_liveSpectrumAlpha != m_liveSpectrumAlpha) {
+		m_liveSpectrumAlpha = m_reference->m_liveSpectrumAlpha;
 		return true;
 	} else {
 		return false;
