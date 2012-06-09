@@ -25,6 +25,8 @@ GLSpectrum::GLSpectrum(QWidget* parent) :
 	m_centerFrequency(100000000),
 	m_sampleRate(500000),
 	m_fftSize(512),
+	m_liveSpectrumShown(true),
+	m_liveSpectrumAlpha(0),
 	m_waterfallHeight(100),
 	m_leftMarginTextureAllocated(false),
 	m_frequencyTextureAllocated(false),
@@ -139,6 +141,15 @@ void GLSpectrum::setSampleRate(qint32 sampleRate)
 	m_changesPending = true;
 }
 
+void GLSpectrum::setLiveSpectrumAlpha(int alpha)
+{
+	if(alpha < 0)
+		alpha = 0;
+	else if(alpha > 100)
+		alpha = 100;
+	m_liveSpectrumAlpha = alpha;
+}
+
 void GLSpectrum::newSpectrum(const std::vector<Real>& spectrum)
 {
 	QMutexLocker mutexLocker(&m_mutex);
@@ -158,6 +169,10 @@ void GLSpectrum::newSpectrum(const std::vector<Real>& spectrum)
 
 	updateWaterfall(spectrum);
 	updateHistogram(spectrum);
+	if(m_liveSpectrumShown) {
+		m_liveSpectrum = spectrum;
+		m_liveSpectrumShown = false;
+	}
 }
 
 void GLSpectrum::updateWaterfall(const std::vector<Real>& spectrum)
@@ -366,6 +381,26 @@ void GLSpectrum::paintGL()
 	}
 
 	glDisable(GL_TEXTURE_2D);
+
+	if(m_liveSpectrumAlpha >= 10) {
+		glPushMatrix();
+		glTranslatef(left, m_histogramTop / (Real)height(), 0);
+		glScalef(
+			(width() - m_leftMargin - m_rightMargin) / (Real)(m_fftSize - 1) / width(),
+			(height() - m_histogramTop - m_bottomMargin) / (Real)100 / -height(), 1);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glLineWidth(1.0f);
+		glColor4f(1, 1, 1, m_liveSpectrumAlpha / 100.0f);
+		for(size_t i = 1; i < m_liveSpectrum.size(); i++) {
+			glBegin(GL_LINE_LOOP);
+			glVertex2f(i - 1, m_liveSpectrum[i - 1]);
+			glVertex2f(i, m_liveSpectrum[i]);
+			glEnd();
+		}
+		glPopMatrix();
+	}
+	m_liveSpectrumShown = true;
 
 	{
 		glEnable(GL_BLEND);

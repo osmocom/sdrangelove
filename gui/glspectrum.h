@@ -33,6 +33,7 @@ public:
 
 	void setCenterFrequency(quint64 frequency);
 	void setSampleRate(qint32 sampleRate);
+	void setLiveSpectrumAlpha(int alpha);
 	void newSpectrum(const std::vector<Real>& spectrum);
 
 private:
@@ -52,6 +53,9 @@ private:
 	quint32 m_sampleRate;
 
 	int m_fftSize;
+	std::vector<Real> m_liveSpectrum;
+	bool m_liveSpectrumShown;
+	int m_liveSpectrumAlpha;
 
 	Real m_waterfallShare;
 	int m_waterfallHeight;
