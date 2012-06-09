@@ -50,6 +50,8 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->fftWindow->setCurrentIndex(m_settings.fftWindow());
 	ui->iqSwap->setChecked(m_settings.iqSwap());
 	ui->decimation->setCurrentIndex(m_settings.decimation() - 2);
+	ui->dcOffset->setChecked(m_settings.dcOffsetCorrection());
+	ui->iqImbalance->setChecked(m_settings.iqImbalanceCorrection());
 	ui->e4000LNAGain->setCurrentIndex((m_settings.e4000LNAGain() + 50) / 25);
 	ui->e4000MixerGain->setCurrentIndex((m_settings.e4000MixerGain() - 40) / 80);
 	if(m_settings.e4000MixerEnh() == 0)
@@ -222,4 +224,19 @@ void MainWindow::on_centerFrequency_changed(quint64 value)
 {
 	m_settings.setCenterFreq(value);
 	updateCenterFreqDisplay();
+}
+
+void MainWindow::on_action_Debug_triggered()
+{
+	m_dspEngine.triggerDebug();
+}
+
+void MainWindow::on_dcOffset_toggled(bool checked)
+{
+	m_settings.setDCOffsetCorrection(checked);
+}
+
+void MainWindow::on_iqImbalance_toggled(bool checked)
+{
+	m_settings.setIQImbalanceCorrection(checked);
 }

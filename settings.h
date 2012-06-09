@@ -53,6 +53,14 @@ public:
 	void setDecimation(int v);
 	bool isModifiedDecimation();
 
+	bool dcOffsetCorrection() const;
+	void setDCOffsetCorrection(bool v);
+	bool isModifiedDCOffsetCorrection();
+
+	bool iqImbalanceCorrection() const;
+	void setIQImbalanceCorrection(bool v);
+	bool isModifiedIQImbalanceCorrection();
+
 	int e4000LNAGain() const;
 	void setE4000LNAGain(int v);
 	bool isModifiedE4000LNAGain();
@@ -99,6 +107,8 @@ private:
 	qint64 m_centerFreq;
 	bool m_iqSwap;
 	int m_decimation;
+	bool m_dcOffsetCorrection;
+	bool m_iqImbalanceCorrection;
 
 	int m_e4000LNAGain;
 	int m_e4000MixerGain;

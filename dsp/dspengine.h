@@ -55,12 +55,15 @@ public:
 	bool startAcquisition();
 	void stopAcquistion();
 
+	void triggerDebug();
+
 	State state() const { return m_state; }
 	QString errorMsg();
 
 private:
 	typedef kissfft<Real, Complex> KissFFT;
 
+	bool m_debugEvent;
 	Settings m_settings;
 
 	State m_state;
@@ -83,8 +86,7 @@ private:
 	int m_fftOverlapSize;
 	int m_fftRefillSize;
 
-	Real m_iOfs;
-	Real m_qOfs;
+	Complex m_dcCorrection;
 	Real m_iRange;
 	Real m_qRange;
 	Real m_imbalance;

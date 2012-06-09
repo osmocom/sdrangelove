@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
+#include <stdio.h>
 #include "dspengine.h"
 #include "settings.h"
 #include "hardware/osmosdrinput.h"
@@ -23,6 +24,7 @@
 
 DSPEngine::DSPEngine(Settings* settings, QObject* parent) :
 	QThread(parent),
+	m_debugEvent(false),
 	m_settings(settings),
 	m_state(StNotStarted),
 	m_nextState(StIdle),
@@ -30,10 +32,10 @@ DSPEngine::DSPEngine(Settings* settings, QObject* parent) :
 	m_sampleSource(NULL),
 	m_fftSize(-1),
 	m_fftOverlap(30),
-	m_iOfs(0),
-	m_qOfs(0),
+	m_dcCorrection(0),
 	m_iRange(1),
 	m_qRange(1),
+	m_imbalance(1),
 	m_waterfall(NULL),
 	m_spectroHistogram(NULL),
 	m_glSpectrum(NULL)
@@ -94,6 +96,11 @@ void DSPEngine::stopAcquistion()
 	m_stateWaitMutex.unlock();
 }
 
+void DSPEngine::triggerDebug()
+{
+	m_debugEvent = true;
+}
+
 QString DSPEngine::errorMsg()
 {
 	QMutexLocker mutexLocker(&m_errorMsgMutex);
@@ -129,8 +136,8 @@ void DSPEngine::work()
 		// convert new samples to Complex()
 		const qint16* s = &m_fftSamples[0];
 		for(int i = m_fftOverlapSize; i < m_fftSize; i++) {
-			Real j = (*s++) / 32768.0f - m_iOfs;
-			Real q = ((*s++) / 32768.0f - m_qOfs) * m_imbalance;
+			Real j = (*s++) / 32768.0;
+			Real q = (*s++) / 32768.0;
 			if(i == m_fftOverlapSize) {
 				iMin = j;
 				iMax = j;
@@ -149,24 +156,46 @@ void DSPEngine::work()
 			m_fftPreWindow[i] = Complex(j, q);
 		}
 
+		// apply DC offset and I/Q imbalance correction (or whatever is active)
+		if(m_settings.dcOffsetCorrection() && m_settings.iqImbalanceCorrection()) {
+			for(size_t i = 0; i < m_fftPreWindow.size(); i++)
+				m_fftIn[i] = Complex(m_fftPreWindow[i].real() + m_dcCorrection.real(),
+									 (m_fftPreWindow[i].imag() * m_imbalance) + m_dcCorrection.imag());
+		} else if(m_settings.dcOffsetCorrection()) {
+			for(size_t i = 0; i < m_fftPreWindow.size(); i++)
+				m_fftIn[i] = Complex(m_fftPreWindow[i].real() + m_dcCorrection.real(),
+									 m_fftPreWindow[i].imag() + m_dcCorrection.imag());
+		} else if(m_settings.iqImbalanceCorrection()) {
+			for(size_t i = 0; i < m_fftPreWindow.size(); i++)
+				m_fftIn[i] = Complex(m_fftPreWindow[i].real(), m_fftPreWindow[i].imag() * m_imbalance);
+		} else {
+			for(size_t i = 0; i < m_fftPreWindow.size(); i++)
+				m_fftIn[i] = m_fftPreWindow[i];
+		}
+
+		if(m_debugEvent) {
+			m_debugEvent = false;
+			FILE* f = fopen("/tmp/data.txt", "wb");
+			for(size_t i = 0; i < m_fftIn.size(); i++)
+				fprintf(f, "%d %f %f\n", i, m_fftIn[i].real(), m_fftIn[i].imag());
+			fclose(f);
+		}
+
 		// apply fft window
-		m_fftWindow.apply(m_fftPreWindow, &m_fftIn);
+		m_fftWindow.apply(m_fftIn, &m_fftIn);
 
 		// calculate FFT
 		m_fft.transform(&m_fftIn[0], &m_fftOut[0]);
 
 		// update DC offset
-		{
-			const Complex& c = m_fftOut[0] /*/ (Real)m_fftSize*/ ;
-			if(!isnan(c.real()))
-				m_iOfs = m_iOfs * 0.999 + c.real() * 0.001;
-			if(!isnan(c.imag()))
-				m_qOfs = m_qOfs * 0.999 + c.imag() * 0.001;
+		if(m_settings.dcOffsetCorrection()) {
+			m_dcCorrection -= m_fftOut[0] * (Real)0.01 / (Real)m_fftSize;
 		}
+
 		// update I/Q imbalance
-		{
-			m_iRange = m_iRange * 0.999 + (iMax - iMin) * 0.001;
-			m_qRange = m_qRange * 0.999 + (qMax - qMin) * 0.001;
+		if(m_settings.iqImbalanceCorrection()) {
+			m_iRange = m_iRange * 0.99 + (iMax - iMin) * 0.01;
+			m_qRange = m_qRange * 0.99 + (qMax - qMin) * 0.01;
 			m_imbalance = m_iRange / m_qRange;
 		}
 
@@ -220,6 +249,15 @@ void DSPEngine::applyConfig()
 		}
 		m_fftOverlapSize = (m_fftSize * m_fftOverlap) / 100;
 		m_fftRefillSize = m_fftSize - m_fftOverlapSize;
+	}
+
+	if(m_settings.isModifiedDCOffsetCorrection())
+		m_dcCorrection = 0;
+
+	if(m_settings.isModifiedIQImbalanceCorrection()) {
+		m_iRange = 2;
+		m_qRange = 2;
+		m_imbalance = 1;
 	}
 
 	if(m_settings.isModifiedE4000LNAGain())

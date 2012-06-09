@@ -75,6 +75,9 @@ private slots:
 	void on_e4000if5_currentIndexChanged(int index);
 	void on_e4000if6_currentIndexChanged(int index);
 	void on_centerFrequency_changed(quint64 value);
+	void on_action_Debug_triggered();
+	void on_dcOffset_toggled(bool checked);
+	void on_iqImbalance_toggled(bool checked);
 };
 
 #endif // INCLUDE_MAINWINDOW_H

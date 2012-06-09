@@ -40,6 +40,8 @@ void Settings::defaults()
 	m_centerFreq = 144500000;
 	m_iqSwap = false;
 	m_decimation = 3;
+	m_dcOffsetCorrection = true;
+	m_iqImbalanceCorrection = true;
 	m_e4000LNAGain = 300;
 	m_e4000MixerGain = 120;
 	m_e4000MixerEnh = 70;
@@ -65,6 +67,8 @@ void Settings::load()
 	m_centerFreq = s.value("centerfreq", 144500000).toLongLong();;
 	m_iqSwap = s.value("iqswap", false).toBool();
 	m_decimation = s.value("decimation", 3).toInt();
+	m_dcOffsetCorrection = s.value("dcoffsetcorrection", true).toBool();
+	m_iqImbalanceCorrection = s.value("iqimbalancecorrection", true).toBool();
 	m_e4000LNAGain = s.value("e4000_lnagain", 300).toInt();
 	m_e4000MixerGain = s.value("e4000_mixergain", 120).toInt();
 	m_e4000MixerEnh = s.value("e4000_mixerenh", 70).toInt();
@@ -88,6 +92,8 @@ void Settings::save()
 	s.setValue("centerfreq", m_centerFreq);
 	s.setValue("iqswap", m_iqSwap);
 	s.setValue("decimation", m_decimation);
+	s.setValue("dcoffsetcorrection", m_dcOffsetCorrection);
+	s.setValue("iqimbalancecorrection", m_iqImbalanceCorrection);
 	s.setValue("e4000_lnagain", m_e4000LNAGain);
 	s.setValue("e4000_mixergain", m_e4000MixerGain);
 	s.setValue("e4000_mixerenh", m_e4000MixerEnh);
@@ -219,6 +225,48 @@ bool Settings::isModifiedDecimation()
 {
 	if(m_reference->m_decimation != m_decimation) {
 		m_decimation = m_reference->m_decimation;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool Settings::dcOffsetCorrection() const
+{
+	return m_dcOffsetCorrection;
+}
+
+void Settings::setDCOffsetCorrection(bool v)
+{
+	m_dcOffsetCorrection = v;
+	m_changed = true;
+}
+
+bool Settings::isModifiedDCOffsetCorrection()
+{
+	if(m_reference->m_dcOffsetCorrection != m_dcOffsetCorrection) {
+		m_dcOffsetCorrection = m_reference->m_dcOffsetCorrection;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool Settings::iqImbalanceCorrection() const
+{
+	return m_iqImbalanceCorrection;
+}
+
+void Settings::setIQImbalanceCorrection(bool v)
+{
+	m_iqImbalanceCorrection = v;
+	m_changed = true;
+}
+
+bool Settings::isModifiedIQImbalanceCorrection()
+{
+	if(m_reference->m_iqImbalanceCorrection != m_iqImbalanceCorrection) {
+		m_iqImbalanceCorrection = m_reference->m_iqImbalanceCorrection;
 		return true;
 	} else {
 		return false;
