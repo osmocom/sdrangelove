@@ -65,6 +65,8 @@ void ValueDial::setFont(const QFont& font)
 	QFontMetrics fm(font);
 	m_digitWidth = fm.width('0');
 	m_digitHeight = fm.ascent();
+	if(m_digitWidth < m_digitHeight / 2)
+		m_digitWidth = m_digitHeight / 2;
 	setFixedWidth((m_numDigits + m_numDecimalPoints) * m_digitWidth + 2);
 	setFixedHeight(m_digitHeight * 2 + 2);
 }
@@ -77,9 +79,9 @@ void ValueDial::setValue(quint64 value)
 	else if(m_valueNew > m_valueMax)
 		m_valueNew = m_valueMax;
 	if(m_valueNew < m_value)
-		m_animationState = 3;
+		m_animationState = 1;
 	else if(m_valueNew > m_value)
-		m_animationState = -3;
+		m_animationState = -1;
 	else return;
 	m_animationTimer.start(20);
 	m_textNew = formatText(m_valueNew);
@@ -159,14 +161,14 @@ void ValueDial::paintEvent(QPaintEvent*)
 		for(int i = 0; i < m_text.length(); i++) {
 			painter.setClipRect(1 + i * m_digitWidth, 1, m_digitWidth, m_digitHeight * 2);
 			painter.setPen(QColor(0x10, 0x10, 0x10));
-			painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 1.4, m_text.mid(i, 1));
+			painter.drawText(QRect(1 + i * m_digitWidth, m_digitHeight * 0.6, m_digitWidth, m_digitHeight), Qt::AlignCenter, m_text.mid(i, 1));
 			if(m_text[i] != QChar('.')) {
 				painter.setPen(QColor(0x00, 0x00, 0x00));
-				painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 0.1, digitNeigh(m_text[i], true));
-				painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 2.7, digitNeigh(m_text[i], false));
+				painter.drawText(QRect(1 + i * m_digitWidth, m_digitHeight * -0.7, m_digitWidth, m_digitHeight), Qt::AlignCenter, digitNeigh(m_text[i], true));
+				painter.drawText(QRect(1 + i * m_digitWidth, m_digitHeight * 1.9, m_digitWidth, m_digitHeight), Qt::AlignCenter, digitNeigh(m_text[i], false));
 			}
-			painter.setClipping(false);
 		}
+		painter.setClipping(false);
 		if((m_cursor >= 0) && (m_cursorState)) {
 			painter.setPen(Qt::NoPen);
 			painter.setBrush(QColor(0x10, 0x10, 0x10));
@@ -178,21 +180,21 @@ void ValueDial::paintEvent(QPaintEvent*)
 				if(m_text[i] == m_textNew[i]) {
 					painter.setClipRect(1 + i * m_digitWidth, 1, m_digitWidth, m_digitHeight * 2);
 					painter.setPen(QColor(0x10, 0x10, 0x10));
-					painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 1.4, m_text.mid(i, 1));
+					painter.drawText(QRect(1 + i * m_digitWidth, m_digitHeight * 0.6, m_digitWidth, m_digitHeight), Qt::AlignCenter, m_text.mid(i, 1));
 					if(m_text[i] != QChar('.')) {
 						painter.setPen(QColor(0x00, 0x00, 0x00));
-						painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 0.1, digitNeigh(m_text[i], true));
-						painter.drawText(1 + i * m_digitWidth, 1 + m_digitHeight * 2.7, digitNeigh(m_text[i], false));
+						painter.drawText(QRect(1 + i * m_digitWidth, m_digitHeight * -0.7, m_digitWidth, m_digitHeight), Qt::AlignCenter, digitNeigh(m_text[i], true));
+						painter.drawText(QRect(1 + i * m_digitWidth, m_digitHeight * 1.9, m_digitWidth, m_digitHeight), Qt::AlignCenter, digitNeigh(m_text[i], false));
 					}
 				} else {
-					int h = 1 + m_digitHeight * 1.4 - m_digitHeight * m_animationState / 2;
+					int h = m_digitHeight * 0.6 + m_digitHeight * m_animationState / 2.0;
 					painter.setClipRect(1 + i * m_digitWidth, 1, m_digitWidth, m_digitHeight * 2);
 					painter.setPen(QColor(0x10, 0x10, 0x10));
-					painter.drawText(1 + i * m_digitWidth, h, m_textNew.mid(i, 1));
+					painter.drawText(QRect(1 + i * m_digitWidth, h, m_digitWidth, m_digitHeight), Qt::AlignCenter, m_text.mid(i, 1));
 					if(m_text[i] != QChar('.')) {
 						painter.setPen(QColor(0x00, 0x00, 0x00));
-						painter.drawText(1 + i * m_digitWidth, h - m_digitHeight * 1.3, digitNeigh(m_textNew[i], true));
-						painter.drawText(1 + i * m_digitWidth, h + m_digitHeight * 1.3, digitNeigh(m_textNew[i], false));
+						painter.drawText(QRect(1 + i * m_digitWidth, h + m_digitHeight * -0.7, m_digitWidth, m_digitHeight), Qt::AlignCenter, digitNeigh(m_text[i], true));
+						painter.drawText(QRect(1 + i * m_digitWidth, h + m_digitHeight * 1.9, m_digitWidth, m_digitHeight), Qt::AlignCenter, digitNeigh(m_text[i], false));
 					}
 				}
 			}
@@ -273,7 +275,7 @@ void ValueDial::leaveEvent(QEvent*)
 void ValueDial::keyPressEvent(QKeyEvent* value)
 {
 	if(m_cursor >= 0) {
-		if((value->key() == Qt::Key_Return) || (value->key() == Qt::Key_Enter)) {
+		if((value->key() == Qt::Key_Return) || (value->key() == Qt::Key_Enter) || (value->key() == Qt::Key_Escape)) {
 			m_cursor = -1;
 			m_cursorState = false;
 			m_blinkTimer.stop();
@@ -374,11 +376,17 @@ void ValueDial::animate()
 	update();
 
 	if(m_animationState > 0)
-		m_animationState--;
-	else if(m_animationState < 0)
 		m_animationState++;
+	else if(m_animationState < 0)
+		m_animationState--;
+	else {
+		m_animationTimer.stop();
+		m_animationState = 0;
+		return;
+	}
 
-	if(m_animationState == 0) {
+	if(abs(m_animationState) >= 4) {
+		m_animationState = 0;
 		m_animationTimer.stop();
 		m_value = m_valueNew;
 		m_text = m_textNew;
