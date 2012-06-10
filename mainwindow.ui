@@ -6,12 +6,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>928</width>
-    <height>668</height>
+    <width>926</width>
+    <height>666</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>SDRangelove</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="resources/res.qrc">
+    <normaloff>:/appicon.png</normaloff>:/appicon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -635,7 +639,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>928</width>
+     <width>926</width>
      <height>21</height>
     </rect>
    </property>
@@ -751,6 +755,25 @@
   <tabstop>e4000if5</tabstop>
   <tabstop>e4000if6</tabstop>
  </tabstops>
- <resources/>
- <connections/>
+ <resources>
+  <include location="resources/res.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>action_Exit</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>462</x>
+     <y>332</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

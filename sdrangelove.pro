@@ -62,6 +62,10 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui
 
+RESOURCES += \
+    resources/res.qrc
+RC_FILE = resources/sdrangelove.rc
+
 unix {
 	LIBS += -lrt -lGLU
 }
