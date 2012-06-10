@@ -236,17 +236,13 @@ void DSPEngine::applyConfig()
 	if(m_settings.isModifiedFFTSize() || m_settings.isModifiedFFTOverlap() || m_settings.isModifiedFFTWindow()) {
 		m_fftSize = m_settings.fftSize();
 		m_fftOverlap = m_settings.fftOverlap();
-		try {
-			m_fft.configure(m_fftSize, false);
-			m_fftSamples.resize(2 * m_fftSize);
-			m_fftPreWindow.resize(m_fftSize);
-			m_fftIn.resize(m_fftSize);
-			m_fftOut.resize(m_fftSize);
-			m_logPowerSpectrum.resize(m_fftSize);
-			m_fftWindow.create((FFTWindow::Function)m_settings.fftWindow(), m_fftSize);
-		} catch(...) {
-			m_nextState = gotoError("out of memory error");
-		}
+		m_fft.configure(m_fftSize, false);
+		m_fftSamples.resize(2 * m_fftSize);
+		m_fftPreWindow.resize(m_fftSize);
+		m_fftIn.resize(m_fftSize);
+		m_fftOut.resize(m_fftSize);
+		m_logPowerSpectrum.resize(m_fftSize);
+		m_fftWindow.create((FFTWindow::Function)m_settings.fftWindow(), m_fftSize);
 		m_fftOverlapSize = (m_fftSize * m_fftOverlap) / 100;
 		m_fftRefillSize = m_fftSize - m_fftOverlapSize;
 	}
@@ -365,17 +361,13 @@ DSPEngine::State DSPEngine::gotoRunning()
 
 	m_fftSize = m_settings.fftSize();
 	m_fftOverlap = m_settings.fftOverlap();
-	try {
-		m_fft.configure(m_fftSize, false);
-		m_fftSamples.resize(2 * m_fftSize);
-		m_fftPreWindow.resize(m_fftSize);
-		m_fftIn.resize(m_fftSize);
-		m_fftOut.resize(m_fftSize);
-		m_logPowerSpectrum.resize(m_fftSize);
-		m_fftWindow.create((FFTWindow::Function)m_settings.fftWindow(), m_fftSize);
-	} catch(...) {
-		return gotoError("out of memory error");
-	}
+	m_fft.configure(m_fftSize, false);
+	m_fftSamples.resize(2 * m_fftSize);
+	m_fftPreWindow.resize(m_fftSize);
+	m_fftIn.resize(m_fftSize);
+	m_fftOut.resize(m_fftSize);
+	m_logPowerSpectrum.resize(m_fftSize);
+	m_fftWindow.create((FFTWindow::Function)m_settings.fftWindow(), m_fftSize);
 	m_fftOverlapSize = (m_fftSize * m_fftOverlap) / 100;
 	m_fftRefillSize = m_fftSize - m_fftOverlapSize;
 
