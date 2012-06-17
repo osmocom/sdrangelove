@@ -73,6 +73,7 @@ public:
 	void setOrientation(Qt::Orientation orientation);
 	void setFont(const QFont& font);
 	void setSize(float size);
+	float getSize() { return m_size; }
 	void setRange(Unit::Physical physicalUnit, float rangeMin, float rangeMax);
 
 	float getPosFromValue(double value);

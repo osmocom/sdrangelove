@@ -87,8 +87,11 @@ void ValueDial::setValue(quint64 value)
 	m_textNew = formatText(m_valueNew);
 }
 
-void ValueDial::setValueRange(quint64 min, quint64 max)
+void ValueDial::setValueRange(uint numDigits, quint64 min, quint64 max)
 {
+	m_numDigits = numDigits;
+	m_numDecimalPoints = m_numDigits / 3;
+
 	m_valueMin = min;
 	m_valueMax = max;
 
@@ -96,6 +99,7 @@ void ValueDial::setValueRange(quint64 min, quint64 max)
 		setValue(min);
 	else if(m_value > max)
 		setValue(max);
+	setFixedWidth((m_numDigits + m_numDecimalPoints) * m_digitWidth + 2);
 }
 
 quint64 ValueDial::findExponent(int digit)
@@ -369,6 +373,23 @@ void ValueDial::keyPressEvent(QKeyEvent* value)
 		}
 		update();
 	}
+}
+
+void ValueDial::focusInEvent(QFocusEvent*)
+{
+	if(m_cursor == -1) {
+		m_cursor = 0;
+		m_cursorState = true;
+		m_blinkTimer.start(400);
+		update();
+	}
+}
+
+void ValueDial::focusOutEvent(QFocusEvent*)
+{
+	m_cursor = -1;
+	m_blinkTimer.stop();
+	update();
 }
 
 void ValueDial::animate()

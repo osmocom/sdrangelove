@@ -20,6 +20,13 @@
 #include <QDataStream>
 #include "scaleengine.h"
 
+/*
+static double trunc(double d)
+{
+	return (d > 0) ? floor(d) : ceil(d);
+}
+*/
+
 QString ScaleEngine::formatTick(double value, int decimalPlaces, bool fancyTime)
 {
 	if((m_physicalUnit != Unit::Time) || (!fancyTime)) {
@@ -30,7 +37,7 @@ QString ScaleEngine::formatTick(double value, int decimalPlaces, bool fancyTime)
 		double tmp;
 
 		if(orig >= 86400.0) {
-			tmp = trunc(value / 86400.0);
+			tmp = floor(value / 86400.0);
 			str = QString("%1.").arg(tmp, 0, 'f', 0);
 			value -= tmp * 86400.0;
 			if(value < 0.0)
@@ -38,7 +45,7 @@ QString ScaleEngine::formatTick(double value, int decimalPlaces, bool fancyTime)
 		}
 
 		if(orig >= 3600.0) {
-			tmp = trunc(value / 3600.0);
+			tmp = floor(value / 3600.0);
 			str += QString("%1:").arg(tmp, 2, 'f', 0, QChar('0'));
 			value -= tmp * 3600.0;
 			if(value < 0.0)
@@ -46,7 +53,7 @@ QString ScaleEngine::formatTick(double value, int decimalPlaces, bool fancyTime)
 		}
 
 		if(orig >= 60.0) {
-			tmp = trunc(value / 60.0);
+			tmp = floor(value / 60.0);
 			str += QString("%1:").arg(tmp, 2, 'f', 0, QChar('0'));
 			value -= tmp * 60.0;
 			if(value < 0.0)
@@ -484,7 +491,7 @@ void ScaleEngine::setRange(Unit::Physical physicalUnit, float rangeMin, float ra
 {
 	double tmpRangeMin;
 	double tmpRangeMax;
-
+/*
 	if(rangeMin < rangeMax) {
 		tmpRangeMin = rangeMin;
 		tmpRangeMax = rangeMax;
@@ -495,6 +502,9 @@ void ScaleEngine::setRange(Unit::Physical physicalUnit, float rangeMin, float ra
 		tmpRangeMin = rangeMin * 0.99;
 		tmpRangeMax = rangeMin * 1.01 + 0.01;
 	}
+*/
+	tmpRangeMin = rangeMin;
+	tmpRangeMax = rangeMax;
 
 	if((tmpRangeMin != m_rangeMin) || (tmpRangeMax != m_rangeMax) || (m_physicalUnit != physicalUnit)) {
 		m_physicalUnit = physicalUnit;

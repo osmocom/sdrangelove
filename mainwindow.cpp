@@ -39,7 +39,7 @@ MainWindow::MainWindow(QWidget* parent) :
 
 	statusBar()->showMessage("Welcome to SDRangelove", 3000);
 
-	ui->centerFrequency->setValueRange(20000000U, 2200000000U);
+	ui->centerFrequency->setValueRange(7, 20000U, 2200000U);
 
 	for(int i = 0; i < ui->fftSize->count(); i++) {
 		if(ui->fftSize->itemText(i).toInt() == m_settings.fftSize()) {
@@ -48,8 +48,16 @@ MainWindow::MainWindow(QWidget* parent) :
 		}
 	}
 	ui->fftWindow->setCurrentIndex(m_settings.fftWindow());
-	ui->liveSpectrum->setValue(m_settings.liveSpectrumAlpha());
-	ui->glSpectrum->setLiveSpectrumAlpha(m_settings.liveSpectrumAlpha());
+
+	ui->dispWaterfall->setChecked(m_settings.displayWaterfall());
+	ui->glSpectrum->setDisplayWaterfall(m_settings.displayWaterfall());
+	ui->waterfallInverted->setChecked(m_settings.invertedWaterfall());
+	ui->glSpectrum->setInvertedWaterfall(m_settings.invertedWaterfall());
+	ui->dispLiveSpectrum->setChecked(m_settings.displayLiveSpectrum());
+	ui->glSpectrum->setDisplayLiveSpectrum(m_settings.displayLiveSpectrum());
+	ui->dispHistogram->setChecked(m_settings.displayHistogram());
+	ui->glSpectrum->setDisplayHistogram(m_settings.displayHistogram());
+
 	ui->iqSwap->setChecked(m_settings.iqSwap());
 	ui->decimation->setCurrentIndex(m_settings.decimation() - 2);
 	ui->dcOffset->setChecked(m_settings.dcOffsetCorrection());
@@ -97,7 +105,7 @@ void MainWindow::createStatusBar()
 void MainWindow::updateCenterFreqDisplay()
 {
 	qint64 freq = m_settings.centerFreq();
-	ui->centerFrequency->setValue(freq);
+	ui->centerFrequency->setValue(freq / 1000);
 	ui->glSpectrum->setCenterFrequency(freq);
 }
 
@@ -224,7 +232,7 @@ void MainWindow::on_e4000if6_currentIndexChanged(int index)
 
 void MainWindow::on_centerFrequency_changed(quint64 value)
 {
-	m_settings.setCenterFreq(value);
+	m_settings.setCenterFreq(value * 1000);
 	updateCenterFreqDisplay();
 }
 
@@ -243,7 +251,26 @@ void MainWindow::on_iqImbalance_toggled(bool checked)
 	m_settings.setIQImbalanceCorrection(checked);
 }
 
-void MainWindow::on_liveSpectrum_sliderMoved(int position)
+void MainWindow::on_dispLiveSpectrum_toggled(bool checked)
 {
-	ui->glSpectrum->setLiveSpectrumAlpha(position);
+	ui->glSpectrum->setDisplayLiveSpectrum(checked);
+	m_settings.setDisplayLiveSpectrum(checked);
+}
+
+void MainWindow::on_dispHistogram_toggled(bool checked)
+{
+	ui->glSpectrum->setDisplayHistogram(checked);
+	m_settings.setDisplayHistogram(checked);
+}
+
+void MainWindow::on_dispWaterfall_toggled(bool checked)
+{
+	ui->glSpectrum->setDisplayWaterfall(checked);
+	m_settings.setDisplayWaterfall(checked);
+}
+
+void MainWindow::on_waterfallInverted_toggled(bool checked)
+{
+	ui->glSpectrum->setInvertedWaterfall(checked);
+	m_settings.setInvertedWaterfall(checked);
 }

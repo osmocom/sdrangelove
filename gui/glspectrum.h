@@ -33,14 +33,17 @@ public:
 
 	void setCenterFrequency(quint64 frequency);
 	void setSampleRate(qint32 sampleRate);
-	void setLiveSpectrumAlpha(int alpha);
+	void setDisplayWaterfall(bool display);
+	void setInvertedWaterfall(bool inv);
+	void setDisplayLiveSpectrum(bool display);
+	void setDisplayHistogram(bool display);
 	void newSpectrum(const std::vector<Real>& spectrum);
 
 private:
 	enum CursorState {
 		CSNormal,
 		CSSplitter,
-		CSSplitterMoving,
+		CSSplitterMoving
 	};
 
 	CursorState m_cursorState;
@@ -53,19 +56,14 @@ private:
 	quint32 m_sampleRate;
 
 	int m_fftSize;
+
+	bool m_invertedWaterfall;
+
 	std::vector<Real> m_liveSpectrum;
-	bool m_liveSpectrumShown;
-	int m_liveSpectrumAlpha;
+	bool m_displayLiveSpectrum;
+	bool m_liveSpectrumChanged;
 
 	Real m_waterfallShare;
-	int m_waterfallHeight;
-	int m_frequencyScaleTop;
-	int m_frequencyScaleHeight;
-	int m_histogramTop;
-	int m_leftMargin;
-	int m_rightMargin;
-	int m_topMargin;
-	int m_bottomMargin;
 
 	QPixmap m_leftMarginPixmap;
 	bool m_leftMarginTextureAllocated;
@@ -76,6 +74,9 @@ private:
 	ScaleEngine m_timeScale;
 	ScaleEngine m_powerScale;
 	ScaleEngine m_frequencyScale;
+	QRectF m_glLeftScaleRect;
+	QRectF m_glFrequencyScaleRect;
+	QRect m_frequencyScaleRect;
 
 	QRgb m_waterfallPalette[240];
 	QImage* m_waterfallBuffer;
@@ -84,6 +85,8 @@ private:
 	GLuint m_waterfallTexture;
 	int m_waterfallTextureHeight;
 	int m_waterfallTexturePos;
+	QRectF m_glWaterfallRect;
+	bool m_displayWaterfall;
 
 	QRgb m_histogramPalette[240];
 	QImage* m_histogramBuffer;
@@ -94,6 +97,8 @@ private:
 	int m_histogramHoldoffBase;
 	int m_histogramHoldoffCount;
 	int m_histogramLateHoldoff;
+	QRectF m_glHistogramRect;
+	bool m_displayHistogram;
 
 	bool m_displayChanged;
 
@@ -104,6 +109,7 @@ private:
 	void resizeGL(int width, int height);
 	void paintGL();
 
+	void stopSplitterMove();
 	void applyChanges();
 
 	void mouseMoveEvent(QMouseEvent* event);

@@ -25,7 +25,7 @@ public:
 	ValueDial(QWidget* parent = NULL);
 
 	void setValue(quint64 value);
-	void setValueRange(quint64 min, quint64 max);
+	void setValueRange(uint numDigits, quint64 min, quint64 max);
 	void setFont(const QFont& font);
 
 signals:
@@ -62,6 +62,8 @@ private:
 	void wheelEvent(QWheelEvent*);
 	void leaveEvent(QEvent*);
 	void keyPressEvent(QKeyEvent*);
+	void focusInEvent(QFocusEvent*);
+	void focusOutEvent(QFocusEvent*);
 
 private slots:
 	void animate();

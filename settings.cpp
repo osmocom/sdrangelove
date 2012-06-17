@@ -37,8 +37,11 @@ void Settings::defaults()
 	m_fftSize = 1024;
 	m_fftOverlap = 25;
 	m_fftWindow = 3;
-	m_liveSpectrumAlpha = 30;
-	m_centerFreq = 144500000;
+	m_displayWaterfall = true;
+	m_invertedWaterfall = false;
+	m_displayLiveSpectrum = true;
+	m_displayHistogram = true;
+	m_centerFreq = 100000000;
 	m_iqSwap = false;
 	m_decimation = 3;
 	m_dcOffsetCorrection = true;
@@ -65,8 +68,11 @@ void Settings::load()
 	m_fftSize = s.value("fftsize", 512).toInt();
 	m_fftOverlap = s.value("fftoverlap", 25).toInt();
 	m_fftWindow = s.value("fftwindow", 3).toInt();
-	m_liveSpectrumAlpha = s.value("livespectrumalpha", 30).toInt();
-	m_centerFreq = s.value("centerfreq", 144500000).toLongLong();;
+	m_displayWaterfall = s.value("displaywaterfall", true).toBool();
+	m_invertedWaterfall = s.value("invertedwaterfall", false).toBool();
+	m_displayLiveSpectrum = s.value("displaylivespectrum", true).toBool();
+	m_displayHistogram = s.value("displayhistogram", true).toBool();
+	m_centerFreq = s.value("centerfreq", 100000000).toLongLong();;
 	m_iqSwap = s.value("iqswap", false).toBool();
 	m_decimation = s.value("decimation", 3).toInt();
 	m_dcOffsetCorrection = s.value("dcoffsetcorrection", true).toBool();
@@ -80,6 +86,8 @@ void Settings::load()
 	m_e4000if4 = s.value("e4000_if4", 20).toInt();
 	m_e4000if5 = s.value("e4000_if5", 150).toInt();
 	m_e4000if6 = s.value("e4000_if6", 150).toInt();
+
+	s.remove("livespectrumalpha");
 }
 
 void Settings::save()
@@ -91,7 +99,10 @@ void Settings::save()
 	s.setValue("fftsize", m_fftSize);
 	s.setValue("fftoverlap", m_fftOverlap);
 	s.setValue("fftwindow", m_fftWindow);
-	s.setValue("livespectrumalpha", m_liveSpectrumAlpha);
+	s.setValue("displaywaterfall", m_displayWaterfall);
+	s.setValue("invertedwaterfall", m_invertedWaterfall);
+	s.setValue("displaylivespectrum", m_displayLiveSpectrum);
+	s.setValue("displayhistogram", m_displayHistogram);
 	s.setValue("centerfreq", m_centerFreq);
 	s.setValue("iqswap", m_iqSwap);
 	s.setValue("decimation", m_decimation);
@@ -171,21 +182,84 @@ bool Settings::isModifiedFFTWindow()
 	}
 }
 
-int Settings::liveSpectrumAlpha() const
+bool Settings::displayWaterfall() const
 {
-	return m_liveSpectrumAlpha;
+	return m_displayWaterfall;
 }
 
-void Settings::setLiveSpectrumAlpha(int v)
+void Settings::setDisplayWaterfall(bool v)
 {
-	m_liveSpectrumAlpha = v;
+	m_displayWaterfall = v;
 	m_changed = true;
 }
 
-bool Settings::isModifiedLiveSpectrumAlpha()
+bool Settings::isModifiedDisplayWaterfall()
 {
-	if(m_reference->m_liveSpectrumAlpha != m_liveSpectrumAlpha) {
-		m_liveSpectrumAlpha = m_reference->m_liveSpectrumAlpha;
+	if(m_reference->m_displayWaterfall != m_displayWaterfall) {
+		m_displayWaterfall = m_reference->m_displayWaterfall;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool Settings::invertedWaterfall() const
+{
+	return m_invertedWaterfall;
+}
+
+void Settings::setInvertedWaterfall(bool v)
+{
+	m_invertedWaterfall = v;
+	m_changed = true;
+}
+
+bool Settings::isModifiedInvertedWaterfall()
+{
+	if(m_reference->m_invertedWaterfall != m_invertedWaterfall) {
+		m_invertedWaterfall = m_reference->m_invertedWaterfall;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool Settings::displayLiveSpectrum() const
+{
+	return m_displayLiveSpectrum;
+}
+
+void Settings::setDisplayLiveSpectrum(bool v)
+{
+	m_displayLiveSpectrum = v;
+	m_changed = true;
+}
+
+bool Settings::isModifiedDisplayLiveSpectrum()
+{
+	if(m_reference->m_displayLiveSpectrum != m_displayLiveSpectrum) {
+		m_displayLiveSpectrum = m_reference->m_displayLiveSpectrum;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool Settings::displayHistogram() const
+{
+	return m_displayHistogram;
+}
+
+void Settings::setDisplayHistogram(bool v)
+{
+	m_displayHistogram = v;
+	m_changed = true;
+}
+
+bool Settings::isModifiedDisplayHistogram()
+{
+	if(m_reference->m_displayHistogram != m_displayHistogram) {
+		m_displayHistogram = m_reference->m_displayHistogram;
 		return true;
 	} else {
 		return false;

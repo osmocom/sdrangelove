@@ -41,9 +41,21 @@ public:
 	void setFFTWindow(int v);
 	bool isModifiedFFTWindow();
 
-	int liveSpectrumAlpha() const;
-	void setLiveSpectrumAlpha(int v);
-	bool isModifiedLiveSpectrumAlpha();
+	bool displayWaterfall() const;
+	void setDisplayWaterfall(bool v);
+	bool isModifiedDisplayWaterfall();
+
+	bool invertedWaterfall() const;
+	void setInvertedWaterfall(bool v);
+	bool isModifiedInvertedWaterfall();
+
+	bool displayLiveSpectrum() const;
+	void setDisplayLiveSpectrum(bool v);
+	bool isModifiedDisplayLiveSpectrum();
+
+	bool displayHistogram() const;
+	void setDisplayHistogram(bool v);
+	bool isModifiedDisplayHistogram();
 
 	qint64 centerFreq() const;
 	void setCenterFreq(qint64 v);
@@ -108,7 +120,10 @@ private:
 	int m_fftSize;
 	int m_fftOverlap;
 	int m_fftWindow;
-	int m_liveSpectrumAlpha;
+	bool m_displayWaterfall;
+	bool m_invertedWaterfall;
+	bool m_displayLiveSpectrum;
+	bool m_displayHistogram;
 	qint64 m_centerFreq;
 	bool m_iqSwap;
 	int m_decimation;
