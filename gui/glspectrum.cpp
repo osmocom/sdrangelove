@@ -315,18 +315,16 @@ void GLSpectrum::paintGL()
 		m_waterfallBufferPos = 0;
 		float prop_y = m_waterfallTexturePos / (m_waterfallTextureHeight - 1.0);
 		float off = 1.0 / (m_waterfallTextureHeight - 1.0);
-		if(m_invertedWaterfall)
-			prop_y = 1.0 - prop_y;
 		glEnable(GL_TEXTURE_2D);
 		glBegin(GL_QUADS);
 		glTexCoord2f(0, prop_y + 1 - off);
-		glVertex2f(0, 1);
+		glVertex2f(0, m_invertedWaterfall ? 0 : 1);
 		glTexCoord2f(1, prop_y + 1 - off);
-		glVertex2f(1, 1);
+		glVertex2f(1, m_invertedWaterfall ? 0 : 1);
 		glTexCoord2f(1, prop_y);
-		glVertex2f(1, 0);
+		glVertex2f(1, m_invertedWaterfall ? 1 : 0);
 		glTexCoord2f(0, prop_y);
-		glVertex2f(0, 0);
+		glVertex2f(0, m_invertedWaterfall ? 1 : 0);
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
 

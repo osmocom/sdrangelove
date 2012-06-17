@@ -37,6 +37,7 @@ public:
 	void setInvertedWaterfall(bool inv);
 	void setDisplayLiveSpectrum(bool display);
 	void setDisplayHistogram(bool display);
+
 	void newSpectrum(const std::vector<Real>& spectrum);
 
 private:
