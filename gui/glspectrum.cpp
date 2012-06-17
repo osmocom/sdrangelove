@@ -908,7 +908,10 @@ void GLSpectrum::mouseMoveEvent(QMouseEvent* event)
 	}
 
 	if(m_cursorState == CSSplitterMoving) {
-		float newShare = (float)(event->y() - m_frequencyScaleRect.height()) / (float)height();
+		float newShare;
+		if(!m_invertedWaterfall)
+			newShare = (float)(event->y() - m_frequencyScaleRect.height()) / (float)height();
+		else newShare = 1.0 - (float)(event->y() + m_frequencyScaleRect.height()) / (float)height();
 		if(newShare < 0.1)
 			newShare = 0.1;
 		else if(newShare > 0.8)
