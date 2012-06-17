@@ -163,8 +163,7 @@ void DSPEngine::work()
 									 (m_fftPreWindow[i].imag() * m_imbalance) + m_dcCorrection.imag());
 		} else if(m_settings.dcOffsetCorrection()) {
 			for(size_t i = 0; i < m_fftPreWindow.size(); i++)
-				m_fftIn[i] = Complex(m_fftPreWindow[i].real() + m_dcCorrection.real(),
-									 m_fftPreWindow[i].imag() + m_dcCorrection.imag());
+				m_fftIn[i] = m_fftPreWindow[i] + m_dcCorrection;
 		} else if(m_settings.iqImbalanceCorrection()) {
 			for(size_t i = 0; i < m_fftPreWindow.size(); i++)
 				m_fftIn[i] = Complex(m_fftPreWindow[i].real(), m_fftPreWindow[i].imag() * m_imbalance);
@@ -176,8 +175,8 @@ void DSPEngine::work()
 		if(m_debugEvent) {
 			m_debugEvent = false;
 			FILE* f = fopen("/tmp/data.txt", "wb");
-			for(size_t i = 0; i < m_fftIn.size(); i++)
-				fprintf(f, "%d %f %f\n", i, m_fftIn[i].real(), m_fftIn[i].imag());
+			for(size_t i = 0; i < m_fftSamples.size() >> 1; i++)
+				fprintf(f, "%d %d %d\n", i, m_fftSamples[i * 2 + 0], m_fftSamples[i * 2 + 1]);
 			fclose(f);
 		}
 
