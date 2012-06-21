@@ -19,8 +19,33 @@
 #define INCLUDE_DSPTYPES_H
 
 #include <complex>
+#include <vector>
+#include <QtGlobal>
 
 typedef float Real;
 typedef std::complex<Real> Complex;
+
+typedef qint16 FixReal;
+
+#pragma pack(push, 1)
+struct Sample {
+	Sample() {}
+	Sample(FixReal real) : m_real(real), m_imag(0) {}
+	Sample(FixReal real, FixReal imag) : m_real(real), m_imag(imag) {}
+	Sample(const Sample& other) : m_real(other.m_real), m_imag(other.m_imag) {}
+	Sample& operator=(const Sample& other) { m_real = other.m_real; m_imag = other.m_imag; return *this; }
+
+	Sample& operator+=(const Sample& other) { m_real += other.m_real; m_imag += other.m_imag; return *this; }
+	Sample& operator-=(const Sample& other) { m_real -= other.m_real; m_imag -= other.m_imag; return *this; }
+
+	FixReal real() const { return m_real; }
+	FixReal imag() const { return m_imag; }
+
+	FixReal m_real;
+	FixReal m_imag;
+};
+#pragma pack(pop)
+
+typedef std::vector<Sample> SampleVector;
 
 #endif // INCLUDE_DSPTYPES_H

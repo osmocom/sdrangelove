@@ -38,7 +38,7 @@ public:
 	void setDisplayLiveSpectrum(bool display);
 	void setDisplayHistogram(bool display);
 
-	void newSpectrum(const std::vector<Real>& spectrum);
+	void newSpectrum(const std::vector<Real>& spectrum, int fftSize);
 
 private:
 	enum CursorState {

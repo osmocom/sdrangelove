@@ -32,6 +32,11 @@ SOURCES += main.cpp\
 	dsp/dspengine.cpp \
 	gui/indicator.cpp \
 	dsp/fftwindow.cpp \
+	dsp/lowpass.cpp \
+	dsp/interpolator.cpp \
+	dsp/channelizer.cpp \
+	dsp/spectrum.cpp \
+	dsp/samplesink.cpp \
 	settings.cpp \
 	hardware/osmosdrinput.cpp \
 	hardware/osmosdrthread.cpp \
@@ -49,6 +54,11 @@ HEADERS  += mainwindow.h \
 	dsp/kissfft.h \
 	dsp/dsptypes.h \
 	dsp/fftwindow.h \
+	dsp/lowpass.h \
+	dsp/interpolator.h \
+	dsp/channelizer.h \
+	dsp/spectrum.h \
+	dsp/samplesink.h \
 	settings.h \
 	hardware/osmosdrinput.h \
 	hardware/osmosdrthread.h \

@@ -177,19 +177,19 @@ void GLSpectrum::setDisplayHistogram(bool display)
 	update();
 }
 
-void GLSpectrum::newSpectrum(const std::vector<Real>& spectrum)
+void GLSpectrum::newSpectrum(const std::vector<Real>& spectrum, int fftSize)
 {
 	QMutexLocker mutexLocker(&m_mutex);
 
 	m_displayChanged = true;
 
 	if(m_changesPending) {
-		m_fftSize = spectrum.size();
+		m_fftSize = fftSize;
 		return;
 	}
 
-	if((int)spectrum.size() != m_fftSize) {
-		m_fftSize = spectrum.size();
+	if(fftSize != m_fftSize) {
+		m_fftSize = fftSize;
 		m_changesPending = true;
 		return;
 	}
@@ -198,7 +198,7 @@ void GLSpectrum::newSpectrum(const std::vector<Real>& spectrum)
 	updateHistogram(spectrum);
 
 	if(!m_liveSpectrumChanged) {
-		m_liveSpectrum = spectrum;
+		std::copy(spectrum.begin(), spectrum.begin() + m_fftSize, m_liveSpectrum.begin());
 		m_liveSpectrumChanged = true;
 	}
 }
@@ -238,8 +238,8 @@ void GLSpectrum::updateHistogram(const std::vector<Real>& spectrum)
 				if(*h > 0) {
 					*h = *h - 1;
 				} else {
-					*h = m_histogramLateHoldoff;
 					*b = *b - 1;
+					*h = m_histogramLateHoldoff;
 				}
 			}
 			b++;
@@ -248,21 +248,16 @@ void GLSpectrum::updateHistogram(const std::vector<Real>& spectrum)
 		m_histogramHoldoffCount = m_histogramHoldoffBase;
 	}
 
-	b = m_histogram;
-	h = m_histogramHoldoff;
-	for(size_t i = 0; i < spectrum.size(); i++) {
-		Real vr = spectrum[i] + 99.0;
-		int v = (int)vr;
-		if((v >= 0) && (v <= 99)) {
-			if(*(b + v) < 220)
-				(*(b + v)) += 4;
-			else if(*(b + v) < 239)
-				(*(b + v)) += 1;
-			//*h = m_lateHoldOff;
-		}
+	for(int i = 0; i < m_fftSize; i++) {
+		int v = (int)(spectrum[i] + 99.0);
 
-		b += 100;
-		h += 100;
+		if((v >= 0) && (v <= 99)) {
+			b = m_histogram + i * 100 + v;
+			if(*b < 220)
+				*b += 4;
+			else if(*b < 239)
+				*b += 1;
+		}
 	}
 }
 
@@ -459,13 +454,13 @@ void GLSpectrum::paintGL()
 	if(m_displayLiveSpectrum) {
 		glPushMatrix();
 		glTranslatef(m_glHistogramRect.x(), m_glHistogramRect.y(), 0);
-		glScalef(m_glHistogramRect.width() / (float)(m_liveSpectrum.size() - 1), -m_glHistogramRect.height() / 99.0, 1);
+		glScalef(m_glHistogramRect.width() / (float)(m_fftSize - 1), -m_glHistogramRect.height() / 99.0, 1);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_LINE_SMOOTH);
 		glLineWidth(1.0f);
 		glColor4f(1, 1, 1, 0.5f);
-		for(size_t i = 1; i < m_liveSpectrum.size(); i++) {
+		for(int i = 1; i < m_fftSize; i++) {
 			glBegin(GL_LINE_LOOP);
 			glVertex2f(i - 1, m_liveSpectrum[i - 1]);
 			glVertex2f(i, m_liveSpectrum[i]);
@@ -588,6 +583,8 @@ void GLSpectrum::applyChanges()
 
 	QFontMetrics fm(font());
 	int M = fm.width("-");
+
+	m_liveSpectrum.resize(m_fftSize);
 
 	int topMargin = fm.ascent() * 1.5;
 	int bottomMargin = fm.ascent() * 1.5;

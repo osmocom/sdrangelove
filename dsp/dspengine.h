@@ -26,11 +26,10 @@
 #include "kissfft.h"
 #include "fftwindow.h"
 #include "settings.h"
+#include "spectrum.h"
 
 class SampleSource;
 class SampleFifo;
-class Waterfall;
-class SpectroHistogram;
 class GLSpectrum;
 
 class DSPEngine : public QThread {
@@ -81,31 +80,21 @@ private:
 	SampleSource* m_sampleSource;
 
 	int m_sampleRate;
-	int m_fftSize;
-	int m_fftOverlap;
-	int m_fftOverlapSize;
-	int m_fftRefillSize;
 
-	Complex m_dcCorrection;
-	Real m_iRange;
-	Real m_qRange;
-	Real m_imbalance;
+	qint32 m_iOffset;
+	qint32 m_qOffset;
+	qint32 m_iRange;
+	qint32 m_qRange;
+	qint32 m_imbalance;
 
-	Waterfall* m_waterfall;
-	SpectroHistogram* m_spectroHistogram;
-	GLSpectrum* m_glSpectrum;
-
-	KissFFT m_fft;
-	std::vector<qint16> m_fftSamples;
-	std::vector<Complex> m_fftPreWindow;
-	std::vector<Complex> m_fftIn;
-	std::vector<Complex> m_fftOut;
-	std::vector<Real> m_logPowerSpectrum;
-	FFTWindow m_fftWindow;
+	Spectrum m_spectrum;
 
 	void run();
 
+	void dcOffset(SampleVector::iterator begin, SampleVector::iterator end);
+	void imbalance(SampleVector::iterator begin, SampleVector::iterator end);
 	void work();
+
 	void applyConfig();
 	void changeState();
 

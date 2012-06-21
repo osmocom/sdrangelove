@@ -21,6 +21,7 @@
 #include <QObject>
 #include <QMutex>
 #include <QTime>
+#include "dsp/dsptypes.h"
 
 class SampleFifo : public QObject {
 	Q_OBJECT
@@ -30,14 +31,14 @@ private:
 	QTime m_msgRateTimer;
 	int m_suppressed;
 
-	qint16* m_data;
+	SampleVector m_data;
 
-	int m_size;
-	int m_fill;
-	int m_head;
-	int m_tail;
+	size_t m_size;
+	size_t m_fill;
+	size_t m_head;
+	size_t m_tail;
 
-	void create(int s);
+	void create(size_t s);
 
 public:
 	SampleFifo(QObject* parent = NULL);
@@ -45,12 +46,16 @@ public:
 	~SampleFifo();
 
 	bool setSize(int size);
-	inline int fill() { return m_fill; }
+	inline size_t fill() const { return m_fill; }
 
-	int write(const qint16* samples, int count);
-	int read(qint16* samples, int count);
+	size_t write(SampleVector::const_iterator begin, SampleVector::const_iterator end);
 
-	int drain(int count);
+	size_t read(SampleVector::iterator begin, SampleVector::iterator end);
+
+	size_t readBegin(size_t count,
+		SampleVector::iterator* part1Begin, SampleVector::iterator* part1End,
+		SampleVector::iterator* part2Begin, SampleVector::iterator* part2End);
+	size_t readCommit(size_t count);
 
 signals:
 	void dataReady();

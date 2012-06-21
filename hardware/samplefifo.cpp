@@ -19,31 +19,25 @@
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
-void SampleFifo::create(int s)
+void SampleFifo::create(size_t s)
 {
-	if(m_data != NULL) {
-		delete[] m_data;
-		m_data = NULL;
-	}
-
 	m_size = 0;
 	m_fill = 0;
 	m_head = 0;
 	m_tail = 0;
 
-	if((m_data = new qint16[s]) == NULL) {
-		qCritical("SampleFifo: out of memory");
-		return;
-	}
+	m_data.resize(s);
+	m_size = m_data.size();
 
-	m_size = s;
+	if(m_size != s)
+		qCritical("SampleFifo: out of memory");
 }
 
 SampleFifo::SampleFifo(QObject* parent) :
-	QObject(parent)
+	QObject(parent),
+	m_data()
 {
 	m_suppressed = -1;
-	m_data = NULL;
 	m_size = 0;
 	m_fill = 0;
 	m_head = 0;
@@ -51,10 +45,10 @@ SampleFifo::SampleFifo(QObject* parent) :
 }
 
 SampleFifo::SampleFifo(int size, QObject* parent) :
-	QObject(parent)
+	QObject(parent),
+	m_data()
 {
 	m_suppressed = -1;
-	m_data = NULL;
 
 	create(size);
 }
@@ -63,11 +57,6 @@ SampleFifo::~SampleFifo()
 {
 	QMutexLocker mutexLocker(&m_mutex);
 
-	if(m_data != NULL) {
-		delete[] m_data;
-		m_data = NULL;
-	}
-
 	m_size = 0;
 }
 
@@ -75,18 +64,16 @@ bool SampleFifo::setSize(int size)
 {
 	create(size);
 
-	return m_data != NULL;
+	return m_data.size() == (size_t)size;
 }
 
-int SampleFifo::write(const qint16* samples, int count)
+size_t SampleFifo::write(SampleVector::const_iterator begin, SampleVector::const_iterator end)
 {
 	QMutexLocker mutexLocker(&m_mutex);
-	int total;
+	size_t count = end - begin;
+	size_t total;
 	int remaining;
 	int len;
-
-	if(m_data == NULL)
-		return 0;
 
 	total = MIN(count, m_size - m_fill);
 	if(total < count) {
@@ -108,11 +95,11 @@ int SampleFifo::write(const qint16* samples, int count)
 	remaining = total;
 	while(remaining > 0) {
 		len = MIN(remaining, m_size - m_tail);
-		memcpy(m_data + m_tail, samples, len * sizeof(qint16));
+		std::copy(begin, begin + len, m_data.begin() + m_tail);
 		m_tail += len;
 		m_tail %= m_size;
 		m_fill += len;
-		samples += len;
+		begin += len;
 		remaining -= len;
 	}
 
@@ -122,15 +109,13 @@ int SampleFifo::write(const qint16* samples, int count)
 	return total;
 }
 
-int SampleFifo::read(qint16* samples, int count)
+size_t SampleFifo::read(SampleVector::iterator begin, SampleVector::iterator end)
 {
 	QMutexLocker mutexLocker(&m_mutex);
-	int total;
-	int remaining;
-	int len;
-
-	if(m_data == NULL)
-		return 0;
+	size_t count = end - begin;
+	size_t total;
+	size_t remaining;
+	size_t len;
 
 	total = MIN(count, m_fill);
 	if(total < count)
@@ -139,24 +124,65 @@ int SampleFifo::read(qint16* samples, int count)
 	remaining = total;
 	while(remaining > 0) {
 		len = MIN(remaining, m_size - m_head);
-		memcpy(samples, m_data + m_head, len * sizeof(qint16));
+		std::copy(m_data.begin() + m_head, m_data.begin() + m_head + len, begin);
 		m_head += len;
 		m_head %= m_size;
 		m_fill -= len;
-		samples += len;
+		begin += len;
 		remaining -= len;
 	}
 
 	return total;
 }
 
-int SampleFifo::drain(int count)
+
+size_t SampleFifo::readBegin(size_t count,
+	SampleVector::iterator* part1Begin, SampleVector::iterator* part1End,
+	SampleVector::iterator* part2Begin, SampleVector::iterator* part2End)
+{
+	QMutexLocker mutexLocker(&m_mutex);
+	size_t total;
+	size_t remaining;
+	size_t len;
+	size_t head = m_head;
+
+	total = MIN(count, m_fill);
+	if(total < count)
+		qCritical("SampleFifo: underflow - missing %d samples", count - total);
+
+	remaining = total;
+	if(remaining > 0) {
+		len = MIN(remaining, m_size - head);
+		*part1Begin = m_data.begin() + head;
+		*part1End = m_data.begin() + head + len;
+		head += len;
+		head %= m_size;
+		remaining -= len;
+	} else {
+		*part1Begin = m_data.end();
+		*part1End = m_data.end();
+	}
+	if(remaining > 0) {
+		len = MIN(remaining, m_size - head);
+		*part2Begin = m_data.begin() + head;
+		*part2End = m_data.begin() + head + len;
+	} else {
+		*part2Begin = m_data.end();
+		*part2End = m_data.end();
+	}
+
+	return total;
+}
+
+size_t SampleFifo::readCommit(size_t count)
 {
 	QMutexLocker mutexLocker(&m_mutex);
 
-	if(count > m_fill)
+	if(count > m_fill) {
+		qCritical("SampleFifo: cannot commit more than available samples");
 		count = m_fill;
-	m_head = (m_head + count) & m_size;
+	}
+	m_head = (m_head + count) % m_size;
 	m_fill -= count;
 
 	return count;

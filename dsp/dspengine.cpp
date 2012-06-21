@@ -22,6 +22,33 @@
 #include "hardware/samplefifo.h"
 #include "gui/glspectrum.h"
 
+#if 0
+static int isqrt(int n)
+{
+	int i, j;
+
+	if(n <= 0)
+		return 0;
+
+	if(n > 0xffffff)
+		i = n >> 16;
+	else if(n > 0xffff)
+		i = n >> 12;
+	else if(n > 0xff)
+		i = n >> 8;
+	else i = n >> 4;
+	if(i <= 0)
+		i = 1;
+
+	do {
+		j = i;
+		i = (j + n / j) / 2;
+	} while (((i - j) >= 2) || ((j-i) >= 2));
+
+	return i;
+}
+#endif
+
 DSPEngine::DSPEngine(Settings* settings, QObject* parent) :
 	QThread(parent),
 	m_debugEvent(false),
@@ -29,16 +56,7 @@ DSPEngine::DSPEngine(Settings* settings, QObject* parent) :
 	m_state(StNotStarted),
 	m_nextState(StIdle),
 	m_sampleFifo(NULL),
-	m_sampleSource(NULL),
-	m_fftSize(-1),
-	m_fftOverlap(30),
-	m_dcCorrection(0),
-	m_iRange(1),
-	m_qRange(1),
-	m_imbalance(1),
-	m_waterfall(NULL),
-	m_spectroHistogram(NULL),
-	m_glSpectrum(NULL)
+	m_sampleSource(NULL)
 {
 	moveToThread(this);
 }
@@ -51,7 +69,7 @@ DSPEngine::~DSPEngine()
 
 void DSPEngine::setGLSpectrum(GLSpectrum* glSpectrum)
 {
-	m_glSpectrum = glSpectrum;
+	m_spectrum.setGLSpectrum(glSpectrum);
 }
 
 void DSPEngine::start()
@@ -119,101 +137,103 @@ void DSPEngine::run()
 	exec();
 }
 
+void DSPEngine::dcOffset(SampleVector::iterator begin, SampleVector::iterator end)
+{
+	int count = end - begin;
+	int io = 0;
+	int qo = 0;
+
+	// sum all sample components
+	for(SampleVector::iterator it = begin; it < end; it++) {
+		io += it->real();
+		qo += it->imag();
+	}
+
+	// build a sliding average (el cheapo style)
+	m_iOffset = (m_iOffset * 3 + io / count) >> 2;
+	m_qOffset = (m_qOffset * 3 + qo / count) >> 2;
+
+	// correct samples
+	Sample corr(m_iOffset, m_qOffset);
+	for(SampleVector::iterator it = begin; it < end; it++)
+		*it -= corr;
+}
+
+void DSPEngine::imbalance(SampleVector::iterator begin, SampleVector::iterator end)
+{
+	int iMin = 0;
+	int iMax = 0;
+	int qMin = 0;
+	int qMax = 0;
+
+	// find value ranges for both I and Q
+	// both intervals should be same same size (for a perfect circle)
+	for(SampleVector::iterator it = begin; it < end; it++) {
+		if(it != begin) {
+			if(it->real() < iMin)
+				iMin = it->real();
+			else if(it->real() > iMax)
+				iMax = it->real();
+			if(it->imag() < qMin)
+				qMin = it->imag();
+			else if(it->imag() > qMax)
+				qMax = it->imag();
+
+		} else {
+			iMin = it->real();
+			iMax = it->real();
+			qMin = it->imag();
+			qMax = it->imag();
+		}
+	}
+
+	// sliding average (el cheapo again)
+	m_iRange = (m_iRange * 15 + (iMax - iMin)) >> 4;
+	m_qRange = (m_qRange * 15 + (qMax - qMin)) >> 4;
+
+	// calculate imbalance as Q15.16
+	if(m_qRange != 0)
+		m_imbalance = (m_iRange << 16) / m_qRange;
+
+	// correct imbalance and convert back to signed int 16
+	for(SampleVector::iterator it = begin; it < end; it++)
+		it->m_imag = (it->m_imag * m_imbalance) >> 16;
+}
+
 void DSPEngine::work()
 {
+	size_t wus;
+	size_t maxWorkUnitSize = 0;
 	int count = 0;
-	Real iMin = 0;
-	Real iMax = 0;
-	Real qMin = 0;
-	Real qMax = 0;
 
-	while((m_sampleFifo->fill() > 2 * m_fftRefillSize) && (m_state == m_nextState) && (count < m_sampleRate)) {
-		// advance buffer respecting the fft overlap factor
-		memmove(&m_fftPreWindow[0], &m_fftPreWindow[m_fftRefillSize], m_fftOverlapSize * sizeof(Complex));
-		// read new samples
-		m_sampleFifo->read(&m_fftSamples[0], 2 * m_fftRefillSize);
-		count += m_fftRefillSize;
-		// convert new samples to Complex()
-		const qint16* s = &m_fftSamples[0];
-		for(int i = m_fftOverlapSize; i < m_fftSize; i++) {
-			Real j = (*s++) / 32768.0;
-			Real q = (*s++) / 32768.0;
-			if(i == m_fftOverlapSize) {
-				iMin = j;
-				iMax = j;
-				qMin = q;
-				qMax = q;
-			} else {
-				if(j < iMin)
-					iMin = j;
-				else if(j > iMax)
-					iMax = j;
-				if(q < qMin)
-					qMin = q;
-				else if(q > qMax)
-					qMax = q;
-			}
-			m_fftPreWindow[i] = Complex(j, q);
+	wus = m_spectrum.workUnitSize();
+	if(wus > maxWorkUnitSize)
+		maxWorkUnitSize = wus;
+
+	while((m_sampleFifo->fill() > maxWorkUnitSize) && (m_state == m_nextState) && (count < m_sampleRate)) {
+		SampleVector::iterator part1begin;
+		SampleVector::iterator part1end;
+		SampleVector::iterator part2begin;
+		SampleVector::iterator part2end;
+
+		size_t count = m_sampleFifo->readBegin(m_sampleFifo->fill(), &part1begin, &part1end, &part2begin, &part2end);
+
+		if(part1begin != part1end) {
+			if(m_settings.dcOffsetCorrection())
+				dcOffset(part1begin, part1end);
+			if(m_settings.iqImbalanceCorrection())
+				imbalance(part1begin, part1end);
+			m_spectrum.feed(part1begin, part1end);
+		}
+		if(part2begin != part2end) {
+			if(m_settings.dcOffsetCorrection())
+				dcOffset(part2begin, part2end);
+			if(m_settings.iqImbalanceCorrection())
+				imbalance(part2begin, part2end);
+			m_spectrum.feed(part2begin, part2end);
 		}
 
-		// apply DC offset and I/Q imbalance correction (or whatever is active)
-		if(m_settings.dcOffsetCorrection() && m_settings.iqImbalanceCorrection()) {
-			for(size_t i = 0; i < m_fftPreWindow.size(); i++)
-				m_fftIn[i] = Complex(m_fftPreWindow[i].real() + m_dcCorrection.real(),
-									 (m_fftPreWindow[i].imag() * m_imbalance) + m_dcCorrection.imag());
-		} else if(m_settings.dcOffsetCorrection()) {
-			for(size_t i = 0; i < m_fftPreWindow.size(); i++)
-				m_fftIn[i] = m_fftPreWindow[i] + m_dcCorrection;
-		} else if(m_settings.iqImbalanceCorrection()) {
-			for(size_t i = 0; i < m_fftPreWindow.size(); i++)
-				m_fftIn[i] = Complex(m_fftPreWindow[i].real(), m_fftPreWindow[i].imag() * m_imbalance);
-		} else {
-			for(size_t i = 0; i < m_fftPreWindow.size(); i++)
-				m_fftIn[i] = m_fftPreWindow[i];
-		}
-
-		if(m_debugEvent) {
-			m_debugEvent = false;
-			FILE* f = fopen("/tmp/data.txt", "wb");
-			for(size_t i = 0; i < m_fftSamples.size() >> 1; i++)
-				fprintf(f, "%d %d %d\n", i, m_fftSamples[i * 2 + 0], m_fftSamples[i * 2 + 1]);
-			fclose(f);
-		}
-
-		// apply fft window
-		m_fftWindow.apply(m_fftIn, &m_fftIn);
-
-		// calculate FFT
-		m_fft.transform(&m_fftIn[0], &m_fftOut[0]);
-
-		// update DC offset
-		if(m_settings.dcOffsetCorrection()) {
-			m_dcCorrection -= m_fftOut[0] * (Real)0.01 / (Real)m_fftSize;
-		}
-
-		// update I/Q imbalance
-		if(m_settings.iqImbalanceCorrection()) {
-			m_iRange = m_iRange * 0.99 + (iMax - iMin) * 0.01;
-			m_qRange = m_qRange * 0.99 + (qMax - qMin) * 0.01;
-			m_imbalance = m_iRange / m_qRange;
-		}
-
-		// extract power spectrum and reorder buckets
-		for(int i = 0; i < m_fftSize; i++) {
-			Complex c = m_fftOut[((i + (m_fftOut.size() >> 1)) & (m_fftOut.size() - 1))];
-			Real v = sqrt(c.real() * c.real() + c.imag() * c.imag());
-			v /= (Real)m_fftSize;
-			v = 20.0 * log10(v);
-			if(v < -99.0)
-				v = -99.0;
-			else if(v > 0.0)
-				v = 0.0;
-			m_logPowerSpectrum[i] = v;
-		}
-
-		// send new data to visualisation
-		if(m_glSpectrum != NULL)
-			m_glSpectrum->newSpectrum(m_logPowerSpectrum);
+		m_sampleFifo->readCommit(count);
 	}
 
 	if(m_settings.isModifiedCenterFreq())
@@ -233,26 +253,18 @@ void DSPEngine::applyConfig()
 	}
 
 	if(m_settings.isModifiedFFTSize() || m_settings.isModifiedFFTOverlap() || m_settings.isModifiedFFTWindow()) {
-		m_fftSize = m_settings.fftSize();
-		m_fftOverlap = m_settings.fftOverlap();
-		m_fft.configure(m_fftSize, false);
-		m_fftSamples.resize(2 * m_fftSize);
-		m_fftPreWindow.resize(m_fftSize);
-		m_fftIn.resize(m_fftSize);
-		m_fftOut.resize(m_fftSize);
-		m_logPowerSpectrum.resize(m_fftSize);
-		m_fftWindow.create((FFTWindow::Function)m_settings.fftWindow(), m_fftSize);
-		m_fftOverlapSize = (m_fftSize * m_fftOverlap) / 100;
-		m_fftRefillSize = m_fftSize - m_fftOverlapSize;
+		m_spectrum.configure(m_settings.fftSize(), m_settings.fftOverlap(), (FFTWindow::Function)m_settings.fftWindow());
 	}
 
-	if(m_settings.isModifiedDCOffsetCorrection())
-		m_dcCorrection = 0;
+	if(m_settings.isModifiedDCOffsetCorrection()) {
+		m_iOffset = 0;
+		m_qOffset = 0;
+	}
 
 	if(m_settings.isModifiedIQImbalanceCorrection()) {
-		m_iRange = 2;
-		m_qRange = 2;
-		m_imbalance = 1;
+		m_iRange = 1 << 16;
+		m_qRange = 1 << 16;
+		m_imbalance = 65536;
 	}
 
 	if(m_settings.isModifiedE4000LNAGain())
@@ -358,17 +370,12 @@ DSPEngine::State DSPEngine::gotoRunning()
 	m_sampleRate = 4000000 / (1 << m_settings.decimation());
 	qDebug("current rate: %d", m_sampleRate);
 
-	m_fftSize = m_settings.fftSize();
-	m_fftOverlap = m_settings.fftOverlap();
-	m_fft.configure(m_fftSize, false);
-	m_fftSamples.resize(2 * m_fftSize);
-	m_fftPreWindow.resize(m_fftSize);
-	m_fftIn.resize(m_fftSize);
-	m_fftOut.resize(m_fftSize);
-	m_logPowerSpectrum.resize(m_fftSize);
-	m_fftWindow.create((FFTWindow::Function)m_settings.fftWindow(), m_fftSize);
-	m_fftOverlapSize = (m_fftSize * m_fftOverlap) / 100;
-	m_fftRefillSize = m_fftSize - m_fftOverlapSize;
+	m_spectrum.configure(m_settings.fftSize(), m_settings.fftOverlap(), (FFTWindow::Function)m_settings.fftWindow());
+
+	m_iOffset = 0;
+	m_qOffset = 0;
+	m_iRange = 1 << 16;
+	m_qRange = 1 << 16;
 
 	if(!m_sampleFifo->setSize(2 * 500000))
 	   return gotoError("could not allocate SampleFifo");
