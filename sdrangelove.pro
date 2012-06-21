@@ -6,7 +6,10 @@
 
 
 !exists(local.pri) {
-	error(Please create a local.pri)
+	warning(Please create a local.pri)
+}
+exists(local.pri) {
+	include(local.pri)
 }
 
 include(local.pri)
@@ -42,10 +45,10 @@ SOURCES += main.cpp\
 	hardware/osmosdrthread.cpp \
 	hardware/samplesource.cpp \
 	gui/scale.cpp \
-    dsp/nco.cpp \
-    gui/glspectrum.cpp \
-    gui/scaleengine.cpp \
-    gui/valuedial.cpp
+	dsp/nco.cpp \
+	gui/glspectrum.cpp \
+	gui/scaleengine.cpp \
+	gui/valuedial.cpp
 
 HEADERS  += mainwindow.h \
 	hardware/samplefifo.h \
@@ -65,10 +68,10 @@ HEADERS  += mainwindow.h \
 	hardware/samplesource.h \
 	gui/scale.h \
 	gui/physicalunit.h \
-    dsp/nco.h \
-    gui/glspectrum.h \
-    gui/scaleengine.h \
-    gui/valuedial.h
+	dsp/nco.h \
+	gui/glspectrum.h \
+	gui/scaleengine.h \
+	gui/valuedial.h
 
 FORMS    += mainwindow.ui
 
@@ -89,7 +92,6 @@ unix:portaudio {
 
 # libosmosdr
 unix {
-	LIBS += -lusb-1.0
-	LIBS += $${LIBOSMOSDR_LIB_PATH}/libosmosdr.a
-	INCLUDEPATH += $${LIBOSMOSDR_INCLUDE_PATH}
+	CONFIG += link_pkgconfig
+	PKGCONFIG += libosmosdr
 }
