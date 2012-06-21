@@ -52,8 +52,6 @@ void FFTWindow::create(Function function, int n)
 
 	for(int i = 0; i < n; i++)
 		m_window[i] = wFunc(n, i);
-
-	return;
 }
 
 void FFTWindow::apply(const std::vector<Real>& in, std::vector<Real>* out)
