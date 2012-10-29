@@ -15,28 +15,45 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#ifndef INCLUDE_SAMPLESOURCE_H
-#define INCLUDE_SAMPLESOURCE_H
+#ifndef INCLUDE_AUDIOOUTPUT_H
+#define INCLUDE_AUDIOOUTPUT_H
 
-#include <QtGlobal>
+#include <QMutex>
+#include "portaudio.h"
 
-class SampleFifo;
+class AudioFifo;
 
-class SampleSource {
+class AudioOutput {
+private:
+	PaStream* m_stream;
+	AudioFifo* m_audioFifo;
+
+	int m_sampleRate;
+	PaTime m_streamStartTime;
+
+	static int callbackHelper(
+		const void* inputBuffer,
+		void* outputBuffer,
+		unsigned long framesPerBuffer,
+		const PaStreamCallbackTimeInfo* timeInfo,
+		PaStreamCallbackFlags statusFlags,
+		void* userData);
+
+	int callback(
+		const void* inputBuffer,
+		void* outputBuffer,
+		unsigned long framesPerBuffer,
+		const PaStreamCallbackTimeInfo* timeInfo,
+		PaStreamCallbackFlags statusFlags);
+
 public:
-	SampleSource(SampleFifo* sampleFifo);
+	AudioOutput();
+	~AudioOutput();
 
-	virtual bool startInput(int device, int rate) = 0;
-	virtual void stopInput() = 0;
+	bool start(int device, int rate, AudioFifo* audioFifo);
+	void stop();
 
-	virtual bool setCenterFrequency(qint64 freq) = 0;
-	virtual bool setIQSwap(bool sw) = 0;
-	virtual bool setDecimation(int dec) = 0;
-
-	virtual const QString& deviceDesc() const = 0;
-
-protected:
-	SampleFifo* m_sampleFifo;
+	int bufferedSamples();
 };
 
-#endif // INCLUDE_SAMPLESOURCE_H
+#endif // INCLUDE_AUDIOOUTPUT_H

@@ -29,7 +29,7 @@ static double trunc(double d)
 
 QString ScaleEngine::formatTick(double value, int decimalPlaces, bool fancyTime)
 {
-	if((m_physicalUnit != Unit::Time) || (!fancyTime)) {
+	if((m_physicalUnit != Unit::Time) || (!fancyTime) || 1) {
 		return QString("%1").arg(value, 0, 'f', decimalPlaces);
 	} else {
 		QString str;
@@ -158,7 +158,15 @@ void ScaleEngine::calcScaleFactor()
 			m_unitStr = QString("°");
 
 		case Unit::Time:
-			m_unitStr = QString("s");
+			if(median < 0.001) {
+				m_unitStr = QString("µs");
+				m_scale = 0.000001;
+			} else if(median < 1.0) {
+				m_unitStr = QString("ms");
+				m_scale = 0.001;
+			} else {
+				m_unitStr = QString("s");
+			}
 			break;
 	}
 }
@@ -179,7 +187,7 @@ double ScaleEngine::calcMajorTickUnits(double distance, int* retDecimalPlaces)
 	exponent = floor(log10x);
 	base = pow(10.0, log10x - exponent);
 	decimalPlaces = (int)(-exponent);
-
+/*
 	if((m_physicalUnit == Unit::Time) && (distance >= 1.0)) {
 		if(retDecimalPlaces != NULL)
 			*retDecimalPlaces = 0;
@@ -224,7 +232,7 @@ double ScaleEngine::calcMajorTickUnits(double distance, int* retDecimalPlaces)
 		else if(distance < 30.0 * 86000.0)
 			return 30.0 * 86000.0;
 		else return 90.0 * 86000.0;
-	} else {
+	} else {*/
 		if(base <= 1.0) {
 			base = 1.0;
 		} else if(base <= 2.0) {
@@ -237,8 +245,8 @@ double ScaleEngine::calcMajorTickUnits(double distance, int* retDecimalPlaces)
 			base = 5.0;
 		} else {
 			base = 10.0;
-		}
-	}
+		}/*
+	}*/
 
 	if(retDecimalPlaces != NULL) {
 		if(decimalPlaces < 0)

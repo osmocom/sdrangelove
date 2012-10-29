@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
+#include <stdio.h>
 #include <errno.h>
 #include "osmosdrthread.h"
 #include "samplefifo.h"
@@ -54,6 +55,8 @@ void OsmoSDRThread::run()
 	m_running = true;
 	m_startWaiter.wakeAll();
 
+	//m_f = fopen("/tmp/samples.bin", "wb");
+
 	while(m_running) {
 		if((res = osmosdr_read_async(m_dev, &OsmoSDRThread::callbackHelper, this, 8, sizeof(Sample) * 16384)) < 0) {
 			qCritical("OsmoSDRThread: async error: %s", strerror(errno));
@@ -66,7 +69,17 @@ void OsmoSDRThread::run()
 
 void OsmoSDRThread::callback(quint8* buf, qint32 len)
 {
-	m_sampleFifo->write((SampleVector::const_iterator)((Sample*)buf), (SampleVector::const_iterator)((Sample*)(buf + len)));
+	/*
+	qDebug("%d", len);
+
+	for(int i = 0; i < len / 2; i += 2) {
+		((qint16*)buf)[i] = sin((float)(cntr) * 16384* 2.0 * M_PI / 65536.0) * 5000.0;
+		((qint16*)buf)[i + 1] = -cos((float)(cntr++) * 16384*2.0 * M_PI / 65536.0) * 5000.0;
+	}*/
+
+	//m_sampleFifo->write((SampleVector::const_iterator)((Sample*)buf), (SampleVector::const_iterator)((Sample*)(buf + len)));
+	//fwrite(buf, 1, len, m_f);
+	m_sampleFifo->write(buf, len);
 	if(!m_running)
 		osmosdr_cancel_async(m_dev);
 }

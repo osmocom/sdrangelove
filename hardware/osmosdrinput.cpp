@@ -23,7 +23,8 @@
 OsmoSDRInput::OsmoSDRInput(SampleFifo* sampleFifo) :
 	SampleSource(sampleFifo),
 	m_dev(NULL),
-	m_osmoSDRThread(NULL)
+	m_osmoSDRThread(NULL),
+	m_deviceDesc()
 {
 }
 
@@ -55,6 +56,7 @@ bool OsmoSDRInput::startInput(int device, int rate)
 		goto failed;
 	}
 	qDebug("OsmoSDRInput open: %s %s, SN: %s", vendor, product, serial);
+	m_deviceDesc = QString("%1 (SN %2)").arg(product).arg(serial);
 
 	if((res = osmosdr_set_sample_rate(m_dev, rate)) < 0) {
 		qCritical("error setting sample rate");
@@ -96,6 +98,7 @@ void OsmoSDRInput::stopInput()
 		osmosdr_close(m_dev);
 		m_dev = NULL;
 	}
+	m_deviceDesc.clear();
 }
 
 bool OsmoSDRInput::setCenterFrequency(qint64 freq)
@@ -117,6 +120,11 @@ bool OsmoSDRInput::setDecimation(int dec)
 	if(m_dev == NULL)
 		return false;
 	return osmosdr_set_fpga_decimation(m_dev, dec);
+}
+
+const QString& OsmoSDRInput::deviceDesc() const
+{
+	return m_deviceDesc;
 }
 
 bool OsmoSDRInput::setE4000LNAGain(int gain)
@@ -145,4 +153,11 @@ bool OsmoSDRInput::setE4000ifStageGain(int stage, int gain)
 	if(m_dev == NULL)
 		return false;
 	return osmosdr_set_tuner_if_gain(m_dev, stage, gain);
+}
+
+bool OsmoSDRInput::setFilter(quint8 i1, quint8 i2, quint8 q1, quint8 q2)
+{
+	if(m_dev == NULL)
+		return false;
+	return osmosdr_set_iq_amp(m_dev, i1, i2, q1, q2);
 }

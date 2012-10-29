@@ -39,6 +39,7 @@ private:
 	QMutex m_startWaitMutex;
 	QWaitCondition m_startWaiter;
 	bool m_running;
+	FILE* m_f;
 
 	osmosdr_dev_t* m_dev;
 	SampleFifo* m_sampleFifo;

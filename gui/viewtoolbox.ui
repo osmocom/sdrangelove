@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ViewToolBox</class>
+ <widget class="QWidget" name="ViewToolBox">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>191</width>
+    <height>117</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>View Toolbox</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="2" column="0">
+    <spacer name="wfDirectionSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>10</width>
+       <height>10</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="2" column="2">
+    <widget class="QComboBox" name="waterfallUpward">
+     <item>
+      <property name="text">
+       <string>Downward</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Upward</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="2" column="3">
+    <spacer name="horizontalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>10</width>
+       <height>10</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="3" column="0" colspan="4">
+    <widget class="QCheckBox" name="viewHistogram">
+     <property name="text">
+      <string>Display &amp;Histogram</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="4">
+    <widget class="QCheckBox" name="viewLiveSpectrum">
+     <property name="text">
+      <string>Paint &amp;Live Spectrum</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="4">
+    <widget class="QCheckBox" name="viewWaterfall">
+     <property name="text">
+      <string>Display &amp;Waterfall</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>viewWaterfall</tabstop>
+  <tabstop>waterfallUpward</tabstop>
+  <tabstop>viewHistogram</tabstop>
+  <tabstop>viewLiveSpectrum</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

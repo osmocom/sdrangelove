@@ -19,9 +19,8 @@
 #include <QTextCodec>
 #include <QMessageBox>
 #include "mainwindow.h"
-//#include "portaudio.h"
+#include "portaudio.h"
 
-#if 0
 static void initPortAudio()
 {
 	PaError err;
@@ -29,10 +28,9 @@ static void initPortAudio()
 	if((err = Pa_Initialize()) != paNoError) {
 		qCritical("PortAudio: could not initialise: %s (%d)", Pa_GetErrorText(err), err);
 		QString error = QObject::tr("PortAudio could not be initialised: %1 (%2)").arg(Pa_GetErrorText(err)).arg(err);
-		QMessageBox::critical(NULL, "PortAudio", error);
+		QMessageBox::critical(NULL, "PortAudio failure", error);
 	}
 }
-#endif
 
 int main(int argc, char* argv[])
 {
@@ -41,7 +39,7 @@ int main(int argc, char* argv[])
 	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
 	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
 
-	//initPortAudio();
+	initPortAudio();
 
 	MainWindow w;
 	w.show();

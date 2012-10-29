@@ -15,28 +15,44 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#ifndef INCLUDE_SAMPLESOURCE_H
-#define INCLUDE_SAMPLESOURCE_H
+#ifndef INCLUDE_VIEWTOOLBOX_H
+#define INCLUDE_VIEWTOOLBOX_H
 
-#include <QtGlobal>
+#include <QWidget>
 
-class SampleFifo;
+namespace Ui {
+	class ViewToolBox;
+}
 
-class SampleSource {
+class ViewToolBox : public QWidget {
+	Q_OBJECT
+
 public:
-	SampleSource(SampleFifo* sampleFifo);
+	explicit ViewToolBox(QWidget* parent = NULL);
+	~ViewToolBox();
 
-	virtual bool startInput(int device, int rate) = 0;
-	virtual void stopInput() = 0;
+	void setViewWaterfall(bool checked);
+	void setWaterfallUpward(bool checked);
+	void setViewHistogram(bool checked);
+	void setViewLiveSpectrum(bool checked);
 
-	virtual bool setCenterFrequency(qint64 freq) = 0;
-	virtual bool setIQSwap(bool sw) = 0;
-	virtual bool setDecimation(int dec) = 0;
+signals:
+	void closed();
+	void viewWaterfall(bool checked);
+	void waterfallUpward(bool checked);
+	void viewHistogram(bool checked);
+	void viewLiveSpectrum(bool checked);
 
-	virtual const QString& deviceDesc() const = 0;
+private slots:
+	void on_viewWaterfall_toggled(bool checked);
+	void on_waterfallUpward_currentIndexChanged(int index);
+	void on_viewHistogram_toggled(bool checked);
+	void on_viewLiveSpectrum_toggled(bool checked);
 
-protected:
-	SampleFifo* m_sampleFifo;
+private:
+	Ui::ViewToolBox* ui;
+
+	void closeEvent(QCloseEvent*);
 };
 
-#endif // INCLUDE_SAMPLESOURCE_H
+#endif // INCLUDE_VIEWTOOLBOX_H

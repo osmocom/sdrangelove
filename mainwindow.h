@@ -23,8 +23,10 @@
 #include "settings.h"
 #include "dsp/dspengine.h"
 
+class QLabel;
 class DSPEngine;
 class Indicator;
+class ViewToolBox;
 
 namespace Ui {
 	class MainWindow;
@@ -47,11 +49,15 @@ private:
 
 	DSPEngine::State m_lastEngineState;
 
+	QLabel* m_sampleRateWidget;
 	Indicator* m_engineIdle;
 	Indicator* m_engineRunning;
 	Indicator* m_engineError;
+	ViewToolBox* m_viewToolBox;
 
 	int m_sampleRate;
+
+	bool m_startOSDRUpdateAfterStop;
 
 	void createStatusBar();
 	void updateCenterFreqDisplay();
@@ -59,6 +65,8 @@ private:
 
 private slots:
 	void updateStatus();
+	void viewToolBoxClosed();
+	void viewToolBoxWaterfallUpward(bool checked);
 	void on_action_Start_triggered();
 	void on_action_Stop_triggered();
 	void on_fftSize_currentIndexChanged(const QString& str);
@@ -78,10 +86,16 @@ private slots:
 	void on_action_Debug_triggered();
 	void on_dcOffset_toggled(bool checked);
 	void on_iqImbalance_toggled(bool checked);
-	void on_dispLiveSpectrum_toggled(bool checked);
-	void on_dispHistogram_toggled(bool checked);
-	void on_dispWaterfall_toggled(bool checked);
-	void on_waterfallInverted_toggled(bool checked);
+	void on_filterI1_valueChanged(int value);
+	void on_filterI2_valueChanged(int value);
+	void on_filterQ1_valueChanged(int value);
+	void on_filterQ2_valueChanged(int value);
+	void on_action_View_Waterfall_toggled(bool checked);
+	void on_action_View_Histogram_toggled(bool checked);
+	void on_action_View_LiveSpectrum_toggled(bool checked);
+	void on_action_View_Toolbox_toggled(bool checked);
+	void on_action_View_Fullscreen_toggled(bool checked);
+	void on_actionOsmoSDR_Firmware_Upgrade_triggered();
 };
 
 #endif // INCLUDE_MAINWINDOW_H

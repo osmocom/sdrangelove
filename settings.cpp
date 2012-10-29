@@ -35,7 +35,7 @@ Settings::Settings(Settings* reference) :
 void Settings::defaults()
 {
 	m_fftSize = 1024;
-	m_fftOverlap = 25;
+	m_fftOverlap = 10;
 	m_fftWindow = 3;
 	m_displayWaterfall = true;
 	m_invertedWaterfall = false;
@@ -55,6 +55,10 @@ void Settings::defaults()
 	m_e4000if4 = 20;
 	m_e4000if5 = 150;
 	m_e4000if6 = 150;
+	m_filterI1 = 255;
+	m_filterI2 = 255;
+	m_filterQ1 = 255;
+	m_filterQ2 = 255;
 }
 
 void Settings::load()
@@ -66,7 +70,7 @@ void Settings::load()
 		return;
 
 	m_fftSize = s.value("fftsize", 512).toInt();
-	m_fftOverlap = s.value("fftoverlap", 25).toInt();
+	m_fftOverlap = s.value("fftoverlap", 10).toInt();
 	m_fftWindow = s.value("fftwindow", 3).toInt();
 	m_displayWaterfall = s.value("displaywaterfall", true).toBool();
 	m_invertedWaterfall = s.value("invertedwaterfall", false).toBool();
@@ -86,6 +90,10 @@ void Settings::load()
 	m_e4000if4 = s.value("e4000_if4", 20).toInt();
 	m_e4000if5 = s.value("e4000_if5", 150).toInt();
 	m_e4000if6 = s.value("e4000_if6", 150).toInt();
+	m_filterI1 = s.value("filter_i1", 255).toInt();
+	m_filterI2 = s.value("filter_i2", 255).toInt();
+	m_filterQ1 = s.value("filter_q1", 255).toInt();
+	m_filterQ2 = s.value("filter_q2", 255).toInt();
 
 	s.remove("livespectrumalpha");
 }
@@ -117,6 +125,10 @@ void Settings::save()
 	s.setValue("e4000_if4", m_e4000if4);
 	s.setValue("e4000_if5", m_e4000if5);
 	s.setValue("e4000_if6", m_e4000if6);
+	s.setValue("filter_i1", m_filterI1);
+	s.setValue("filter_i2", m_filterI2);
+	s.setValue("filter_q1", m_filterQ1);
+	s.setValue("filter_q2", m_filterQ2);
 }
 
 int Settings::fftSize() const
@@ -189,8 +201,10 @@ bool Settings::displayWaterfall() const
 
 void Settings::setDisplayWaterfall(bool v)
 {
-	m_displayWaterfall = v;
-	m_changed = true;
+	if(v != m_displayWaterfall) {
+		m_displayWaterfall = v;
+		m_changed = true;
+	}
 }
 
 bool Settings::isModifiedDisplayWaterfall()
@@ -210,8 +224,10 @@ bool Settings::invertedWaterfall() const
 
 void Settings::setInvertedWaterfall(bool v)
 {
-	m_invertedWaterfall = v;
-	m_changed = true;
+	if(v != m_invertedWaterfall) {
+		m_invertedWaterfall = v;
+		m_changed = true;
+	}
 }
 
 bool Settings::isModifiedInvertedWaterfall()
@@ -231,8 +247,10 @@ bool Settings::displayLiveSpectrum() const
 
 void Settings::setDisplayLiveSpectrum(bool v)
 {
-	m_displayLiveSpectrum = v;
-	m_changed = true;
+	if(v != m_displayLiveSpectrum) {
+		m_displayLiveSpectrum = v;
+		m_changed = true;
+	}
 }
 
 bool Settings::isModifiedDisplayLiveSpectrum()
@@ -554,6 +572,90 @@ bool Settings::isModifiedE4000if6()
 {
 	if(m_reference->m_e4000if6 != m_e4000if6) {
 		m_e4000if6 = m_reference->m_e4000if6;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+quint8 Settings::filterI1() const
+{
+	return m_filterI1;
+}
+
+void Settings::setFilterI1(quint8 v)
+{
+	m_filterI1 = v;
+	m_changed = true;
+}
+
+bool Settings::isModifiedFilterI1()
+{
+	if(m_reference->m_filterI1 != m_filterI1) {
+		m_filterI1 = m_reference->m_filterI1;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+quint8 Settings::filterI2() const
+{
+	return m_filterI2;
+}
+
+void Settings::setFilterI2(quint8 v)
+{
+	m_filterI2 = v;
+	m_changed = true;
+}
+
+bool Settings::isModifiedFilterI2()
+{
+	if(m_reference->m_filterI2 != m_filterI2) {
+		m_filterI2 = m_reference->m_filterI2;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+quint8 Settings::filterQ1() const
+{
+	return m_filterQ1;
+}
+
+void Settings::setFilterQ1(quint8 v)
+{
+	m_filterQ1 = v;
+	m_changed = true;
+}
+
+bool Settings::isModifiedFilterQ1()
+{
+	if(m_reference->m_filterQ1 != m_filterQ1) {
+		m_filterQ1 = m_reference->m_filterQ1;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+quint8 Settings::filterQ2() const
+{
+	return m_filterQ2;
+}
+
+void Settings::setFilterQ2(quint8 v)
+{
+	m_filterQ2 = v;
+	m_changed = true;
+}
+
+bool Settings::isModifiedFilterQ2()
+{
+	if(m_reference->m_filterQ2 != m_filterQ2) {
+		m_filterQ2 = m_reference->m_filterQ2;
 		return true;
 	} else {
 		return false;

@@ -113,6 +113,22 @@ public:
 	void setE4000if6(int v);
 	bool isModifiedE4000if6();
 
+	quint8 filterI1() const;
+	void setFilterI1(quint8 v);
+	bool isModifiedFilterI1();
+
+	quint8 filterI2() const;
+	void setFilterI2(quint8 v);
+	bool isModifiedFilterI2();
+
+	quint8 filterQ1() const;
+	void setFilterQ1(quint8 v);
+	bool isModifiedFilterQ1();
+
+	quint8 filterQ2() const;
+	void setFilterQ2(quint8 v);
+	bool isModifiedFilterQ2();
+
 private:
 	bool m_changed;
 	const Settings* m_reference;
@@ -139,6 +155,11 @@ private:
 	int m_e4000if4;
 	int m_e4000if5;
 	int m_e4000if6;
+
+	quint8 m_filterI1;
+	quint8 m_filterI2;
+	quint8 m_filterQ1;
+	quint8 m_filterQ2;
 };
 
 #endif // INCLUDE_SETTINGS_H

@@ -67,6 +67,49 @@ bool SampleFifo::setSize(int size)
 	return m_data.size() == (size_t)size;
 }
 
+size_t SampleFifo::write(const quint8* data, size_t count)
+{
+	QMutexLocker mutexLocker(&m_mutex);
+	size_t total;
+	int remaining;
+	int len;
+	const Sample* begin = (const Sample*)data;
+	count /= 4;
+
+	total = MIN(count, m_size - m_fill);
+	if(total < count) {
+		if(m_suppressed < 0) {
+			m_suppressed = 0;
+			m_msgRateTimer.start();
+			qCritical("SampleFifo: overflow - dropping %d samples", count - total);
+		} else {
+			if(m_msgRateTimer.elapsed() > 2500) {
+				qCritical("SampleFifo: %d messages dropped", m_suppressed);
+				qCritical("SampleFifo: overflow - dropping %d samples", count - total);
+				m_suppressed = -1;
+			} else {
+				m_suppressed++;
+			}
+		}
+	}
+
+	remaining = total;
+	while(remaining > 0) {
+		len = MIN(remaining, m_size - m_tail);
+		std::copy(begin, begin + len, m_data.begin() + m_tail);
+		m_tail += len;
+		m_tail %= m_size;
+		m_fill += len;
+		begin += len;
+		remaining -= len;
+	}
+
+	if(m_fill > 0)
+		emit dataReady();
+
+	return total;
+}
+
 size_t SampleFifo::write(SampleVector::const_iterator begin, SampleVector::const_iterator end)
 {
 	QMutexLocker mutexLocker(&m_mutex);

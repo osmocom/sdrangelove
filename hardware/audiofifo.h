@@ -15,28 +15,49 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#ifndef INCLUDE_SAMPLESOURCE_H
-#define INCLUDE_SAMPLESOURCE_H
+#ifndef INCLUDE_AUDIOFIFO_H
+#define INCLUDE_AUDIOFIFO_H
 
-#include <QtGlobal>
+#include <QMutex>
+#include <QWaitCondition>
 
-class SampleFifo;
+class AudioFifo {
+private:
+	QMutex m_mutex;
 
-class SampleSource {
+	qint8* m_fifo;
+
+	uint m_sampleSize;
+
+	uint m_size;
+	uint m_fill;
+	uint m_head;
+	uint m_tail;
+
+	QMutex m_writeWaitLock;
+	QMutex m_readWaitLock;
+	QWaitCondition m_writeWaitCondition;
+	QWaitCondition m_readWaitCondition;
+
+	bool create(uint sampleSize, uint size);
+
 public:
-	SampleSource(SampleFifo* sampleFifo);
+	AudioFifo();
+	AudioFifo(uint sampleSize, uint size);
+	~AudioFifo();
 
-	virtual bool startInput(int device, int rate) = 0;
-	virtual void stopInput() = 0;
+	bool setSize(uint sampleSize, uint size);
 
-	virtual bool setCenterFrequency(qint64 freq) = 0;
-	virtual bool setIQSwap(bool sw) = 0;
-	virtual bool setDecimation(int dec) = 0;
+	uint write(const quint8* data, uint len, int timeout = INT_MAX);
+	uint read(quint8* data, uint len, int timeout = INT_MAX);
 
-	virtual const QString& deviceDesc() const = 0;
+	uint drain(uint count);
 
-protected:
-	SampleFifo* m_sampleFifo;
+	inline uint flush() { return drain(m_fill); }
+	inline int fill() const { return m_fill; }
+	inline bool isEmpty() const { return m_fill == 0; }
+	inline bool isFull() const { return m_fill == m_size; }
+	inline uint size() const { return m_size; }
 };
 
-#endif // INCLUDE_SAMPLESOURCE_H
+#endif // INCLUDE_AUDIOFIFO_H

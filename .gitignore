@@ -1,10 +1,1 @@
-tmp
-Makefile
-local.pri
-sdrangelove
-*.o
-*.pro.user
-
-portaudio
-dsp/kiss_fft129
-hardware/unused
+CMakeLists.txt.user

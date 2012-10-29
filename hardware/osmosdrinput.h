@@ -20,6 +20,7 @@
 
 #include "samplesource.h"
 #include <osmosdr.h>
+#include <QString>
 
 class OsmoSDRThread;
 
@@ -35,14 +36,18 @@ public:
 	bool setIQSwap(bool sw);
 	bool setDecimation(int dec);
 
+	const QString& deviceDesc() const;
+
 	bool setE4000LNAGain(int gain);
 	bool setE4000MixerGain(int gain);
 	bool setE4000MixerEnh(int gain);
 	bool setE4000ifStageGain(int stage, int gain);
+	bool setFilter(quint8 i1, quint8 i2, quint8 q1, quint8 q2);
 
 private:
 	osmosdr_dev_t* m_dev;
 	OsmoSDRThread* m_osmoSDRThread;
+	QString m_deviceDesc;
 };
 
 #endif // INCLUDE_OSMOSDRINPUT_H

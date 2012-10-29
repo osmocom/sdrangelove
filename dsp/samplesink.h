@@ -12,9 +12,9 @@ public:
 	void feed(SampleVector::const_iterator begin, SampleVector::const_iterator end);
 	virtual size_t work(SampleVector::const_iterator begin, SampleVector::const_iterator end) = 0;
 
-protected:
-	SampleVector m_buffer;
-	size_t m_bufferFill;
+private:
+	SampleVector m_sinkBuffer;
+	size_t m_sinkBufferFill;
 };
 
 #endif // INCLUDE_SAMPLESINK_H

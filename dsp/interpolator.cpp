@@ -15,7 +15,7 @@ void Interpolator::create(int nTaps, int phaseSteps, double sampleRate, double c
 	Real sum;
 
 	// make room
-	m_samples.resize(nTaps);
+	m_samples.resize(nTaps * 2);
 	for(int i = 0; i < nTaps; i++)
 		m_samples[i] = 0;
 	m_ptr = 0;

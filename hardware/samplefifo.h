@@ -45,9 +45,13 @@ public:
 	SampleFifo(int size, QObject* parent = NULL);
 	~SampleFifo();
 
+	SampleFifo(const SampleFifo&);
+	SampleFifo& operator=(const SampleFifo&);
+
 	bool setSize(int size);
 	inline size_t fill() const { return m_fill; }
 
+	size_t write(const quint8* data, size_t count);
 	size_t write(SampleVector::const_iterator begin, SampleVector::const_iterator end);
 
 	size_t read(SampleVector::iterator begin, SampleVector::iterator end);

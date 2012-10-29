@@ -21,7 +21,7 @@ void FFTWindow::create(Function function, int n)
 {
 	Real (*wFunc)(Real n, Real i);
 
-	m_window.resize(n);
+	m_window.clear();
 
 	switch(function) {
 		case Flattop:
@@ -51,7 +51,7 @@ void FFTWindow::create(Function function, int n)
 	}
 
 	for(int i = 0; i < n; i++)
-		m_window[i] = wFunc(n, i);
+		m_window.push_back(wFunc(n, i));
 }
 
 void FFTWindow::apply(const std::vector<Real>& in, std::vector<Real>* out)

@@ -20,7 +20,7 @@ public:
 				return false;
 			}
 		}
-		interpolate((int)floor(*distance * m_phaseSteps), result);
+		doInterpolate((int)floor(*distance * (Real)m_phaseSteps), result);
 		return true;
 	}
 
@@ -42,7 +42,7 @@ private:
 		m_samples[m_ptr] = next;
 	}
 
-	void interpolate(int phase, Complex* result)
+	void doInterpolate(int phase, Complex* result)
 	{
 		int sample = m_ptr;
 		const Real* coeff = &m_taps[phase * m_nTaps];

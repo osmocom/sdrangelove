@@ -25,12 +25,10 @@ bool NCO::m_tableInitialized = false;
 
 void NCO::initTable()
 {
-	int i;
-
 	if(m_tableInitialized)
 		return;
 
-	for(i = 0; i < TableSize; i++)
+	for(int i = 0; i < TableSize; i++)
 		m_table[i] = cos((2.0 * M_PI * i) / TableSize);
 
 	m_tableInitialized = true;
@@ -51,7 +49,7 @@ void NCO::setFreq(Real freq, Real sampleRate)
 float NCO::next()
 {
 	m_phase += m_phaseIncrement;
-	while(m_phase > TableSize)
+	while(m_phase >= TableSize)
 		m_phase -= TableSize;
 	while(m_phase < 0)
 		m_phase += TableSize;
@@ -62,7 +60,7 @@ float NCO::next()
 Complex NCO::nextIQ()
 {
 	m_phase += m_phaseIncrement;
-	while(m_phase > TableSize)
+	while(m_phase >= TableSize)
 		m_phase -= TableSize;
 	while(m_phase < 0)
 		m_phase += TableSize;

@@ -26,11 +26,13 @@
 #include "kissfft.h"
 #include "fftwindow.h"
 #include "settings.h"
+#include "hardware/samplefifo.h"
 #include "spectrum.h"
 
 class SampleSource;
 class SampleFifo;
 class GLSpectrum;
+class Channelizer;
 
 class DSPEngine : public QThread {
 	Q_OBJECT
@@ -54,15 +56,19 @@ public:
 	bool startAcquisition();
 	void stopAcquistion();
 
+	bool addChannelizer(Channelizer* channelizer);
+	bool removeChannelizer(Channelizer* channelizer);
+
 	void triggerDebug();
 
 	State state() const { return m_state; }
 	QString errorMsg();
 
-private:
-	typedef kissfft<Real, Complex> KissFFT;
+	QString deviceDesc();
 
+private:
 	bool m_debugEvent;
+
 	Settings m_settings;
 
 	State m_state;
@@ -75,8 +81,16 @@ private:
 	QMutex m_errorMsgMutex;
 	QString m_errorMsg;
 
+	QMutex m_deviceDescMutex;
+	QString m_deviceDesc;
+
+	Channelizer* m_channelizerToAdd;
+	Channelizer* m_channelizerToRemove;
+	typedef std::list<Channelizer*> Channelizers;
+	SampleFifo m_sampleFifo;
+	Channelizers m_channelizers;
+
 	QTimer* m_timer;
-	SampleFifo* m_sampleFifo;
 	SampleSource* m_sampleSource;
 
 	int m_sampleRate;
@@ -95,6 +109,7 @@ private:
 	void imbalance(SampleVector::iterator begin, SampleVector::iterator end);
 	void work();
 
+	void applyChannelizers();
 	void applyConfig();
 	void changeState();
 

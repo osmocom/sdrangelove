@@ -18,36 +18,10 @@
 #include <stdio.h>
 #include "dspengine.h"
 #include "settings.h"
+#include "channelizer.h"
 #include "hardware/osmosdrinput.h"
 #include "hardware/samplefifo.h"
 #include "gui/glspectrum.h"
-
-#if 0
-static int isqrt(int n)
-{
-	int i, j;
-
-	if(n <= 0)
-		return 0;
-
-	if(n > 0xffffff)
-		i = n >> 16;
-	else if(n > 0xffff)
-		i = n >> 12;
-	else if(n > 0xff)
-		i = n >> 8;
-	else i = n >> 4;
-	if(i <= 0)
-		i = 1;
-
-	do {
-		j = i;
-		i = (j + n / j) / 2;
-	} while (((i - j) >= 2) || ((j-i) >= 2));
-
-	return i;
-}
-#endif
 
 DSPEngine::DSPEngine(Settings* settings, QObject* parent) :
 	QThread(parent),
@@ -55,7 +29,9 @@ DSPEngine::DSPEngine(Settings* settings, QObject* parent) :
 	m_settings(settings),
 	m_state(StNotStarted),
 	m_nextState(StIdle),
-	m_sampleFifo(NULL),
+	m_channelizerToAdd(NULL),
+	m_channelizerToRemove(NULL),
+	m_sampleFifo(),
 	m_sampleSource(NULL)
 {
 	moveToThread(this);
@@ -114,6 +90,32 @@ void DSPEngine::stopAcquistion()
 	m_stateWaitMutex.unlock();
 }
 
+bool DSPEngine::addChannelizer(Channelizer* channelizer)
+{
+	if(!isRunning())
+		return false;
+
+	m_stateWaitMutex.lock();
+	m_channelizerToAdd = channelizer;
+	while(m_channelizerToAdd != NULL)
+		m_stateWaiter.wait(&m_stateWaitMutex, 100);
+	m_stateWaitMutex.unlock();
+	return true;
+}
+
+bool DSPEngine::removeChannelizer(Channelizer* channelizer)
+{
+	if(!isRunning())
+		return false;
+
+	m_stateWaitMutex.lock();
+	m_channelizerToRemove = channelizer;
+	while(m_channelizerToRemove != NULL)
+		m_stateWaiter.wait(&m_stateWaitMutex, 100);
+	m_stateWaitMutex.unlock();
+	return true;
+}
+
 void DSPEngine::triggerDebug()
 {
 	m_debugEvent = true;
@@ -127,8 +129,18 @@ QString DSPEngine::errorMsg()
 	return res;
 }
 
+QString DSPEngine::deviceDesc()
+{
+	QMutexLocker mutexLocker(&m_deviceDescMutex);
+	QString res = m_deviceDesc;
+	res.detach();
+	return res;
+}
+
 void DSPEngine::run()
 {
+	connect(&m_sampleFifo, SIGNAL(dataReady()), this, SLOT(handleData()), Qt::QueuedConnection);
+
 	m_ready = createMembers();
 
 	m_state = StIdle;
@@ -193,7 +205,7 @@ void DSPEngine::imbalance(SampleVector::iterator begin, SampleVector::iterator e
 
 	// calculate imbalance as Q15.16
 	if(m_qRange != 0)
-		m_imbalance = (m_iRange << 16) / m_qRange;
+		m_imbalance = ((uint)m_iRange << 16) / (uint)m_qRange;
 
 	// correct imbalance and convert back to signed int 16
 	for(SampleVector::iterator it = begin; it < end; it++)
@@ -204,40 +216,79 @@ void DSPEngine::work()
 {
 	size_t wus;
 	size_t maxWorkUnitSize = 0;
-	int count = 0;
+	size_t samplesDone = 0;
 
 	wus = m_spectrum.workUnitSize();
 	if(wus > maxWorkUnitSize)
 		maxWorkUnitSize = wus;
+	for(Channelizers::const_iterator it = m_channelizers.begin(); it != m_channelizers.end(); it++) {
+		wus = (*it)->workUnitSize();
+		if(wus > maxWorkUnitSize)
+			maxWorkUnitSize = wus;
+	}
 
-	while((m_sampleFifo->fill() > maxWorkUnitSize) && (m_state == m_nextState) && (count < m_sampleRate)) {
+	while((m_sampleFifo.fill() > maxWorkUnitSize) && (m_state == m_nextState) && (samplesDone < m_sampleRate)) {
 		SampleVector::iterator part1begin;
 		SampleVector::iterator part1end;
 		SampleVector::iterator part2begin;
 		SampleVector::iterator part2end;
 
-		size_t count = m_sampleFifo->readBegin(m_sampleFifo->fill(), &part1begin, &part1end, &part2begin, &part2end);
+		size_t count = m_sampleFifo.readBegin(m_sampleFifo.fill(), &part1begin, &part1end, &part2begin, &part2end);
 
+		// first part of FIFO data
 		if(part1begin != part1end) {
+			// correct stuff
 			if(m_settings.dcOffsetCorrection())
 				dcOffset(part1begin, part1end);
 			if(m_settings.iqImbalanceCorrection())
 				imbalance(part1begin, part1end);
+			// feed data to handlers
 			m_spectrum.feed(part1begin, part1end);
+			for(Channelizers::const_iterator it = m_channelizers.begin(); it != m_channelizers.end(); it++)
+				(*it)->feed(part1begin, part1end);
 		}
+		// second part of FIFO data (used when block wraps around)
 		if(part2begin != part2end) {
+			// correct stuff
 			if(m_settings.dcOffsetCorrection())
 				dcOffset(part2begin, part2end);
 			if(m_settings.iqImbalanceCorrection())
 				imbalance(part2begin, part2end);
+			// feed data to handlers
 			m_spectrum.feed(part2begin, part2end);
+			for(Channelizers::const_iterator it = m_channelizers.begin(); it != m_channelizers.end(); it++)
+				(*it)->feed(part1begin, part1end);
 		}
 
-		m_sampleFifo->readCommit(count);
+		// adjust FIFO pointers
+		m_sampleFifo.readCommit(count);
+		samplesDone += count;
 	}
 
+	// check if the center frequency has changed (has to be responsive)
 	if(m_settings.isModifiedCenterFreq())
 		m_sampleSource->setCenterFrequency(m_settings.centerFreq());
+	// check if decimation has changed (needed to be done here, because to high a sample rate can clog the switch)
+	if(m_settings.isModifiedDecimation()) {
+		m_sampleSource->setDecimation(m_settings.decimation());
+		m_sampleRate = 4000000 / (1 << m_settings.decimation());
+		qDebug("New rate: %d", m_sampleRate);
+	}
+}
+
+void DSPEngine::applyChannelizers()
+{
+	// check for channelizers to add or remove
+	if(m_channelizerToAdd != NULL) {
+		m_channelizers.push_back(m_channelizerToAdd);
+		m_channelizerToAdd = NULL;
+		m_stateWaiter.wakeAll();
+	}
+	if(m_channelizerToRemove != NULL) {
+		m_channelizers.remove(m_channelizerToRemove);
+		m_channelizerToRemove = NULL;
+		m_stateWaiter.wakeAll();
+	}
 }
 
 void DSPEngine::applyConfig()
@@ -245,12 +296,6 @@ void DSPEngine::applyConfig()
 	// apply changed configuration
 	if(m_settings.isModifiedIQSwap())
 		m_sampleSource->setIQSwap(m_settings.iqSwap());
-
-	if(m_settings.isModifiedDecimation()) {
-		m_sampleSource->setDecimation(m_settings.decimation());
-		m_sampleRate = 4000000 / (1 << m_settings.decimation());
-		qDebug("New rate: %d", m_sampleRate);
-	}
 
 	if(m_settings.isModifiedFFTSize() || m_settings.isModifiedFFTOverlap() || m_settings.isModifiedFFTWindow()) {
 		m_spectrum.configure(m_settings.fftSize(), m_settings.fftOverlap(), (FFTWindow::Function)m_settings.fftWindow());
@@ -285,6 +330,14 @@ void DSPEngine::applyConfig()
 		((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(5, m_settings.e4000if5());
 	if(m_settings.isModifiedE4000if6())
 		((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(6, m_settings.e4000if6());
+
+	if(m_settings.isModifiedFilterI1() || m_settings.isModifiedFilterI2() || m_settings.isModifiedFilterQ1() || m_settings.isModifiedFilterQ2()) {
+		((OsmoSDRInput*)m_sampleSource)->setFilter(
+			m_settings.filterI1(),
+			m_settings.filterI2(),
+			m_settings.filterQ1(),
+			m_settings.filterQ2());
+	}
 }
 
 void DSPEngine::changeState()
@@ -330,6 +383,9 @@ DSPEngine::State DSPEngine::gotoIdle()
 		return StIdle;
 
 	m_sampleSource->stopInput();
+	m_deviceDescMutex.lock();
+	m_deviceDesc.clear();
+	m_deviceDescMutex.unlock();
 
 	return StIdle;
 }
@@ -366,6 +422,10 @@ DSPEngine::State DSPEngine::gotoRunning()
 	m_settings.isModifiedE4000if4();
 	m_settings.isModifiedE4000if5();
 	m_settings.isModifiedE4000if6();
+	m_settings.isModifiedFilterI1();
+	m_settings.isModifiedFilterI2();
+	m_settings.isModifiedFilterQ1();
+	m_settings.isModifiedFilterQ2();
 
 	m_sampleRate = 4000000 / (1 << m_settings.decimation());
 	qDebug("current rate: %d", m_sampleRate);
@@ -377,11 +437,15 @@ DSPEngine::State DSPEngine::gotoRunning()
 	m_iRange = 1 << 16;
 	m_qRange = 1 << 16;
 
-	if(!m_sampleFifo->setSize(2 * 500000))
-	   return gotoError("could not allocate SampleFifo");
+	if(!m_sampleFifo.setSize(2 * 500000))
+	   return gotoError("Could not allocate SampleFifo");
 
 	if(!m_sampleSource->startInput(0, 4000000))
-		return gotoError("could not start OsmoSDR");
+		return gotoError("Could not start OsmoSDR");
+
+	m_deviceDescMutex.lock();
+	m_deviceDesc = m_sampleSource->deviceDesc();
+	m_deviceDescMutex.unlock();
 
 	m_sampleSource->setCenterFrequency(m_settings.centerFreq());
 	m_sampleSource->setIQSwap(m_settings.iqSwap());
@@ -395,6 +459,11 @@ DSPEngine::State DSPEngine::gotoRunning()
 	((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(4, m_settings.e4000if4());
 	((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(5, m_settings.e4000if5());
 	((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(6, m_settings.e4000if6());
+	((OsmoSDRInput*)m_sampleSource)->setFilter(
+		m_settings.filterI1(),
+		m_settings.filterI2(),
+		m_settings.filterQ1(),
+		m_settings.filterQ2());
 
 	return StRunning;
 }
@@ -404,21 +473,20 @@ DSPEngine::State DSPEngine::gotoError(const QString& errorMsg)
 	QMutexLocker mutexLocker(&m_errorMsgMutex);
 	m_errorMsg = errorMsg;
 	m_state = StError;
+	m_deviceDescMutex.lock();
+	m_deviceDesc.clear();
+	m_deviceDescMutex.unlock();
 	return StError;
 }
 
 bool DSPEngine::createMembers()
 {
-	if((m_sampleFifo = new SampleFifo(this)) == NULL)
-		return false;
-	connect(m_sampleFifo, SIGNAL(dataReady()), this, SLOT(handleData()), Qt::QueuedConnection);
-
 	if((m_timer = new QTimer(this)) == NULL)
 		return false;
 	connect(m_timer, SIGNAL(timeout()), this, SLOT(tick()));
 	m_timer->start(250);
 
-	if((m_sampleSource = new OsmoSDRInput(m_sampleFifo)) == NULL)
+	if((m_sampleSource = new OsmoSDRInput(&m_sampleFifo)) == NULL)
 		return false;
 
 	return true;
@@ -430,10 +498,9 @@ void DSPEngine::destroyMembers()
 		delete m_sampleSource;
 		m_sampleSource = NULL;
 	}
-	if(m_sampleFifo != NULL) {
-		delete m_sampleFifo;
-		m_sampleFifo = NULL;
-	}
+	m_deviceDescMutex.lock();
+	m_deviceDesc.clear();
+	m_deviceDescMutex.unlock();
 }
 
 void DSPEngine::handleData()
@@ -455,6 +522,8 @@ void DSPEngine::tick()
 
 		qDebug("New state: %d: %s", m_state, stateNames[m_state]);
 	}
+
+	applyChannelizers();
 
 	switch(m_state) {
 		case StNotStarted:

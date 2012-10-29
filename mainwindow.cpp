@@ -18,17 +18,27 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "gui/indicator.h"
+#include "gui/viewtoolbox.h"
+#include "dsp/channelizer.h"
+#include "osdrupgrade.h"
 
 MainWindow::MainWindow(QWidget* parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow),
 	m_settings(),
-	m_dspEngine(&m_settings)
+	m_dspEngine(&m_settings),
+	m_startOSDRUpdateAfterStop(false)
 {
 	m_settings.load();
 
 	ui->setupUi(this);
 	createStatusBar();
+	m_viewToolBox = new ViewToolBox(this);
+	connect(m_viewToolBox, SIGNAL(closed()), this, SLOT(viewToolBoxClosed()));
+	connect(m_viewToolBox, SIGNAL(viewWaterfall(bool)), this, SLOT(on_action_View_Waterfall_toggled(bool)));
+	connect(m_viewToolBox, SIGNAL(waterfallUpward(bool)), this, SLOT(viewToolBoxWaterfallUpward(bool)));
+	connect(m_viewToolBox, SIGNAL(viewHistogram(bool)), this, SLOT(on_action_View_Histogram_toggled(bool)));
+	connect(m_viewToolBox, SIGNAL(viewLiveSpectrum(bool)), this, SLOT(on_action_View_LiveSpectrum_toggled(bool)));
 
 	m_dspEngine.setGLSpectrum(ui->glSpectrum);
 	m_dspEngine.start();
@@ -36,8 +46,6 @@ MainWindow::MainWindow(QWidget* parent) :
 
 	connect(&m_statusTimer, SIGNAL(timeout()), this, SLOT(updateStatus()));
 	m_statusTimer.start(500);
-
-	statusBar()->showMessage("Welcome to SDRangelove", 3000);
 
 	ui->centerFrequency->setValueRange(7, 20000U, 2200000U);
 
@@ -49,17 +57,20 @@ MainWindow::MainWindow(QWidget* parent) :
 	}
 	ui->fftWindow->setCurrentIndex(m_settings.fftWindow());
 
-	ui->dispWaterfall->setChecked(m_settings.displayWaterfall());
+	ui->action_View_Waterfall->setChecked(m_settings.displayWaterfall());
+	m_viewToolBox->setViewWaterfall(m_settings.displayWaterfall());
 	ui->glSpectrum->setDisplayWaterfall(m_settings.displayWaterfall());
-	ui->waterfallInverted->setChecked(m_settings.invertedWaterfall());
+	m_viewToolBox->setWaterfallUpward(m_settings.invertedWaterfall());
 	ui->glSpectrum->setInvertedWaterfall(m_settings.invertedWaterfall());
-	ui->dispLiveSpectrum->setChecked(m_settings.displayLiveSpectrum());
+	ui->action_View_LiveSpectrum->setChecked(m_settings.displayLiveSpectrum());
+	m_viewToolBox->setViewLiveSpectrum(m_settings.displayLiveSpectrum());
 	ui->glSpectrum->setDisplayLiveSpectrum(m_settings.displayLiveSpectrum());
-	ui->dispHistogram->setChecked(m_settings.displayHistogram());
+	ui->action_View_Histogram->setChecked(m_settings.displayHistogram());
+	m_viewToolBox->setViewHistogram(m_settings.displayHistogram());
 	ui->glSpectrum->setDisplayHistogram(m_settings.displayHistogram());
 
 	ui->iqSwap->setChecked(m_settings.iqSwap());
-	ui->decimation->setCurrentIndex(m_settings.decimation() - 2);
+	ui->decimation->setCurrentIndex(m_settings.decimation());
 	ui->dcOffset->setChecked(m_settings.dcOffsetCorrection());
 	ui->iqImbalance->setChecked(m_settings.iqImbalanceCorrection());
 	ui->e4000LNAGain->setCurrentIndex((m_settings.e4000LNAGain() + 50) / 25);
@@ -74,9 +85,18 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->e4000if4->setCurrentIndex(m_settings.e4000if4() / 10);
 	ui->e4000if5->setCurrentIndex(m_settings.e4000if5() / 30 - 1);
 	ui->e4000if6->setCurrentIndex(m_settings.e4000if6() / 30 - 1);
+	ui->filterI1->setValue(m_settings.filterI1());
+	ui->filterI2->setValue(m_settings.filterI2());
+	ui->filterQ1->setValue(m_settings.filterQ1());
+	ui->filterQ2->setValue(m_settings.filterQ2());
 
 	updateSampleRate();
 	updateCenterFreqDisplay();
+/*
+	Channelizer* channelizer = new Channelizer;
+	channelizer->setGLSpectrum(ui->chanSpectrum);
+	m_dspEngine.addChannelizer(channelizer);
+*/
 }
 
 MainWindow::~MainWindow()
@@ -89,6 +109,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::createStatusBar()
 {
+	m_sampleRateWidget = new QLabel(tr("Rate: 0 kHz"), this);
+	m_sampleRateWidget->setToolTip(tr("Sample Rate"));
+	statusBar()->addPermanentWidget(m_sampleRateWidget);
+
 	m_engineIdle = new Indicator(tr("Idle"), this);
 	m_engineIdle->setToolTip(tr("DSP engine is idle"));
 	statusBar()->addPermanentWidget(m_engineIdle);
@@ -113,13 +137,14 @@ void MainWindow::updateSampleRate()
 {
 	m_sampleRate = 4000000 / (1 << m_settings.decimation());
 	ui->glSpectrum->setSampleRate(m_sampleRate);
-	ui->sampleRate->setText(tr("%1k").arg((float)m_sampleRate / 1000));
+	m_sampleRateWidget->setText(tr("Rate: %1 kHz").arg((float)m_sampleRate / 1000));
 }
 
 void MainWindow::updateStatus()
 {
-	if(m_lastEngineState != m_dspEngine.state()) {
-		switch(m_dspEngine.state()) {
+	DSPEngine::State state = m_dspEngine.state();
+	if(m_lastEngineState != state) {
+		switch(state) {
 			case DSPEngine::StNotStarted:
 				m_engineIdle->setColor(Qt::gray);
 				m_engineRunning->setColor(Qt::gray);
@@ -132,24 +157,39 @@ void MainWindow::updateStatus()
 				m_engineRunning->setColor(Qt::gray);
 				m_engineError->setColor(Qt::gray);
 				statusBar()->clearMessage();
+				if(m_startOSDRUpdateAfterStop)
+					on_actionOsmoSDR_Firmware_Upgrade_triggered();
 				break;
 
 			case DSPEngine::StRunning:
 				m_engineIdle->setColor(Qt::gray);
 				m_engineRunning->setColor(Qt::green);
 				m_engineError->setColor(Qt::gray);
-				statusBar()->clearMessage();
+				statusBar()->showMessage(tr("Sampling from %1").arg(m_dspEngine.deviceDesc()));
 				break;
 
 			case DSPEngine::StError:
 				m_engineIdle->setColor(Qt::gray);
 				m_engineRunning->setColor(Qt::gray);
 				m_engineError->setColor(Qt::red);
-				statusBar()->showMessage(m_dspEngine.errorMsg());
+				statusBar()->showMessage(tr("Error: %1").arg(m_dspEngine.errorMsg()));
+				if(m_startOSDRUpdateAfterStop)
+					on_actionOsmoSDR_Firmware_Upgrade_triggered();
 				break;
 		}
-		m_lastEngineState = m_dspEngine.state();
+		m_lastEngineState = state;
 	}
+}
+
+void MainWindow::viewToolBoxClosed()
+{
+	ui->action_View_Toolbox->setChecked(false);
+}
+
+void MainWindow::viewToolBoxWaterfallUpward(bool checked)
+{
+	ui->glSpectrum->setInvertedWaterfall(checked);
+	m_settings.setInvertedWaterfall(checked);
 }
 
 void MainWindow::on_action_Start_triggered()
@@ -179,7 +219,7 @@ void MainWindow::on_iqSwap_toggled(bool checked)
 
 void MainWindow::on_decimation_currentIndexChanged(int index)
 {
-	m_settings.setDecimation(index + 2);
+	m_settings.setDecimation(index);
 	updateSampleRate();
 }
 
@@ -251,26 +291,74 @@ void MainWindow::on_iqImbalance_toggled(bool checked)
 	m_settings.setIQImbalanceCorrection(checked);
 }
 
-void MainWindow::on_dispLiveSpectrum_toggled(bool checked)
+void MainWindow::on_filterI1_valueChanged(int value)
 {
-	ui->glSpectrum->setDisplayLiveSpectrum(checked);
-	m_settings.setDisplayLiveSpectrum(checked);
+	m_settings.setFilterI1(value);
 }
 
-void MainWindow::on_dispHistogram_toggled(bool checked)
+void MainWindow::on_filterI2_valueChanged(int value)
 {
-	ui->glSpectrum->setDisplayHistogram(checked);
-	m_settings.setDisplayHistogram(checked);
+	m_settings.setFilterI2(value);
 }
 
-void MainWindow::on_dispWaterfall_toggled(bool checked)
+void MainWindow::on_filterQ1_valueChanged(int value)
 {
+	m_settings.setFilterQ1(value);
+}
+
+void MainWindow::on_filterQ2_valueChanged(int value)
+{
+	m_settings.setFilterQ2(value);
+}
+
+void MainWindow::on_action_View_Waterfall_toggled(bool checked)
+{
+	ui->action_View_Waterfall->setChecked(checked);
+	m_viewToolBox->setViewWaterfall(checked);
 	ui->glSpectrum->setDisplayWaterfall(checked);
 	m_settings.setDisplayWaterfall(checked);
 }
 
-void MainWindow::on_waterfallInverted_toggled(bool checked)
+void MainWindow::on_action_View_Histogram_toggled(bool checked)
 {
-	ui->glSpectrum->setInvertedWaterfall(checked);
-	m_settings.setInvertedWaterfall(checked);
+	ui->action_View_Histogram->setChecked(checked);
+	m_viewToolBox->setViewHistogram(checked);
+	ui->glSpectrum->setDisplayHistogram(checked);
+	m_settings.setDisplayHistogram(checked);
+}
+
+void MainWindow::on_action_View_LiveSpectrum_toggled(bool checked)
+{
+	ui->action_View_LiveSpectrum->setChecked(checked);
+	m_viewToolBox->setViewLiveSpectrum(checked);
+	ui->glSpectrum->setDisplayLiveSpectrum(checked);
+	m_settings.setDisplayLiveSpectrum(checked);
+}
+
+void MainWindow::on_action_View_Toolbox_toggled(bool checked)
+{
+	if(checked)
+		m_viewToolBox->show();
+	else m_viewToolBox->hide();
+}
+
+void MainWindow::on_action_View_Fullscreen_toggled(bool checked)
+{
+	if(checked)
+		showFullScreen();
+	else showNormal();
+}
+
+void MainWindow::on_actionOsmoSDR_Firmware_Upgrade_triggered()
+{
+	DSPEngine::State engineState = m_dspEngine.state();
+	if((engineState != DSPEngine::StIdle) && (engineState != DSPEngine::StError)) {
+		m_startOSDRUpdateAfterStop = true;
+		m_dspEngine.stopAcquistion();
+		return;
+	}
+	m_startOSDRUpdateAfterStop = false;
+
+	OSDRUpgrade osdrUpgrade;
+	osdrUpgrade.exec();
 }

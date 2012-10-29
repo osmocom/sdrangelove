@@ -46,7 +46,7 @@ GLSpectrum::GLSpectrum(QWidget* parent) :
 	setAttribute(Qt::WA_NoSystemBackground, true);
 	setMouseTracking(true);
 
-	setMinimumHeight(200);
+	setMinimumSize(200, 200);
 
 	m_waterfallShare = 0.5;
 
