@@ -12,10 +12,12 @@ find_package(OpenGL REQUIRED)
 find_package(PkgConfig)
 find_package(LibOsmoSDR REQUIRED)
 find_package(Portaudio REQUIRED)
+find_package(LibUSB REQUIRED)
 
 set(sdrangelove_SOURCES
 	main.cpp
 	mainwindow.cpp
+	miniz.cpp
 	osdrupgrade.cpp
 	settings.cpp
 
@@ -97,6 +99,7 @@ include_directories(
 	${OPENGL_INCLUDE_DIR}
 	${LIBOSMOSDR_INCLUDE_DIR}
 	${PORTAUDIO_INCLUDE_DIRS}
+	${LIBUSB_INCLUDE_DIR}
 )
 
 include(${QT_USE_FILE})
@@ -120,4 +123,5 @@ target_link_libraries(sdrangelove
 	${OPENGL_LIBRARIES}
 	${LIBOSMOSDR_LIBRARIES}
 	${PORTAUDIO_LIBRARIES}
+	${LIBUSB_LIBRARIES}
 )
