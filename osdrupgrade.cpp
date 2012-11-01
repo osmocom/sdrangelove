@@ -405,11 +405,6 @@ int OSDRUpgrade::dfuGetState(libusb_device_handle* device, quint8* state)
 		1,
 		1000);
 
-	/*
-		if(res >= 0)
-				fprintf(stderr, "AT91 now in state %s (%d)\n", statedesc[*state], *state);
-*/
-
 	return res;
 }
 
@@ -464,10 +459,6 @@ int OSDRUpgrade::dfuClrStatus(libusb_device_handle* device)
 
 int OSDRUpgrade::dfuDownloadBlock(libusb_device_handle* device, quint16 block, const quint8* data, quint16 len)
 {
-/*
-		fprintf(stderr, "downloading block %d (%d bytes)\n", block, len);
-*/
-
 	return libusb_control_transfer(
 		device,
 		0x21,
