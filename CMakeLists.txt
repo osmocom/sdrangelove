@@ -106,13 +106,15 @@ include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
 qt4_wrap_cpp(sdrangelove_HEADERS_MOC ${sdrangelove_HEADERS})
-qt4_wrap_cpp(sdrangelove_HEADERS_MOC ${sdrangelove_HEADERS})
 qt4_wrap_ui(sdrangelove_FORMS_HEADERS ${sdrangelove_FORMS})
 qt4_add_resources(sdrangelove_RESOURCES_RCC ${sdrangelove_RESOURCES})
 
+if(WIN32)
+	SET(sdrangelove_SOURCES ${sdrangelove_SOURCES} resources/sdrangelove.rc)
+endif(WIN32)
+
 add_executable(sdrangelove
 	${sdrangelove_SOURCES}
-	${sdrangelove_HEADERS_MOC}
 	${sdrangelove_HEADERS_MOC}
 	${sdrangelove_FORMS_HEADERS}
 	${sdrangelove_RESOURCES_RCC}
@@ -125,3 +127,12 @@ target_link_libraries(sdrangelove
 	${PORTAUDIO_LIBRARIES}
 	${LIBUSB_LIBRARIES}
 )
+
+if(WIN32)
+	set_target_properties(sdrangelove PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
+	set_target_properties(sdrangelove PROPERTIES COMPILE_DEFINITIONS_DEBUG "_CONSOLE")
+	set_target_properties(sdrangelove PROPERTIES LINK_FLAGS_RELWITHDEBINFO "/SUBSYSTEM:CONSOLE")
+	set_target_properties(sdrangelove PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "_CONSOLE")
+	set_target_properties(sdrangelove PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+	set_target_properties(sdrangelove PROPERTIES LINK_FLAGS_MINSIZEREL "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+endif(WIN32)
