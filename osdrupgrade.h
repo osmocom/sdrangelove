@@ -4,6 +4,9 @@
 #include <QDialog>
 #include <QTimer>
 
+#define MINIZ_HEADER_FILE_ONLY
+#include "miniz.cpp"
+
 typedef struct libusb_context libusb_context;
 typedef struct libusb_device_handle libusb_device_handle;
 
@@ -53,7 +56,7 @@ private:
 
 	void reject();
 
-	static size_t zipHelper(void* pOpaque, quint64 file_ofs, const void* pBuf, size_t n);
+	static size_t zipHelper(void* pOpaque, mz_uint64 file_ofs, const void* pBuf, size_t n);
 };
 
 #endif // INCLUDE_OSDRUPGRADE_H

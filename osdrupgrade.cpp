@@ -513,7 +513,7 @@ void OSDRUpgrade::reject()
 		return QDialog::reject();
 }
 
-size_t OSDRUpgrade::zipHelper(void* pOpaque, quint64 file_ofs, const void* pBuf, size_t n)
+size_t OSDRUpgrade::zipHelper(void* pOpaque, mz_uint64 file_ofs, const void* pBuf, size_t n)
 {
 	QByteArray* bytes = (QByteArray*)pOpaque;
 	bytes->append((const char*)pBuf, n);
