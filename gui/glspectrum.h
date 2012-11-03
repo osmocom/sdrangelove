@@ -33,6 +33,8 @@ public:
 
 	void setCenterFrequency(quint64 frequency);
 	void setSampleRate(qint32 sampleRate);
+	void setReferenceLevel(Real referenceLevel);
+	void setPowerRange(Real powerRange);
 	void setDisplayWaterfall(bool display);
 	void setInvertedWaterfall(bool inv);
 	void setDisplayLiveSpectrum(bool display);
@@ -54,6 +56,8 @@ private:
 	bool m_changesPending;
 
 	quint64 m_centerFrequency;
+	Real m_referenceLevel;
+	Real m_powerRange;
 	quint32 m_sampleRate;
 
 	int m_fftSize;

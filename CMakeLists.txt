@@ -36,7 +36,6 @@ set(sdrangelove_SOURCES
 	gui/scale.cpp
 	gui/scaleengine.cpp
 	gui/valuedial.cpp
-	gui/viewtoolbox.cpp
 
 	hardware/audiofifo.cpp
 	hardware/audiooutput.cpp
@@ -70,7 +69,6 @@ set(sdrangelove_HEADERS
 	gui/scale.h
 	gui/scaleengine.h
 	gui/valuedial.h
-	gui/viewtoolbox.h
 
 	hardware/audiofifo.h
 	hardware/audiooutput.h
@@ -84,8 +82,6 @@ set(sdrangelove_HEADERS
 set(sdrangelove_FORMS
 	mainwindow.ui
 	osdrupgrade.ui
-
-	gui/viewtoolbox.ui
 )
 
 set(sdrangelove_RESOURCES

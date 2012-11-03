@@ -1,5 +1,8 @@
 <RCC>
     <qresource prefix="/">
         <file>appicon.png</file>
+        <file>histogram.png</file>
+        <file>livespectrum.png</file>
+        <file>waterfall.png</file>
     </qresource>
 </RCC>

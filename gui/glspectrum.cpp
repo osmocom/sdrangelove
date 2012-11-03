@@ -23,6 +23,8 @@ GLSpectrum::GLSpectrum(QWidget* parent) :
 	m_cursorState(CSNormal),
 	m_changesPending(true),
 	m_centerFrequency(100000000),
+	m_referenceLevel(0),
+	m_powerRange(100),
 	m_sampleRate(500000),
 	m_fftSize(512),
 	m_invertedWaterfall(false),
@@ -57,7 +59,8 @@ GLSpectrum::GLSpectrum(QWidget* parent) :
 		 ((quint8*)&m_waterfallPalette[i])[1] = c.green();
 		 ((quint8*)&m_waterfallPalette[i])[2] = c.blue();
 		 ((quint8*)&m_waterfallPalette[i])[3] = c.alpha();
-	 }
+	}
+	m_waterfallPalette[239] = 0xffffffff;
 
 	m_histogramPalette[0] = m_waterfallPalette[0];
 	for(int i = 1; i < 240; i++) {
@@ -138,6 +141,20 @@ void GLSpectrum::setCenterFrequency(quint64 frequency)
 	update();
 }
 
+void GLSpectrum::setReferenceLevel(Real referenceLevel)
+{
+	m_referenceLevel = referenceLevel;
+	m_changesPending = true;
+	update();
+}
+
+void GLSpectrum::setPowerRange(Real powerRange)
+{
+	m_powerRange = powerRange;
+	m_changesPending = true;
+	update();
+}
+
 void GLSpectrum::setSampleRate(qint32 sampleRate)
 {
 	m_sampleRate = sampleRate;
@@ -209,7 +226,7 @@ void GLSpectrum::updateWaterfall(const std::vector<Real>& spectrum)
 		quint32* pix = (quint32*)m_waterfallBuffer->scanLine(m_waterfallBufferPos);
 
 		for(int i = 0; i < m_fftSize; i++) {
-			Real vr = 2.4 * (spectrum[i] + 99.0);
+			Real vr = (int)((spectrum[i] - m_referenceLevel) * 2.4 * 100.0 / m_powerRange + 240.0);
 			int v = (int)vr;
 
 			if(v > 239)
@@ -249,7 +266,7 @@ void GLSpectrum::updateHistogram(const std::vector<Real>& spectrum)
 	}
 
 	for(int i = 0; i < m_fftSize; i++) {
-		int v = (int)(spectrum[i] + 99.0);
+		int v = (int)((spectrum[i] - m_referenceLevel) * 100.0 / m_powerRange + 100.0);
 
 		if((v >= 0) && (v <= 99)) {
 			b = m_histogram + i * 100 + v;
@@ -454,7 +471,7 @@ void GLSpectrum::paintGL()
 	if(m_displayLiveSpectrum) {
 		glPushMatrix();
 		glTranslatef(m_glHistogramRect.x(), m_glHistogramRect.y(), 0);
-		glScalef(m_glHistogramRect.width() / (float)(m_fftSize - 1), -m_glHistogramRect.height() / 99.0, 1);
+		glScalef(m_glHistogramRect.width() / (float)(m_fftSize - 1), -m_glHistogramRect.height() / m_powerRange, 1);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_LINE_SMOOTH);
@@ -462,8 +479,8 @@ void GLSpectrum::paintGL()
 		glColor4f(1, 1, 1, 0.5f);
 		for(int i = 1; i < m_fftSize; i++) {
 			glBegin(GL_LINE_LOOP);
-			glVertex2f(i - 1, m_liveSpectrum[i - 1]);
-			glVertex2f(i, m_liveSpectrum[i]);
+			glVertex2f(i - 1, m_liveSpectrum[i - 1] - m_referenceLevel);
+			glVertex2f(i, m_liveSpectrum[i] - m_referenceLevel);
 			glEnd();
 		}
 		glDisable(GL_LINE_SMOOTH);
@@ -619,7 +636,7 @@ void GLSpectrum::applyChanges()
 			m_timeScale.setRange(Unit::Time, (waterfallHeight * m_fftSize) / (float)m_sampleRate, 0);
 		else m_timeScale.setRange(Unit::Time, 0, (waterfallHeight * m_fftSize) / (float)m_sampleRate);
 		m_powerScale.setSize(histogramHeight);
-		m_powerScale.setRange(Unit::Decibel, -100, 0);
+		m_powerScale.setRange(Unit::Decibel, m_referenceLevel - m_powerRange, m_referenceLevel);
 		leftMargin = m_timeScale.getScaleWidth();
 		if(m_powerScale.getScaleWidth() > leftMargin)
 			leftMargin = m_powerScale.getScaleWidth();

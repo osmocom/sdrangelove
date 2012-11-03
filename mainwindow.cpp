@@ -18,7 +18,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "gui/indicator.h"
-#include "gui/viewtoolbox.h"
 #include "dsp/channelizer.h"
 #include "osdrupgrade.h"
 
@@ -33,12 +32,6 @@ MainWindow::MainWindow(QWidget* parent) :
 
 	ui->setupUi(this);
 	createStatusBar();
-	m_viewToolBox = new ViewToolBox(this);
-	connect(m_viewToolBox, SIGNAL(closed()), this, SLOT(viewToolBoxClosed()));
-	connect(m_viewToolBox, SIGNAL(viewWaterfall(bool)), this, SLOT(on_action_View_Waterfall_toggled(bool)));
-	connect(m_viewToolBox, SIGNAL(waterfallUpward(bool)), this, SLOT(viewToolBoxWaterfallUpward(bool)));
-	connect(m_viewToolBox, SIGNAL(viewHistogram(bool)), this, SLOT(on_action_View_Histogram_toggled(bool)));
-	connect(m_viewToolBox, SIGNAL(viewLiveSpectrum(bool)), this, SLOT(on_action_View_LiveSpectrum_toggled(bool)));
 
 	m_dspEngine.setGLSpectrum(ui->glSpectrum);
 	m_dspEngine.start();
@@ -57,17 +50,16 @@ MainWindow::MainWindow(QWidget* parent) :
 	}
 	ui->fftWindow->setCurrentIndex(m_settings.fftWindow());
 
+	ui->waterfall->setChecked(m_settings.displayWaterfall());
 	ui->action_View_Waterfall->setChecked(m_settings.displayWaterfall());
-	m_viewToolBox->setViewWaterfall(m_settings.displayWaterfall());
 	ui->glSpectrum->setDisplayWaterfall(m_settings.displayWaterfall());
-	m_viewToolBox->setWaterfallUpward(m_settings.invertedWaterfall());
 	ui->glSpectrum->setInvertedWaterfall(m_settings.invertedWaterfall());
+	ui->liveSpectrum->setChecked(m_settings.displayLiveSpectrum());
 	ui->action_View_LiveSpectrum->setChecked(m_settings.displayLiveSpectrum());
-	m_viewToolBox->setViewLiveSpectrum(m_settings.displayLiveSpectrum());
 	ui->glSpectrum->setDisplayLiveSpectrum(m_settings.displayLiveSpectrum());
 	ui->action_View_Histogram->setChecked(m_settings.displayHistogram());
-	m_viewToolBox->setViewHistogram(m_settings.displayHistogram());
 	ui->glSpectrum->setDisplayHistogram(m_settings.displayHistogram());
+	ui->histogram->setChecked(m_settings.displayHistogram());
 
 	ui->iqSwap->setChecked(m_settings.iqSwap());
 	ui->decimation->setValue(m_settings.decimation());
@@ -320,7 +312,6 @@ void MainWindow::on_filterQ2_valueChanged(int value)
 void MainWindow::on_action_View_Waterfall_toggled(bool checked)
 {
 	ui->action_View_Waterfall->setChecked(checked);
-	m_viewToolBox->setViewWaterfall(checked);
 	ui->glSpectrum->setDisplayWaterfall(checked);
 	m_settings.setDisplayWaterfall(checked);
 }
@@ -328,7 +319,6 @@ void MainWindow::on_action_View_Waterfall_toggled(bool checked)
 void MainWindow::on_action_View_Histogram_toggled(bool checked)
 {
 	ui->action_View_Histogram->setChecked(checked);
-	m_viewToolBox->setViewHistogram(checked);
 	ui->glSpectrum->setDisplayHistogram(checked);
 	m_settings.setDisplayHistogram(checked);
 }
@@ -336,16 +326,8 @@ void MainWindow::on_action_View_Histogram_toggled(bool checked)
 void MainWindow::on_action_View_LiveSpectrum_toggled(bool checked)
 {
 	ui->action_View_LiveSpectrum->setChecked(checked);
-	m_viewToolBox->setViewLiveSpectrum(checked);
 	ui->glSpectrum->setDisplayLiveSpectrum(checked);
 	m_settings.setDisplayLiveSpectrum(checked);
-}
-
-void MainWindow::on_action_View_Toolbox_toggled(bool checked)
-{
-	if(checked)
-		m_viewToolBox->show();
-	else m_viewToolBox->hide();
 }
 
 void MainWindow::on_action_View_Fullscreen_toggled(bool checked)
@@ -387,4 +369,37 @@ void MainWindow::on_e4000LNAGain_valueChanged(int value)
 	int gain = e4kIdxToLNAGain(value);
 	ui->e4000LNAGainDisplay->setText(tr("%1.%2").arg(gain / 10).arg(abs(gain % 10)));
 	m_settings.setE4000LNAGain(gain);
+}
+
+void MainWindow::on_waterfall_toggled(bool checked)
+{
+	ui->action_View_Waterfall->setChecked(checked);
+	ui->glSpectrum->setDisplayWaterfall(checked);
+	m_settings.setDisplayWaterfall(checked);
+}
+
+void MainWindow::on_histogram_toggled(bool checked)
+{
+	ui->action_View_Histogram->setChecked(checked);
+	ui->glSpectrum->setDisplayHistogram(checked);
+	m_settings.setDisplayHistogram(checked);
+}
+
+void MainWindow::on_liveSpectrum_toggled(bool checked)
+{
+	ui->action_View_LiveSpectrum->setChecked(checked);
+	ui->glSpectrum->setDisplayLiveSpectrum(checked);
+	m_settings.setDisplayLiveSpectrum(checked);
+}
+
+void MainWindow::on_refLevel_valueChanged(int value)
+{
+	ui->glSpectrum->setReferenceLevel(value * 10);
+	ui->refLevelDisplay->setText(tr("%1").arg(value * 10));
+}
+
+void MainWindow::on_levelRange_valueChanged(int value)
+{
+	ui->glSpectrum->setPowerRange(value * 10);
+	ui->levelRangeDisplay->setText(tr("%1").arg(value * 10));
 }

@@ -26,7 +26,6 @@
 class QLabel;
 class DSPEngine;
 class Indicator;
-class ViewToolBox;
 
 namespace Ui {
 	class MainWindow;
@@ -53,7 +52,6 @@ private:
 	Indicator* m_engineIdle;
 	Indicator* m_engineRunning;
 	Indicator* m_engineError;
-	ViewToolBox* m_viewToolBox;
 
 	int m_sampleRate;
 
@@ -93,12 +91,16 @@ private slots:
 	void on_action_View_Waterfall_toggled(bool checked);
 	void on_action_View_Histogram_toggled(bool checked);
 	void on_action_View_LiveSpectrum_toggled(bool checked);
-	void on_action_View_Toolbox_toggled(bool checked);
 	void on_action_View_Fullscreen_toggled(bool checked);
 	void on_actionOsmoSDR_Firmware_Upgrade_triggered();
 	void on_decimation_valueChanged(int value);
 	void on_fftSize_valueChanged(int value);
 	void on_e4000LNAGain_valueChanged(int value);
+	void on_waterfall_toggled(bool checked);
+	void on_histogram_toggled(bool checked);
+	void on_liveSpectrum_toggled(bool checked);
+	void on_refLevel_valueChanged(int value);
+	void on_levelRange_valueChanged(int value);
 };
 
 #endif // INCLUDE_MAINWINDOW_H
