@@ -46,7 +46,7 @@ ValueDial::ValueDial(QWidget* parent) :
 	m_value =  0;
 	m_valueMin = 0;
 	m_valueMax = 2200000;
-	m_numDigits = 10;
+	m_numDigits = 7;
 	m_numDecimalPoints = m_numDigits / 3;
 	m_cursor = -1;
 

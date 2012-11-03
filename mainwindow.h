@@ -63,17 +63,17 @@ private:
 	void updateCenterFreqDisplay();
 	void updateSampleRate();
 
+	int e4kLNAGainToIdx(int gain) const;
+	int e4kIdxToLNAGain(int idx) const;
+
 private slots:
 	void updateStatus();
 	void viewToolBoxClosed();
 	void viewToolBoxWaterfallUpward(bool checked);
 	void on_action_Start_triggered();
 	void on_action_Stop_triggered();
-	void on_fftSize_currentIndexChanged(const QString& str);
 	void on_fftWindow_currentIndexChanged(int index);
 	void on_iqSwap_toggled(bool checked);
-	void on_decimation_currentIndexChanged(int index);
-	void on_e4000LNAGain_currentIndexChanged(int index);
 	void on_e4000MixerGain_currentIndexChanged(int index);
 	void on_e4000MixerEnh_currentIndexChanged(int index);
 	void on_e4000if1_currentIndexChanged(int index);
@@ -96,6 +96,9 @@ private slots:
 	void on_action_View_Toolbox_toggled(bool checked);
 	void on_action_View_Fullscreen_toggled(bool checked);
 	void on_actionOsmoSDR_Firmware_Upgrade_triggered();
+	void on_decimation_valueChanged(int value);
+	void on_fftSize_valueChanged(int value);
+	void on_e4000LNAGain_valueChanged(int value);
 };
 
 #endif // INCLUDE_MAINWINDOW_H

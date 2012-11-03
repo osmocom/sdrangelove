@@ -49,9 +49,9 @@ MainWindow::MainWindow(QWidget* parent) :
 
 	ui->centerFrequency->setValueRange(7, 20000U, 2200000U);
 
-	for(int i = 0; i < ui->fftSize->count(); i++) {
-		if(ui->fftSize->itemText(i).toInt() == m_settings.fftSize()) {
-			ui->fftSize->setCurrentIndex(i);
+	for(int i = 0; i < 6; i++) {
+		if(m_settings.fftSize() == (1 << (i + 7))) {
+			ui->fftSize->setValue(i);
 			break;
 		}
 	}
@@ -70,10 +70,10 @@ MainWindow::MainWindow(QWidget* parent) :
 	ui->glSpectrum->setDisplayHistogram(m_settings.displayHistogram());
 
 	ui->iqSwap->setChecked(m_settings.iqSwap());
-	ui->decimation->setCurrentIndex(m_settings.decimation());
+	ui->decimation->setValue(m_settings.decimation());
 	ui->dcOffset->setChecked(m_settings.dcOffsetCorrection());
 	ui->iqImbalance->setChecked(m_settings.iqImbalanceCorrection());
-	ui->e4000LNAGain->setCurrentIndex((m_settings.e4000LNAGain() + 50) / 25);
+	ui->e4000LNAGain->setValue(e4kLNAGainToIdx(m_settings.e4000LNAGain()));
 	ui->e4000MixerGain->setCurrentIndex((m_settings.e4000MixerGain() - 40) / 80);
 	if(m_settings.e4000MixerEnh() == 0)
 		ui->e4000MixerEnh->setCurrentIndex(0);
@@ -140,6 +140,28 @@ void MainWindow::updateSampleRate()
 	m_sampleRateWidget->setText(tr("Rate: %1 kHz").arg((float)m_sampleRate / 1000));
 }
 
+int MainWindow::e4kLNAGainToIdx(int gain) const
+{
+	static const quint32 gainList[13] = {
+		-50, -25, 0, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300
+	};
+	for(int i = 0; i < 13; i++) {
+		if(gainList[i] == gain)
+			return i;
+	}
+	return 0;
+}
+
+int MainWindow::e4kIdxToLNAGain(int idx) const
+{
+	static const quint32 gainList[13] = {
+		-50, -25, 0, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300
+	};
+	if((idx < 0) || (idx >= 13))
+		return -50;
+	else return gainList[idx];
+}
+
 void MainWindow::updateStatus()
 {
 	DSPEngine::State state = m_dspEngine.state();
@@ -202,11 +224,6 @@ void MainWindow::on_action_Stop_triggered()
 	m_dspEngine.stopAcquistion();
 }
 
-void MainWindow::on_fftSize_currentIndexChanged(const QString& str)
-{
-	m_settings.setFFTSize(str.toInt());
-}
-
 void MainWindow::on_fftWindow_currentIndexChanged(int index)
 {
 	m_settings.setFFTWindow(index);
@@ -215,17 +232,6 @@ void MainWindow::on_fftWindow_currentIndexChanged(int index)
 void MainWindow::on_iqSwap_toggled(bool checked)
 {
 	m_settings.setIQSwap(checked);
-}
-
-void MainWindow::on_decimation_currentIndexChanged(int index)
-{
-	m_settings.setDecimation(index);
-	updateSampleRate();
-}
-
-void MainWindow::on_e4000LNAGain_currentIndexChanged(int index)
-{
-	m_settings.setE4000LNAGain(index * 25 - 50);
 }
 
 void MainWindow::on_e4000MixerGain_currentIndexChanged(int index)
@@ -361,4 +367,24 @@ void MainWindow::on_actionOsmoSDR_Firmware_Upgrade_triggered()
 
 	OSDRUpgrade osdrUpgrade;
 	osdrUpgrade.exec();
+}
+
+void MainWindow::on_decimation_valueChanged(int value)
+{
+	ui->decimationDisplay->setText(tr("1:%1").arg(1 << value));
+	m_settings.setDecimation(value);
+	updateSampleRate();
+}
+
+void MainWindow::on_fftSize_valueChanged(int value)
+{
+	ui->fftSizeDisplay->setText(tr("%1").arg(1 << (7 + value)));
+	m_settings.setFFTSize(1 << (7 + value));
+}
+
+void MainWindow::on_e4000LNAGain_valueChanged(int value)
+{
+	int gain = e4kIdxToLNAGain(value);
+	ui->e4000LNAGainDisplay->setText(tr("%1.%2").arg(gain / 10).arg(abs(gain % 10)));
+	m_settings.setE4000LNAGain(gain);
 }
