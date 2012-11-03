@@ -354,7 +354,7 @@ void OSDRUpgrade::searchDeviceTick()
 		QApplication::processEvents();
 	}
 
-	log(tr("Upgrade finished without error"));
+	log(tr("Upgrade finished successfully"));
 	libusb_close(device);
 	finish();
 }
