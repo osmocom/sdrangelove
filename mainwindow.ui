@@ -856,7 +856,7 @@
           </size>
          </property>
          <property name="text">
-          <string>10.0</string>
+          <string>-5.0</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
