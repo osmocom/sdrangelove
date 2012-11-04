@@ -425,13 +425,13 @@ void GLSpectrum::paintGL()
 
 		glEnable(GL_TEXTURE_2D);
 		glBegin(GL_QUADS);
-		glTexCoord2f(0, 0);
-		glVertex2f(0, 1);
-		glTexCoord2f(1, 0);
-		glVertex2f(1, 1);
-		glTexCoord2f(1, 1);
-		glVertex2f(1, 0);
 		glTexCoord2f(0, 1);
+		glVertex2f(0, 1);
+		glTexCoord2f(1, 1);
+		glVertex2f(1, 1);
+		glTexCoord2f(1, 0);
+		glVertex2f(1, 0);
+		glTexCoord2f(0, 0);
 		glVertex2f(0, 0);
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
@@ -454,13 +454,13 @@ void GLSpectrum::paintGL()
 
 		glEnable(GL_TEXTURE_2D);
 		glBegin(GL_QUADS);
-		glTexCoord2f(0, 0);
-		glVertex2f(0, 1);
-		glTexCoord2f(1, 0);
-		glVertex2f(1, 1);
-		glTexCoord2f(1, 1);
-		glVertex2f(1, 0);
 		glTexCoord2f(0, 1);
+		glVertex2f(0, 1);
+		glTexCoord2f(1, 1);
+		glVertex2f(1, 1);
+		glTexCoord2f(1, 0);
+		glVertex2f(1, 0);
+		glTexCoord2f(0, 0);
 		glVertex2f(0, 0);
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
@@ -799,7 +799,11 @@ void GLSpectrum::applyChanges()
 		}
 		if(m_leftMarginTextureAllocated)
 			deleteTexture(m_leftMarginTexture);
-		m_leftMarginTexture = bindTexture(m_leftMarginPixmap);
+		m_leftMarginTexture = bindTexture(m_leftMarginPixmap,
+			GL_TEXTURE_2D,
+			GL_RGBA,
+			QGLContext::LinearFilteringBindOption |
+			QGLContext::MipmapBindOption);
 		m_leftMarginTextureAllocated = true;
 	}
 	// prepare frequency scale
@@ -825,7 +829,11 @@ void GLSpectrum::applyChanges()
 		}
 		if(m_frequencyTextureAllocated)
 			deleteTexture(m_frequencyTexture);
-		m_frequencyTexture = bindTexture(m_frequencyPixmap);
+		m_frequencyTexture = bindTexture(m_frequencyPixmap,
+			GL_TEXTURE_2D,
+			GL_RGBA,
+			QGLContext::LinearFilteringBindOption |
+			QGLContext::MipmapBindOption);
 		m_frequencyTextureAllocated = true;
 	}
 
