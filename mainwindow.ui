@@ -1234,6 +1234,9 @@
      </item>
      <item row="2" column="3">
       <widget class="QSlider" name="levelRange_2">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="toolTip">
         <string>Digital phosphor effect decay time</string>
        </property>
