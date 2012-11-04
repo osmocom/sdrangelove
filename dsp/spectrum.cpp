@@ -57,11 +57,12 @@ size_t Spectrum::work(SampleVector::const_iterator begin, SampleVector::const_it
 	m_fft.transform(&m_fftIn[0], &m_fftOut[0]);
 
 	// extract power spectrum and reorder buckets
+	Real ofs = 20.0f * log10f(1.0f / m_fftSize);
+	Real mult = (10.0f / log2f(10.0f));
 	for(size_t i = 0; i < m_fftSize; i++) {
 		Complex c = m_fftOut[((i + (m_fftSize >> 1)) & (m_fftSize - 1))];
-		Real v = sqrt(c.real() * c.real() + c.imag() * c.imag());
-		v /= (Real)m_fftSize;
-		v = 20.0 * log10(v);
+		Real v = c.real() * c.real() + c.imag() * c.imag();
+		v = mult * log2f(v) + ofs;
 		m_logPowerSpectrum[i] = v;
 	}
 
