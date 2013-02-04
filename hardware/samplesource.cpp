@@ -17,7 +17,17 @@
 
 #include "samplesource.h"
 
-SampleSource::SampleSource(SampleFifo* sampleFifo) :
-	m_sampleFifo(sampleFifo)
+SampleSource::SampleSource() :
+	m_sampleFifo()
 {
+}
+
+int DSPCmdConfigureSource::type() const
+{
+	return Type;
+}
+
+const char* DSPCmdConfigureSource::name() const
+{
+	return "ConfigureSource";
 }

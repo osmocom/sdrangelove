@@ -19,120 +19,52 @@
 #define INCLUDE_SETTINGS_H
 
 #include <QtGlobal>
+#include <QSettings>
 
 class Settings {
 public:
 	Settings();
-	Settings(Settings* reference);
+	Settings(const Settings& other);
+	Settings& operator=(const Settings& other);
 
 	void defaults();
-	void load();
-	void save();
+	void load(QSettings* settings, const QString& path);
+	void save(QSettings* settings, const QString& path) const;
 
-	int fftSize() const;
-	void setFFTSize(int v);
-	bool isModifiedFFTSize();
+	int fftSize() const { return m_fftSize; }
+	void setFFTSize(int v) { m_fftSize = v; }
 
-	int fftOverlap() const;
-	void setFFTOverlap(int v);
-	bool isModifiedFFTOverlap();
+	int fftOverlap() const { return m_fftOverlap; }
+	void setFFTOverlap(int v) { m_fftOverlap = v; }
 
-	int fftWindow() const;
-	void setFFTWindow(int v);
-	bool isModifiedFFTWindow();
+	int fftWindow() const { return m_fftWindow; }
+	void setFFTWindow(int v) { m_fftWindow = v; }
 
-	bool displayWaterfall() const;
-	void setDisplayWaterfall(bool v);
-	bool isModifiedDisplayWaterfall();
+	bool displayWaterfall() const { return m_displayWaterfall; }
+	void setDisplayWaterfall(bool v) { m_displayWaterfall = v; }
 
-	bool invertedWaterfall() const;
-	void setInvertedWaterfall(bool v);
-	bool isModifiedInvertedWaterfall();
+	bool invertedWaterfall() const { return m_invertedWaterfall; }
+	void setInvertedWaterfall(bool v) { m_invertedWaterfall = v; }
 
-	bool displayLiveSpectrum() const;
-	void setDisplayLiveSpectrum(bool v);
-	bool isModifiedDisplayLiveSpectrum();
+	bool displayLiveSpectrum() const { return m_displayLiveSpectrum; }
+	void setDisplayLiveSpectrum(bool v) { m_displayLiveSpectrum = v; }
 
-	bool displayHistogram() const;
-	void setDisplayHistogram(bool v);
-	bool isModifiedDisplayHistogram();
+	bool displayHistogram() const { return m_displayHistogram; }
+	void setDisplayHistogram(bool v) { m_displayHistogram = v; }
 
-	qint64 centerFreq() const;
-	void setCenterFreq(qint64 v);
-	bool isModifiedCenterFreq();
+	bool dcOffsetCorrection() const { return m_dcOffsetCorrection; }
+	void setDCOffsetCorrection(bool v) { m_dcOffsetCorrection = v; }
 
-	bool iqSwap() const;
-	void setIQSwap(bool v);
-	bool isModifiedIQSwap();
+	bool iqImbalanceCorrection() const { return m_iqImbalanceCorrection; }
+	void setIQImbalanceCorrection(bool v) { m_iqImbalanceCorrection = v; }
 
-	int decimation() const;
-	void setDecimation(int v);
-	bool isModifiedDecimation();
+	quint64 centerFrequency() const { return m_centerFrequency; }
+	void setCenterFrequency(quint64 v) { m_centerFrequency = v; }
 
-	bool dcOffsetCorrection() const;
-	void setDCOffsetCorrection(bool v);
-	bool isModifiedDCOffsetCorrection();
-
-	bool iqImbalanceCorrection() const;
-	void setIQImbalanceCorrection(bool v);
-	bool isModifiedIQImbalanceCorrection();
-
-	int e4000LNAGain() const;
-	void setE4000LNAGain(int v);
-	bool isModifiedE4000LNAGain();
-
-	int e4000MixerGain() const;
-	void setE4000MixerGain(int v);
-	bool isModifiedE4000MixerGain();
-
-	int e4000MixerEnh() const;
-	void setE4000MixerEnh(int v);
-	bool isModifiedE4000MixerEnh();
-
-	int e4000if1() const;
-	void setE4000if1(int v);
-	bool isModifiedE4000if1();
-
-	int e4000if2() const;
-	void setE4000if2(int v);
-	bool isModifiedE4000if2();
-
-	int e4000if3() const;
-	void setE4000if3(int v);
-	bool isModifiedE4000if3();
-
-	int e4000if4() const;
-	void setE4000if4(int v);
-	bool isModifiedE4000if4();
-
-	int e4000if5() const;
-	void setE4000if5(int v);
-	bool isModifiedE4000if5();
-
-	int e4000if6() const;
-	void setE4000if6(int v);
-	bool isModifiedE4000if6();
-
-	quint8 filterI1() const;
-	void setFilterI1(quint8 v);
-	bool isModifiedFilterI1();
-
-	quint8 filterI2() const;
-	void setFilterI2(quint8 v);
-	bool isModifiedFilterI2();
-
-	quint8 filterQ1() const;
-	void setFilterQ1(quint8 v);
-	bool isModifiedFilterQ1();
-
-	quint8 filterQ2() const;
-	void setFilterQ2(quint8 v);
-	bool isModifiedFilterQ2();
+	const QString& sourceSettings() const { return m_sourceSettings; }
+	void setSourceSettings(const QString& v) { m_sourceSettings = v; }
 
 private:
-	bool m_changed;
-	const Settings* m_reference;
-
 	int m_fftSize;
 	int m_fftOverlap;
 	int m_fftWindow;
@@ -140,26 +72,10 @@ private:
 	bool m_invertedWaterfall;
 	bool m_displayLiveSpectrum;
 	bool m_displayHistogram;
-	qint64 m_centerFreq;
-	bool m_iqSwap;
-	int m_decimation;
 	bool m_dcOffsetCorrection;
 	bool m_iqImbalanceCorrection;
-
-	int m_e4000LNAGain;
-	int m_e4000MixerGain;
-	int m_e4000MixerEnh;
-	int m_e4000if1;
-	int m_e4000if2;
-	int m_e4000if3;
-	int m_e4000if4;
-	int m_e4000if5;
-	int m_e4000if6;
-
-	quint8 m_filterI1;
-	quint8 m_filterI2;
-	quint8 m_filterQ1;
-	quint8 m_filterQ2;
+	quint64 m_centerFrequency;
+	QString m_sourceSettings;
 };
 
 #endif // INCLUDE_SETTINGS_H

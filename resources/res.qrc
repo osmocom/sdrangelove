@@ -4,5 +4,8 @@
         <file>histogram.png</file>
         <file>livespectrum.png</file>
         <file>waterfall.png</file>
+        <file>preset-load.png</file>
+        <file>preset-save.png</file>
+        <file>preset-delete.png</file>
     </qresource>
 </RCC>

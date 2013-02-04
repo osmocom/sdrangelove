@@ -39,6 +39,7 @@ public:
 	void setInvertedWaterfall(bool inv);
 	void setDisplayLiveSpectrum(bool display);
 	void setDisplayHistogram(bool display);
+	void setDisplayChannel(bool display, quint64 centerFrequency, quint64 bandwidth);
 
 	void newSpectrum(const std::vector<Real>& spectrum, int fftSize);
 
@@ -104,6 +105,11 @@ private:
 	int m_histogramLateHoldoff;
 	QRectF m_glHistogramRect;
 	bool m_displayHistogram;
+
+	bool m_displayChannel;
+	quint64 m_channelCenterFrequency;
+	quint64 m_channelBandwidth;
+	QRectF m_glChannelRect;
 
 	bool m_displayChanged;
 

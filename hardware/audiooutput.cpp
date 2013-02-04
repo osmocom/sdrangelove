@@ -39,17 +39,29 @@ int AudioOutput::callback(
 	const void* inputBuffer,
 	void* outputBuffer,
 	unsigned long framesPerBuffer,
-	const PaStreamCallbackTimeInfo*
-	timeInfo, PaStreamCallbackFlags statusFlags)
+	const PaStreamCallbackTimeInfo* timeInfo,
+	PaStreamCallbackFlags statusFlags)
 {
 	Q_UNUSED(inputBuffer);
 	Q_UNUSED(timeInfo);
 	Q_UNUSED(statusFlags);
 
-	int needed = framesPerBuffer * 4;
-	int done = m_audioFifo->read((quint8*)outputBuffer, needed, 1);
+	double speed = (double)m_audioFifo->fill() / (double)(m_audioFifo->size() / 2);
+	if(speed < 0.999)
+		speed = 0.999;
+	else if(speed > 1.001)
+		speed = 1.001;
+	m_rateCorrection = m_rateCorrection * 0.9999 + speed * 0.0001;
+	//qDebug("rate correction %f (have %d, want %d)", m_rateCorrection, m_audioFifo->fill(), m_audioFifo->size() / 2);
 
-	memset(((quint8*)outputBuffer) + done, 0x00, needed - done);
+	uint needed = framesPerBuffer;
+	uint done = m_audioFifo->read((quint8*)outputBuffer, needed, 1);
+
+	if(needed > done) {
+		memset(((quint8*)outputBuffer) + done * 4, 0x00, (needed - done) * 4);
+		qDebug("************* inserted %d samples *************", needed - done);
+		//m_rateCorrection = 0.99;
+	}
 
 	m_streamStartTime += (PaTime)framesPerBuffer / (PaTime)m_sampleRate;
 
@@ -78,6 +90,7 @@ bool AudioOutput::start(int device, int rate, AudioFifo* audioFifo)
 	PaError err;
 
 	m_audioFifo = audioFifo;
+	m_rateCorrection = 1.0;
 
 	outputParameters.device = device;
 	outputParameters.channelCount = 2;

@@ -1,3 +1,5 @@
+#if 0
+
 #ifndef INCLUDE_CHANNELIZER_H
 #define INCLUDE_CHANNELIZER_H
 
@@ -15,12 +17,15 @@ public:
 	Channelizer();
 	~Channelizer();
 
+#if 0
 	void setGLSpectrum(GLSpectrum* glSpectrum);
+#endif
 
 	size_t workUnitSize();
 	size_t work(SampleVector::const_iterator begin, SampleVector::const_iterator end);
 
 private:
+#if 0
 	NCO m_nco;
 	Interpolator m_interpolator;
 	Real m_distance;
@@ -37,6 +42,8 @@ private:
 	PIDController m_resamplerCtrl;
 
 	Spectrum m_spectrum;
+#endif
 };
 
 #endif // INCLUDE_CHANNELIZER_H
+#endif

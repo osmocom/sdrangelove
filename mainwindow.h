@@ -21,11 +21,18 @@
 #include <QMainWindow>
 #include <QTimer>
 #include "settings.h"
+#include "preset.h"
 #include "dsp/dspengine.h"
+#include "util/messagequeue.h"
 
 class QLabel;
 class DSPEngine;
 class Indicator;
+class ScopeWindow;
+class SpectrumVis;
+class SampleSourceGUI;
+
+class QTreeWidgetItem;
 
 namespace Ui {
 	class MainWindow;
@@ -41,11 +48,19 @@ public:
 private:
 	Ui::MainWindow *ui;
 
+	MessageQueue m_messageQueue;
+
+	QSettings m_settingsStorage;
+	PresetList m_presetList;
 	Settings m_settings;
 
-	DSPEngine m_dspEngine;
-	QTimer m_statusTimer;
+	SpectrumVis* m_spectrumVis;
+	SampleSource* m_sampleSource;
+	SampleSourceGUI* m_sampleSourceGUI;
 
+	DSPEngine m_dspEngine;
+
+	QTimer m_statusTimer;
 	DSPEngine::State m_lastEngineState;
 
 	QLabel* m_sampleRateWidget;
@@ -53,54 +68,49 @@ private:
 	Indicator* m_engineRunning;
 	Indicator* m_engineError;
 
-	int m_sampleRate;
-
 	bool m_startOSDRUpdateAfterStop;
+
+	ScopeWindow* m_scopeWindow;
+
+	int m_sampleRate;
+	quint64 m_centerFrequency;
+
+	void loadSettings();
+	void saveSettings();
 
 	void createStatusBar();
 	void updateCenterFreqDisplay();
 	void updateSampleRate();
-
-	int e4kLNAGainToIdx(int gain) const;
-	int e4kIdxToLNAGain(int idx) const;
+	void updatePresets();
+	void applySettings();
 
 private slots:
+	void handleMessages();
 	void updateStatus();
-	void viewToolBoxClosed();
-	void viewToolBoxWaterfallUpward(bool checked);
+	void scopeWindowDestroyed();
 	void on_action_Start_triggered();
 	void on_action_Stop_triggered();
 	void on_fftWindow_currentIndexChanged(int index);
-	void on_iqSwap_toggled(bool checked);
-	void on_e4000MixerGain_currentIndexChanged(int index);
-	void on_e4000MixerEnh_currentIndexChanged(int index);
-	void on_e4000if1_currentIndexChanged(int index);
-	void on_e4000if2_currentIndexChanged(int index);
-	void on_e4000if3_currentIndexChanged(int index);
-	void on_e4000if4_currentIndexChanged(int index);
-	void on_e4000if5_currentIndexChanged(int index);
-	void on_e4000if6_currentIndexChanged(int index);
-	void on_centerFrequency_changed(quint64 value);
 	void on_action_Debug_triggered();
 	void on_dcOffset_toggled(bool checked);
 	void on_iqImbalance_toggled(bool checked);
-	void on_filterI1_valueChanged(int value);
-	void on_filterI2_valueChanged(int value);
-	void on_filterQ1_valueChanged(int value);
-	void on_filterQ2_valueChanged(int value);
 	void on_action_View_Waterfall_toggled(bool checked);
 	void on_action_View_Histogram_toggled(bool checked);
 	void on_action_View_LiveSpectrum_toggled(bool checked);
 	void on_action_View_Fullscreen_toggled(bool checked);
 	void on_actionOsmoSDR_Firmware_Upgrade_triggered();
-	void on_decimation_valueChanged(int value);
 	void on_fftSize_valueChanged(int value);
-	void on_e4000LNAGain_valueChanged(int value);
 	void on_waterfall_toggled(bool checked);
 	void on_histogram_toggled(bool checked);
 	void on_liveSpectrum_toggled(bool checked);
 	void on_refLevel_valueChanged(int value);
 	void on_levelRange_valueChanged(int value);
+	void on_presetSave_clicked();
+	void on_presetLoad_clicked();
+	void on_presetDelete_clicked();
+	void on_presetTree_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
+	void on_presetTree_itemActivated(QTreeWidgetItem *item, int column);
+	void on_action_Oscilloscope_triggered();
 };
 
 #endif // INCLUDE_MAINWINDOW_H

@@ -15,37 +15,24 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QMessageBox>
-#include "mainwindow.h"
-#include "portaudio.h"
+#ifndef INCLUDE_SCOPEWINDOW_H
+#define INCLUDE_SCOPEWINDOW_H
 
-static void initPortAudio()
-{
-	PaError err;
+#include <QWidget>
 
-	if((err = Pa_Initialize()) != paNoError) {
-		qCritical("PortAudio: could not initialise: %s (%d)", Pa_GetErrorText(err), err);
-		QString error = QObject::tr("PortAudio could not be initialised: %1 (%2)").arg(Pa_GetErrorText(err)).arg(err);
-		QMessageBox::critical(NULL, "PortAudio failure", error);
-	}
+namespace Ui {
+	class ScopeWindow;
 }
 
-int main(int argc, char* argv[])
-{
-	QApplication a(argc, argv);
+class ScopeWindow : public QWidget {
+	Q_OBJECT
 
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+public:
+	explicit ScopeWindow(QWidget* parent = NULL);
+	~ScopeWindow();
 
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
+private:
+	Ui::ScopeWindow *ui;
+};
 
-	initPortAudio();
-
-	MainWindow w;
-	w.show();
-
-	return a.exec();
-}
+#endif // INCLUDE_SCOPEWINDOW_H

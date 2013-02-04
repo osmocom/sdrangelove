@@ -3,6 +3,27 @@
 
 #include "dsptypes.h"
 
+class Message;
+
+class SampleSink {
+public:
+	SampleSink();
+	virtual ~SampleSink();
+
+	virtual void feed(SampleVector::const_iterator begin, SampleVector::const_iterator end) = 0;
+	virtual void start() = 0;
+	virtual void stop() = 0;
+	virtual void handleMessage(Message* cmd) = 0;
+};
+
+#endif // INCLUDE_SAMPLESINK_H
+
+#if 0
+#ifndef INCLUDE_SAMPLESINK_H
+#define INCLUDE_SAMPLESINK_H
+
+#include "dsptypes.h"
+
 class SampleSink {
 public:
 	SampleSink();
@@ -18,3 +39,4 @@ private:
 };
 
 #endif // INCLUDE_SAMPLESINK_H
+#endif

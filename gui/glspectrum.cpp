@@ -41,6 +41,7 @@ GLSpectrum::GLSpectrum(QWidget* parent) :
 	m_histogramHoldoff(NULL),
 	m_histogramTextureAllocated(false),
 	m_displayHistogram(true),
+	m_displayChannel(false),
 	m_displayChanged(false)
 {
 	setAutoFillBackground(false);
@@ -194,6 +195,16 @@ void GLSpectrum::setDisplayHistogram(bool display)
 	update();
 }
 
+void GLSpectrum::setDisplayChannel(bool display, quint64 centerFrequency, quint64 bandwidth)
+{
+	m_displayChannel = display;
+	m_channelCenterFrequency = centerFrequency;
+	m_channelBandwidth = bandwidth;
+	m_changesPending = true;
+	stopSplitterMove();
+	update();
+}
+
 void GLSpectrum::newSpectrum(const std::vector<Real>& spectrum, int fftSize)
 {
 	QMutexLocker mutexLocker(&m_mutex);
@@ -280,6 +291,7 @@ void GLSpectrum::updateHistogram(const std::vector<Real>& spectrum)
 
 void GLSpectrum::initializeGL()
 {
+	 glDisable(GL_DEPTH_TEST);
 }
 
 void GLSpectrum::resizeGL(int width, int height)
@@ -340,6 +352,24 @@ void GLSpectrum::paintGL()
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
 
+		// paint channel
+		if(m_displayChannel) {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glColor4f(1, 0, 0, 0.15);
+			glPushMatrix();
+			glTranslatef(m_glChannelRect.x(), m_glChannelRect.y(), 0);
+			glScalef(m_glChannelRect.width(), m_glChannelRect.height(), 1);
+			glBegin(GL_QUADS);
+			glVertex2f(0, 0);
+			glVertex2f(1, 0);
+			glVertex2f(1, 1);
+			glVertex2f(0, 1);
+			glEnd();
+			glDisable(GL_BLEND);
+			glPopMatrix();
+		}
+
 		// draw rect around
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -396,6 +426,30 @@ void GLSpectrum::paintGL()
 			glEnd();
 			glDisable(GL_TEXTURE_2D);
 		}
+
+		// paint channel
+		if(m_displayChannel) {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glColor4f(1, 0, 0, 0.15);
+			glPushMatrix();
+			glTranslatef(m_glChannelRect.x(), m_glChannelRect.y(), 0);
+			glScalef(m_glChannelRect.width(), m_glChannelRect.height(), 1);
+			glBegin(GL_QUADS);
+			glVertex2f(0, 0);
+			glVertex2f(1, 0);
+			glVertex2f(1, 1);
+			glVertex2f(0, 1);
+			glEnd();
+			glDisable(GL_BLEND);
+			glColor3f(0.8, 0.8, 0.6);
+			glBegin(GL_LINE_LOOP);
+			glVertex2f(0.5, 0);
+			glVertex2f(0.5, 1);
+			glEnd();
+			glPopMatrix();
+		}
+
 		// draw rect around
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -477,11 +531,23 @@ void GLSpectrum::paintGL()
 		glEnable(GL_LINE_SMOOTH);
 		glLineWidth(1.0f);
 		glColor4f(1, 1, 1, 0.5f);
+		Real bottom = -m_powerRange;
+		Real prev = m_liveSpectrum[0] - m_referenceLevel;
+		if(prev > 0)
+			prev = 0;
+		else if(prev < bottom)
+			prev = bottom;
 		for(int i = 1; i < m_fftSize; i++) {
+			Real v = m_liveSpectrum[i] - m_referenceLevel;
+			if(v > 0)
+				v = 0;
+			else if(v < bottom)
+				v = bottom;
 			glBegin(GL_LINE_LOOP);
-			glVertex2f(i - 1, m_liveSpectrum[i - 1] - m_referenceLevel);
-			glVertex2f(i, m_liveSpectrum[i] - m_referenceLevel);
+			glVertex2f(i - 1, prev);
+			glVertex2f(i, v);
 			glEnd();
+			prev = v;
 		}
 		glDisable(GL_LINE_SMOOTH);
 		glPopMatrix();
@@ -766,6 +832,13 @@ void GLSpectrum::applyChanges()
 		leftMargin = 2;
 		waterfallHeight = 0;
 	}
+
+	// channel overlay
+	m_glChannelRect.setRect(
+		m_frequencyScale.getPosFromValue(m_channelCenterFrequency - m_channelBandwidth / 2) / (float)(width() - leftMargin - rightMargin),
+		0,
+		(m_channelBandwidth / (float)m_sampleRate),
+		1);
 
 	// prepare left scales (time and power)
 	{

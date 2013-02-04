@@ -1,3 +1,4 @@
+#if 0
 ///////////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2012 maintech GmbH, Otto-Hahn-Str. 15, 97204 Hoechberg, Germany //
 // written by Christian Daniel                                                   //
@@ -15,37 +16,44 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QMessageBox>
-#include "mainwindow.h"
-#include "portaudio.h"
+#ifndef INCLUDE_NFMDEMOD_H
+#define INCLUDE_NFMDEMOD_H
 
-static void initPortAudio()
-{
-	PaError err;
+#include <vector>
+#include "channelizer.h"
+#include "nco.h"
+#include "interpolator.h"
+#include "pidcontroller.h"
+#include "hardware/audiofifo.h"
 
-	if((err = Pa_Initialize()) != paNoError) {
-		qCritical("PortAudio: could not initialise: %s (%d)", Pa_GetErrorText(err), err);
-		QString error = QObject::tr("PortAudio could not be initialised: %1 (%2)").arg(Pa_GetErrorText(err)).arg(err);
-		QMessageBox::critical(NULL, "PortAudio failure", error);
-	}
-}
+class AudioOutput;
 
-int main(int argc, char* argv[])
-{
-	QApplication a(argc, argv);
+class NFMDemod : public Channelizer {
+public:
+	NFMDemod();
+	~NFMDemod();
 
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+	size_t workUnitSize();
+	size_t work(SampleVector::const_iterator begin, SampleVector::const_iterator end);
 
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
+private:
+	struct AudioSample {
+		qint16 l;
+		qint16 r;
+	};
+	typedef std::vector<AudioSample> AudioVector;
 
-	initPortAudio();
+	NCO m_nco;
+	Interpolator m_interpolator;
+	Real m_distance;
 
-	MainWindow w;
-	w.show();
+	Complex m_lastSample;
 
-	return a.exec();
-}
+	AudioVector m_audioBuffer;
+	uint m_audioBufferFill;
+	AudioOutput* m_audioOutput;
+	AudioFifo m_audioFifo;
+};
+
+#endif // INCLUDE_NFMDEMOD_H
+#endif

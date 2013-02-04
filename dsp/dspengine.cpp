@@ -21,131 +21,104 @@
 #include "channelizer.h"
 #include "hardware/osmosdrinput.h"
 #include "hardware/samplefifo.h"
-#include "gui/glspectrum.h"
+#include "samplesink.h"
+#include "dspcommands.h"
 
-DSPEngine::DSPEngine(Settings* settings, QObject* parent) :
+DSPEngine::DSPEngine(MessageQueue* reportQueue, QObject* parent) :
 	QThread(parent),
-	m_debugEvent(false),
-	m_settings(settings),
+	m_messageQueue(),
+	m_reportQueue(reportQueue),
 	m_state(StNotStarted),
-	m_nextState(StIdle),
-	m_channelizerToAdd(NULL),
-	m_channelizerToRemove(NULL),
-	m_sampleFifo(),
-	m_sampleSource(NULL)
+	m_sampleSource(NULL),
+	m_sampleSinks(),
+	m_sampleRate(0),
+	m_centerFrequency(0),
+	m_dcOffsetCorrection(false),
+	m_iqImbalanceCorrection(false),
+	m_iOffset(0),
+	m_qOffset(0),
+	m_iRange(1 << 16),
+	m_qRange(1 << 16),
+	m_imbalance(65536)
 {
 	moveToThread(this);
 }
 
 DSPEngine::~DSPEngine()
 {
-	stop();
 	wait();
-}
-
-void DSPEngine::setGLSpectrum(GLSpectrum* glSpectrum)
-{
-	m_spectrum.setGLSpectrum(glSpectrum);
 }
 
 void DSPEngine::start()
 {
-	m_stateWaitMutex.lock();
+	DSPCmdPing cmd;
 	QThread::start();
-	while(m_state != StNotStarted)
-		m_stateWaiter.wait(&m_stateWaitMutex, 100);
-	m_stateWaitMutex.unlock();
+	cmd.execute(&m_messageQueue);
 }
 
 void DSPEngine::stop()
 {
-	m_stateWaitMutex.lock();
-	m_nextState = StNotStarted;
-	while(m_state != StNotStarted)
-		m_stateWaiter.wait(&m_stateWaitMutex, 100);
-	m_stateWaitMutex.unlock();
+	DSPCmdExit cmd;
+	cmd.execute(&m_messageQueue);
 }
 
 bool DSPEngine::startAcquisition()
 {
-	if((m_state == StRunning) || (m_state == StNotStarted))
-		return false;
-
-	m_stateWaitMutex.lock();
-
-	m_nextState = StRunning;
-	while((m_state != StRunning) && (m_state != StError))
-		m_stateWaiter.wait(&m_stateWaitMutex, 100);
-	m_stateWaitMutex.unlock();
-
-	return m_state == StRunning;
+	DSPCmdAcquisitionStart cmd;
+	return cmd.execute(&m_messageQueue) == StRunning;
 }
 
 void DSPEngine::stopAcquistion()
 {
-	m_stateWaitMutex.lock();
-	m_nextState = StIdle;
-	while(m_state == StRunning)
-		m_stateWaiter.wait(&m_stateWaitMutex, 100);
-	m_stateWaitMutex.unlock();
+	DSPCmdAcquisitionStop cmd;
+	cmd.execute(&m_messageQueue);
 }
 
-bool DSPEngine::addChannelizer(Channelizer* channelizer)
+void DSPEngine::setSource(SampleSource* source)
 {
-	if(!isRunning())
-		return false;
-
-	m_stateWaitMutex.lock();
-	m_channelizerToAdd = channelizer;
-	while(m_channelizerToAdd != NULL)
-		m_stateWaiter.wait(&m_stateWaitMutex, 100);
-	m_stateWaitMutex.unlock();
-	return true;
+	DSPCmdSetSource cmd(source);
+	cmd.execute(&m_messageQueue);
 }
 
-bool DSPEngine::removeChannelizer(Channelizer* channelizer)
+void DSPEngine::addSink(SampleSink* sink)
 {
-	if(!isRunning())
-		return false;
-
-	m_stateWaitMutex.lock();
-	m_channelizerToRemove = channelizer;
-	while(m_channelizerToRemove != NULL)
-		m_stateWaiter.wait(&m_stateWaitMutex, 100);
-	m_stateWaitMutex.unlock();
-	return true;
+	DSPCmdAddSink cmd(sink);
+	cmd.execute(&m_messageQueue);
 }
 
-void DSPEngine::triggerDebug()
+void DSPEngine::removeSink(SampleSink* sink)
 {
-	m_debugEvent = true;
+	DSPCmdRemoveSink cmd(sink);
+	cmd.execute(&m_messageQueue);
 }
 
-QString DSPEngine::errorMsg()
+void DSPEngine::configureCorrections(bool dcOffsetCorrection, bool iqImbalanceCorrection)
 {
-	QMutexLocker mutexLocker(&m_errorMsgMutex);
-	QString res = m_errorMsg;
-	res.detach();
-	return res;
+	Message* cmd = DSPCmdConfigureCorrection::create(dcOffsetCorrection, iqImbalanceCorrection);
+	cmd->submit(&m_messageQueue);
 }
 
-QString DSPEngine::deviceDesc()
+QString DSPEngine::errorMessage()
 {
-	QMutexLocker mutexLocker(&m_deviceDescMutex);
-	QString res = m_deviceDesc;
-	res.detach();
-	return res;
+	DSPCmdGetErrorMessage cmd;
+	cmd.execute(&m_messageQueue);
+	return cmd.getErrorMessage();
+}
+
+QString DSPEngine::deviceDescription()
+{
+	DSPCmdGetDeviceDescription cmd;
+	cmd.execute(&m_messageQueue);
+	return cmd.getDeviceDescription();
 }
 
 void DSPEngine::run()
 {
-	connect(&m_sampleFifo, SIGNAL(dataReady()), this, SLOT(handleData()), Qt::QueuedConnection);
-
-	m_ready = createMembers();
+	connect(&m_messageQueue, SIGNAL(messageEnqueued()), this, SLOT(handleMessages()), Qt::QueuedConnection);
 
 	m_state = StIdle;
-	m_stateWaiter.wakeAll();
 
+	handleMessages();
 	exec();
 }
 
@@ -214,6 +187,46 @@ void DSPEngine::imbalance(SampleVector::iterator begin, SampleVector::iterator e
 
 void DSPEngine::work()
 {
+	SampleFifo* sampleFifo = m_sampleSource->getSampleFifo();
+	size_t samplesDone = 0;
+
+	while((sampleFifo->fill() > 0) && (m_messageQueue.countPending() == 0) && (samplesDone < m_sampleRate)) {
+		SampleVector::iterator part1begin;
+		SampleVector::iterator part1end;
+		SampleVector::iterator part2begin;
+		SampleVector::iterator part2end;
+
+		size_t count = sampleFifo->readBegin(sampleFifo->fill(), &part1begin, &part1end, &part2begin, &part2end);
+
+		// first part of FIFO data
+		if(part1begin != part1end) {
+			// correct stuff
+			if(m_dcOffsetCorrection)
+				dcOffset(part1begin, part1end);
+			if(m_iqImbalanceCorrection)
+				imbalance(part1begin, part1end);
+			// feed data to handlers
+			for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
+				(*it)->feed(part1begin, part1end);
+		}
+		// second part of FIFO data (used when block wraps around)
+		if(part2begin != part2end) {
+			// correct stuff
+			if(m_dcOffsetCorrection)
+				dcOffset(part2begin, part2end);
+			if(m_iqImbalanceCorrection)
+				imbalance(part2begin, part2end);
+			// feed data to handlers
+			for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
+				(*it)->feed(part1begin, part1end);
+		}
+
+		// adjust FIFO pointers
+		sampleFifo->readCommit(count);
+		samplesDone += count;
+	}
+
+#if 0
 	size_t wus;
 	size_t maxWorkUnitSize = 0;
 	size_t samplesDone = 0;
@@ -221,13 +234,13 @@ void DSPEngine::work()
 	wus = m_spectrum.workUnitSize();
 	if(wus > maxWorkUnitSize)
 		maxWorkUnitSize = wus;
-	for(Channelizers::const_iterator it = m_channelizers.begin(); it != m_channelizers.end(); it++) {
+	for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++) {
 		wus = (*it)->workUnitSize();
 		if(wus > maxWorkUnitSize)
 			maxWorkUnitSize = wus;
 	}
 
-	while((m_sampleFifo.fill() > maxWorkUnitSize) && (m_state == m_nextState) && (samplesDone < m_sampleRate)) {
+	while((m_sampleFifo.fill() > maxWorkUnitSize) && (m_commandQueue.countPending() == 0) && (samplesDone < m_sampleRate)) {
 		SampleVector::iterator part1begin;
 		SampleVector::iterator part1end;
 		SampleVector::iterator part2begin;
@@ -244,7 +257,7 @@ void DSPEngine::work()
 				imbalance(part1begin, part1end);
 			// feed data to handlers
 			m_spectrum.feed(part1begin, part1end);
-			for(Channelizers::const_iterator it = m_channelizers.begin(); it != m_channelizers.end(); it++)
+			for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
 				(*it)->feed(part1begin, part1end);
 		}
 		// second part of FIFO data (used when block wraps around)
@@ -256,7 +269,7 @@ void DSPEngine::work()
 				imbalance(part2begin, part2end);
 			// feed data to handlers
 			m_spectrum.feed(part2begin, part2end);
-			for(Channelizers::const_iterator it = m_channelizers.begin(); it != m_channelizers.end(); it++)
+			for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
 				(*it)->feed(part1begin, part1end);
 		}
 
@@ -274,95 +287,7 @@ void DSPEngine::work()
 		m_sampleRate = 4000000 / (1 << m_settings.decimation());
 		qDebug("New rate: %d", m_sampleRate);
 	}
-}
-
-void DSPEngine::applyChannelizers()
-{
-	// check for channelizers to add or remove
-	if(m_channelizerToAdd != NULL) {
-		m_channelizers.push_back(m_channelizerToAdd);
-		m_channelizerToAdd = NULL;
-		m_stateWaiter.wakeAll();
-	}
-	if(m_channelizerToRemove != NULL) {
-		m_channelizers.remove(m_channelizerToRemove);
-		m_channelizerToRemove = NULL;
-		m_stateWaiter.wakeAll();
-	}
-}
-
-void DSPEngine::applyConfig()
-{
-	// apply changed configuration
-	if(m_settings.isModifiedIQSwap())
-		m_sampleSource->setIQSwap(m_settings.iqSwap());
-
-	if(m_settings.isModifiedFFTSize() || m_settings.isModifiedFFTOverlap() || m_settings.isModifiedFFTWindow()) {
-		m_spectrum.configure(m_settings.fftSize(), m_settings.fftOverlap(), (FFTWindow::Function)m_settings.fftWindow());
-	}
-
-	if(m_settings.isModifiedDCOffsetCorrection()) {
-		m_iOffset = 0;
-		m_qOffset = 0;
-	}
-
-	if(m_settings.isModifiedIQImbalanceCorrection()) {
-		m_iRange = 1 << 16;
-		m_qRange = 1 << 16;
-		m_imbalance = 65536;
-	}
-
-	if(m_settings.isModifiedE4000LNAGain())
-		((OsmoSDRInput*)m_sampleSource)->setE4000LNAGain(m_settings.e4000LNAGain());
-	if(m_settings.isModifiedE4000MixerGain())
-		((OsmoSDRInput*)m_sampleSource)->setE4000MixerGain(m_settings.e4000MixerGain());
-	if(m_settings.isModifiedE4000MixerEnh())
-		((OsmoSDRInput*)m_sampleSource)->setE4000MixerEnh(m_settings.e4000MixerEnh());
-	if(m_settings.isModifiedE4000if1())
-		((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(1, m_settings.e4000if1());
-	if(m_settings.isModifiedE4000if2())
-		((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(2, m_settings.e4000if2());
-	if(m_settings.isModifiedE4000if3())
-		((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(3, m_settings.e4000if3());
-	if(m_settings.isModifiedE4000if4())
-		((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(4, m_settings.e4000if4());
-	if(m_settings.isModifiedE4000if5())
-		((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(5, m_settings.e4000if5());
-	if(m_settings.isModifiedE4000if6())
-		((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(6, m_settings.e4000if6());
-
-	if(m_settings.isModifiedFilterI1() || m_settings.isModifiedFilterI2() || m_settings.isModifiedFilterQ1() || m_settings.isModifiedFilterQ2()) {
-		((OsmoSDRInput*)m_sampleSource)->setFilter(
-			m_settings.filterI1(),
-			m_settings.filterI2(),
-			m_settings.filterQ1(),
-			m_settings.filterQ2());
-	}
-}
-
-void DSPEngine::changeState()
-{
-	switch(m_nextState) {
-		case StNotStarted:
-			gotoIdle();
-			destroyMembers();
-			m_state = StNotStarted;
-			break;
-
-		case StIdle:
-			m_state = gotoIdle();
-			break;
-
-		case StRunning:
-			m_state = gotoIdle();
-			if(m_state == StIdle)
-				m_state = gotoRunning();
-			break;
-
-		case StError:
-			m_state = StError;
-			break;
-	}
+#endif
 }
 
 DSPEngine::State DSPEngine::gotoIdle()
@@ -379,13 +304,13 @@ DSPEngine::State DSPEngine::gotoIdle()
 			break;
 	}
 
-	if(!m_ready)
+	if(m_sampleSource == NULL)
 		return StIdle;
 
+	for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
+		(*it)->stop();
 	m_sampleSource->stopInput();
-	m_deviceDescMutex.lock();
-	m_deviceDesc.clear();
-	m_deviceDescMutex.unlock();
+	m_deviceDescription.clear();
 
 	return StIdle;
 }
@@ -404,103 +329,65 @@ DSPEngine::State DSPEngine::gotoRunning()
 			break;
 	}
 
-	if(!m_ready)
-		return gotoError("DSP engine is not ready to be started");
+	if(m_sampleSource == NULL)
+		return gotoError("No sample source configured");
 
-	m_settings.isModifiedFFTSize();
-	m_settings.isModifiedFFTOverlap();
-	m_settings.isModifiedFFTWindow();
-	m_settings.isModifiedCenterFreq();
-	m_settings.isModifiedIQSwap();
-	m_settings.isModifiedDecimation();
-	m_settings.isModifiedE4000LNAGain();
-	m_settings.isModifiedE4000MixerGain();
-	m_settings.isModifiedE4000MixerEnh();
-	m_settings.isModifiedE4000if1();
-	m_settings.isModifiedE4000if2();
-	m_settings.isModifiedE4000if3();
-	m_settings.isModifiedE4000if4();
-	m_settings.isModifiedE4000if5();
-	m_settings.isModifiedE4000if6();
-	m_settings.isModifiedFilterI1();
-	m_settings.isModifiedFilterI2();
-	m_settings.isModifiedFilterQ1();
-	m_settings.isModifiedFilterQ2();
-
-	m_sampleRate = 4000000 / (1 << m_settings.decimation());
+	m_sampleRate = 4000000 / (1 << 0);
 	qDebug("current rate: %d", m_sampleRate);
-
-	m_spectrum.configure(m_settings.fftSize(), m_settings.fftOverlap(), (FFTWindow::Function)m_settings.fftWindow());
 
 	m_iOffset = 0;
 	m_qOffset = 0;
 	m_iRange = 1 << 16;
 	m_qRange = 1 << 16;
 
-	if(!m_sampleFifo.setSize(2 * 500000))
-	   return gotoError("Could not allocate SampleFifo");
+	if(!m_sampleSource->startInput(0))
+		return gotoError("Could not start sample source");
 
-	if(!m_sampleSource->startInput(0, 4000000))
-		return gotoError("Could not start OsmoSDR");
+	m_deviceDescription = m_sampleSource->getDeviceDescription();
 
-	m_deviceDescMutex.lock();
-	m_deviceDesc = m_sampleSource->deviceDesc();
-	m_deviceDescMutex.unlock();
-
-	m_sampleSource->setCenterFrequency(m_settings.centerFreq());
-	m_sampleSource->setIQSwap(m_settings.iqSwap());
-	m_sampleSource->setDecimation(m_settings.decimation());
-	((OsmoSDRInput*)m_sampleSource)->setE4000LNAGain(m_settings.e4000LNAGain());
-	((OsmoSDRInput*)m_sampleSource)->setE4000MixerGain(m_settings.e4000MixerGain());
-	((OsmoSDRInput*)m_sampleSource)->setE4000MixerEnh(m_settings.e4000MixerEnh());
-	((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(1, m_settings.e4000if1());
-	((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(2, m_settings.e4000if2());
-	((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(3, m_settings.e4000if3());
-	((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(4, m_settings.e4000if4());
-	((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(5, m_settings.e4000if5());
-	((OsmoSDRInput*)m_sampleSource)->setE4000ifStageGain(6, m_settings.e4000if6());
-	((OsmoSDRInput*)m_sampleSource)->setFilter(
-		m_settings.filterI1(),
-		m_settings.filterI2(),
-		m_settings.filterQ1(),
-		m_settings.filterQ2());
+	for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
+		(*it)->start();
 
 	return StRunning;
 }
 
-DSPEngine::State DSPEngine::gotoError(const QString& errorMsg)
+DSPEngine::State DSPEngine::gotoError(const QString& errorMessage)
 {
-	QMutexLocker mutexLocker(&m_errorMsgMutex);
-	m_errorMsg = errorMsg;
+	m_errorMessage = errorMessage;
+	m_deviceDescription.clear();
 	m_state = StError;
-	m_deviceDescMutex.lock();
-	m_deviceDesc.clear();
-	m_deviceDescMutex.unlock();
 	return StError;
 }
 
-bool DSPEngine::createMembers()
+void DSPEngine::handleSetSource(SampleSource* source)
 {
-	if((m_timer = new QTimer(this)) == NULL)
-		return false;
-	connect(m_timer, SIGNAL(timeout()), this, SLOT(tick()));
-	m_timer->start(250);
-
-	if((m_sampleSource = new OsmoSDRInput(&m_sampleFifo)) == NULL)
-		return false;
-
-	return true;
+	gotoIdle();
+	if(m_sampleSource != NULL)
+		disconnect(m_sampleSource->getSampleFifo(), SIGNAL(dataReady()), this, SLOT(handleData()));
+	m_sampleSource = source;
+	connect(m_sampleSource->getSampleFifo(), SIGNAL(dataReady()), this, SLOT(handleData()), Qt::QueuedConnection);
+	generateReport();
 }
 
-void DSPEngine::destroyMembers()
+void DSPEngine::generateReport()
 {
-	if(m_sampleSource != NULL) {
-		delete m_sampleSource;
-		m_sampleSource = NULL;
+	bool needReport = false;
+	int sampleRate = m_sampleSource->getSampleRate();
+	quint64 centerFrequency = m_sampleSource->getCenterFrequency();
+
+	if(sampleRate != m_sampleRate) {
+		m_sampleRate = sampleRate;
+		needReport = true;
 	}
-	m_deviceDescMutex.lock();
-	m_deviceDesc.clear();
-	m_deviceDescMutex.unlock();
+	if(centerFrequency != m_centerFrequency) {
+		m_centerFrequency = centerFrequency;
+		needReport = true;
+	}
+
+	if(needReport) {
+		Message* rep = DSPRepEngineReport::create(m_sampleRate, m_centerFrequency);
+		rep->submit(m_reportQueue);
+	}
 }
 
 void DSPEngine::handleData()
@@ -509,32 +396,100 @@ void DSPEngine::handleData()
 		work();
 }
 
-void DSPEngine::tick()
+void DSPEngine::handleMessages()
 {
-	static const char* stateNames[4] = {
-		"StNotRunning", "StIdle", "StRunning", "StError"
-	};
+	Message* cmd;
+	while((cmd = m_messageQueue.accept()) != NULL) {
+		qDebug("CMD: %s", cmd->name());
 
-	if(m_state != m_nextState) {
-		changeState();
-		m_nextState = m_state;
-		m_stateWaiter.wakeAll();
+		switch(cmd->type()) {
+			case DSPCmdPing::Type:
+				cmd->completed(m_state);
+				break;
 
-		qDebug("New state: %d: %s", m_state, stateNames[m_state]);
-	}
+			case DSPCmdExit::Type:
+				gotoIdle();
+				m_state = StNotStarted;
+				exit();
+				cmd->completed(m_state);
+				break;
 
-	applyChannelizers();
+			case DSPCmdAcquisitionStart::Type:
+				m_state = gotoIdle();
+				if(m_state == StIdle)
+					m_state = gotoRunning();
+				cmd->completed(m_state);
+				break;
 
-	switch(m_state) {
-		case StNotStarted:
-			exit();
-			break;
+			case DSPCmdAcquisitionStop::Type:
+				m_state = gotoIdle();
+				cmd->completed(m_state);
+				break;
 
-		case StRunning:
-			applyConfig();
-			break;
+			case DSPCmdGetDeviceDescription::Type:
+				((DSPCmdGetDeviceDescription*)cmd)->setDeviceDescription(m_deviceDescription);
+				cmd->completed();
+				break;
 
-		default:
-			break;
+			case DSPCmdGetErrorMessage::Type:
+				((DSPCmdGetErrorMessage*)cmd)->setErrorMessage(m_errorMessage);
+				cmd->completed();
+				break;
+
+			case DSPCmdSetSource::Type:
+				handleSetSource(((DSPCmdSetSource*)cmd)->getSource());
+				cmd->completed();
+				break;
+
+			case DSPCmdAddSink::Type: {
+				SampleSink* sink = ((DSPCmdAddSink*)cmd)->getSink();
+				if(m_state == StRunning)
+					sink->start();
+				m_sampleSinks.push_back(sink);
+				cmd->completed();
+				break;
+			}
+
+			case DSPCmdRemoveSink::Type: {
+				SampleSink* sink = ((DSPCmdAddSink*)cmd)->getSink();
+				if(m_state == StRunning)
+					sink->stop();
+				m_sampleSinks.remove(sink);
+				cmd->completed();
+				break;
+			}
+
+			case DSPCmdConfigureCorrection::Type: {
+				DSPCmdConfigureCorrection* conf = (DSPCmdConfigureCorrection*)cmd;
+				m_iqImbalanceCorrection = conf->getIQImbalanceCorrection();
+				if(m_dcOffsetCorrection != conf->getDCOffsetCorrection()) {
+					m_dcOffsetCorrection = conf->getDCOffsetCorrection();
+					m_iOffset = 0;
+					m_qOffset = 0;
+				}
+				if(m_iqImbalanceCorrection != conf->getIQImbalanceCorrection()) {
+					m_iqImbalanceCorrection = conf->getIQImbalanceCorrection();
+					m_iRange = 1 << 16;
+					m_qRange = 1 << 16;
+					m_imbalance = 65536;
+				}
+				cmd->completed();
+				break;
+			}
+
+			case DSPCmdConfigureSource::Type:
+				if(m_sampleSource != NULL) {
+					m_sampleSource->handleConfiguration((DSPCmdConfigureSource*)cmd);
+					generateReport();
+				}
+				cmd->completed();
+				break;
+
+			default:
+				for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
+					(*it)->handleMessage(cmd);
+				cmd->completed();
+				break;
+		}
 	}
 }

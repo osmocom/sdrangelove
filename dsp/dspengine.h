@@ -27,12 +27,10 @@
 #include "fftwindow.h"
 #include "settings.h"
 #include "hardware/samplefifo.h"
-#include "spectrum.h"
+#include "../util/messagequeue.h"
 
 class SampleSource;
-class SampleFifo;
-class GLSpectrum;
-class Channelizer;
+class SampleSink;
 
 class DSPEngine : public QThread {
 	Q_OBJECT
@@ -45,10 +43,10 @@ public:
 		StError
 	};
 
-	DSPEngine(Settings* settings, QObject* parent = NULL);
+	DSPEngine(MessageQueue* reportQueue, QObject* parent = NULL);
 	~DSPEngine();
 
-	void setGLSpectrum(GLSpectrum* glSpectrum);
+	MessageQueue* getMessageQueue() { return &m_messageQueue; }
 
 	void start();
 	void stop();
@@ -56,52 +54,42 @@ public:
 	bool startAcquisition();
 	void stopAcquistion();
 
-	bool addChannelizer(Channelizer* channelizer);
-	bool removeChannelizer(Channelizer* channelizer);
+	void setSource(SampleSource* source);
 
-	void triggerDebug();
+	void addSink(SampleSink* sink);
+	void removeSink(SampleSink* sink);
+
+	void configureCorrections(bool dcOffsetCorrection, bool iqImbalanceCorrection);
 
 	State state() const { return m_state; }
-	QString errorMsg();
 
-	QString deviceDesc();
+	QString errorMessage();
+	QString deviceDescription();
 
 private:
-	bool m_debugEvent;
-
-	Settings m_settings;
+	MessageQueue m_messageQueue;
+	MessageQueue* m_reportQueue;
 
 	State m_state;
-	State m_nextState;
-	bool m_ready;
 
-	QMutex m_stateWaitMutex;
-	QWaitCondition m_stateWaiter;
+	QString m_errorMessage;
+	QString m_deviceDescription;
 
-	QMutex m_errorMsgMutex;
-	QString m_errorMsg;
-
-	QMutex m_deviceDescMutex;
-	QString m_deviceDesc;
-
-	Channelizer* m_channelizerToAdd;
-	Channelizer* m_channelizerToRemove;
-	typedef std::list<Channelizer*> Channelizers;
-	SampleFifo m_sampleFifo;
-	Channelizers m_channelizers;
-
-	QTimer* m_timer;
 	SampleSource* m_sampleSource;
 
-	int m_sampleRate;
+	typedef std::list<SampleSink*> SampleSinks;
+	SampleSinks m_sampleSinks;
 
+	int m_sampleRate;
+	quint64 m_centerFrequency;
+
+	bool m_dcOffsetCorrection;
+	bool m_iqImbalanceCorrection;
 	qint32 m_iOffset;
 	qint32 m_qOffset;
 	qint32 m_iRange;
 	qint32 m_qRange;
 	qint32 m_imbalance;
-
-	Spectrum m_spectrum;
 
 	void run();
 
@@ -109,20 +97,16 @@ private:
 	void imbalance(SampleVector::iterator begin, SampleVector::iterator end);
 	void work();
 
-	void applyChannelizers();
-	void applyConfig();
-	void changeState();
-
 	State gotoIdle();
 	State gotoRunning();
 	State gotoError(const QString& errorMsg);
 
-	bool createMembers();
-	void destroyMembers();
+	void handleSetSource(SampleSource* source);
+	void generateReport();
 
 private slots:
 	void handleData();
-	void tick();
+	void handleMessages();
 };
 
 #endif // INCLUDE_DSPENGINE_H

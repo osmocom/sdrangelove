@@ -1,5 +1,16 @@
 #include "samplesink.h"
 
+SampleSink::SampleSink()
+{
+}
+
+SampleSink::~SampleSink()
+{
+}
+
+#if 0
+#include "samplesink.h"
+
 SampleSink::SampleSink() :
 	m_sinkBuffer(),
 	m_sinkBufferFill(0)
@@ -52,3 +63,4 @@ void SampleSink::feed(SampleVector::const_iterator begin, SampleVector::const_it
 		}
 	}
 }
+#endif

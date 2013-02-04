@@ -26,28 +26,73 @@ class OsmoSDRThread;
 
 class OsmoSDRInput : public SampleSource {
 public:
-	OsmoSDRInput(SampleFifo* sampleFifo);
+	struct Settings {
+		quint64 centerFrequency;
+		bool swapIQ;
+		int decimation;
+		int lnaGain;
+		int mixerGain;
+		int mixerEnhancement;
+		int if1gain;
+		int if2gain;
+		int if3gain;
+		int if4gain;
+		int if5gain;
+		int if6gain;
+		int opAmpI1;
+		int opAmpI2;
+		int opAmpQ1;
+		int opAmpQ2;
+		int dcOfsI;
+		int dcOfsQ;
+
+		Settings();
+		QString serialize() const;
+		bool deserialize(const QString& settings);
+	};
+
+	OsmoSDRInput();
 	~OsmoSDRInput();
 
-	bool startInput(int device, int rate);
+	bool startInput(int device);
 	void stopInput();
 
-	bool setCenterFrequency(qint64 freq);
-	bool setIQSwap(bool sw);
-	bool setDecimation(int dec);
+	const QString& getDeviceDescription() const;
+	int getSampleRate() const;
+	quint64 getCenterFrequency() const;
 
-	const QString& deviceDesc() const;
+	SampleSourceGUI* createGUI(MessageQueue* msgQueue, QWidget* parent = NULL) const;
 
-	bool setE4000LNAGain(int gain);
-	bool setE4000MixerGain(int gain);
-	bool setE4000MixerEnh(int gain);
-	bool setE4000ifStageGain(int stage, int gain);
-	bool setFilter(quint8 i1, quint8 i2, quint8 q1, quint8 q2);
+	void handleConfiguration(DSPCmdConfigureSource* cmd);
 
 private:
+	QMutex m_mutex;
+	Settings m_settings;
 	osmosdr_dev_t* m_dev;
 	OsmoSDRThread* m_osmoSDRThread;
-	QString m_deviceDesc;
+	QString m_deviceDescription;
+
+	bool applySettings(const Settings& settings, bool force);
+};
+
+class DSPCmdConfigureSourceOsmoSDR : public DSPCmdConfigureSource {
+public:
+	enum {
+		SourceType = 1
+	};
+
+	int sourceType() const;
+	const OsmoSDRInput::Settings& getSettings() const { return m_settings; }
+
+	static DSPCmdConfigureSourceOsmoSDR* create(const OsmoSDRInput::Settings& settings)
+	{
+		return new DSPCmdConfigureSourceOsmoSDR(settings);
+	}
+
+protected:
+	OsmoSDRInput::Settings m_settings;
+
+	DSPCmdConfigureSourceOsmoSDR(const OsmoSDRInput::Settings& settings) : m_settings(settings) { }
 };
 
 #endif // INCLUDE_OSMOSDRINPUT_H

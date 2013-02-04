@@ -30,6 +30,7 @@ private:
 
 	int m_sampleRate;
 	PaTime m_streamStartTime;
+	double m_rateCorrection;
 
 	static int callbackHelper(
 		const void* inputBuffer,
@@ -52,6 +53,8 @@ public:
 
 	bool start(int device, int rate, AudioFifo* audioFifo);
 	void stop();
+
+	double rateCorrection() const { return m_rateCorrection; }
 
 	int bufferedSamples();
 };

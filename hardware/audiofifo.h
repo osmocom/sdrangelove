@@ -22,6 +22,24 @@
 #include <QWaitCondition>
 
 class AudioFifo {
+public:
+	AudioFifo();
+	AudioFifo(uint sampleSize, uint numSamples);
+	~AudioFifo();
+
+	bool setSize(uint sampleSize, uint numSamples);
+
+	uint write(const quint8* data, uint numSamples, int timeout = INT_MAX);
+	uint read(quint8* data, uint numSamples, int timeout = INT_MAX);
+
+	uint drain(uint numSamples);
+
+	inline uint flush() { return drain(m_fill); }
+	inline uint fill() const { return m_fill; }
+	inline bool isEmpty() const { return m_fill == 0; }
+	inline bool isFull() const { return m_fill == m_size; }
+	inline uint size() const { return m_size; }
+
 private:
 	QMutex m_mutex;
 
@@ -39,25 +57,7 @@ private:
 	QWaitCondition m_writeWaitCondition;
 	QWaitCondition m_readWaitCondition;
 
-	bool create(uint sampleSize, uint size);
-
-public:
-	AudioFifo();
-	AudioFifo(uint sampleSize, uint size);
-	~AudioFifo();
-
-	bool setSize(uint sampleSize, uint size);
-
-	uint write(const quint8* data, uint len, int timeout = INT_MAX);
-	uint read(quint8* data, uint len, int timeout = INT_MAX);
-
-	uint drain(uint count);
-
-	inline uint flush() { return drain(m_fill); }
-	inline int fill() const { return m_fill; }
-	inline bool isEmpty() const { return m_fill == 0; }
-	inline bool isFull() const { return m_fill == m_size; }
-	inline uint size() const { return m_size; }
+	bool create(uint sampleSize, uint numSamples);
 };
 
 #endif // INCLUDE_AUDIOFIFO_H

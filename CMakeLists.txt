@@ -19,39 +19,53 @@ set(sdrangelove_SOURCES
 	mainwindow.cpp
 	miniz.cpp
 	osdrupgrade.cpp
+	preset.cpp
 	settings.cpp
 
 	dsp/channelizer.cpp
+	dsp/dspcommands.cpp
 	dsp/dspengine.cpp
 	dsp/fftwindow.cpp
 	dsp/interpolator.cpp
 	dsp/lowpass.cpp
 	dsp/nco.cpp
+	dsp/nfmdemod.cpp
 	dsp/pidcontroller.cpp
 	dsp/samplesink.cpp
-	dsp/spectrum.cpp
+	dsp/spectrumvis.cpp
 
 	gui/glspectrum.cpp
 	gui/indicator.cpp
+	gui/presetitem.cpp
 	gui/scale.cpp
 	gui/scaleengine.cpp
+	gui/scope.cpp
+	gui/scopewindow.cpp
 	gui/valuedial.cpp
 
 	hardware/audiofifo.cpp
 	hardware/audiooutput.cpp
+	hardware/osmosdrgui.cpp
 	hardware/osmosdrinput.cpp
 	hardware/osmosdrthread.cpp
 	hardware/samplefifo.cpp
 	hardware/samplesource.cpp
+	hardware/samplesourcegui.cpp
 	hardware/soundcardinfo.cpp
+
+	util/message.cpp
+	util/messagequeue.cpp
+	util/spinlock.cpp
 )
 
 set(sdrangelove_HEADERS
 	mainwindow.h
 	osdrupgrade.h
+	preset.h
 	settings.h
 
 	dsp/channelizer.h
+	dsp/dspcommands.h
 	dsp/dspengine.h
 	dsp/dsptypes.h
 	dsp/fftwindow.h
@@ -59,29 +73,43 @@ set(sdrangelove_HEADERS
 	dsp/kissfft.h
 	dsp/lowpass.h
 	dsp/nco.h
+	dsp/nfmdemod.h
 	dsp/pidcontroller.h
 	dsp/samplesink.h
-	dsp/spectrum.h
+	dsp/spectrumvis.h
 
 	gui/glspectrum.h
 	gui/indicator.h
 	gui/physicalunit.h
+	gui/presetitem.h
 	gui/scale.h
 	gui/scaleengine.h
+	gui/scope.h
+	gui/scopewindow.h
 	gui/valuedial.h
 
 	hardware/audiofifo.h
 	hardware/audiooutput.h
+	hardware/osmosdrgui.h
 	hardware/osmosdrinput.h
 	hardware/osmosdrthread.h
 	hardware/samplefifo.h
 	hardware/samplesource.h
+	hardware/samplesourcegui.h
 	hardware/soundcardinfo.h
+
+	util/message.h
+	util/messagequeue.h
+	util/spinlock.h
 )
 
 set(sdrangelove_FORMS
 	mainwindow.ui
 	osdrupgrade.ui
+
+	gui/scopewindow.ui
+
+	hardware/osmosdrgui.ui
 )
 
 set(sdrangelove_RESOURCES

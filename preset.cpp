@@ -15,37 +15,11 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QMessageBox>
-#include "mainwindow.h"
-#include "portaudio.h"
+#include "preset.h"
 
-static void initPortAudio()
+Preset::Preset(const QString& name, const Settings& settings) :
+	m_name(name),
+	m_settings()
 {
-	PaError err;
-
-	if((err = Pa_Initialize()) != paNoError) {
-		qCritical("PortAudio: could not initialise: %s (%d)", Pa_GetErrorText(err), err);
-		QString error = QObject::tr("PortAudio could not be initialised: %1 (%2)").arg(Pa_GetErrorText(err)).arg(err);
-		QMessageBox::critical(NULL, "PortAudio failure", error);
-	}
-}
-
-int main(int argc, char* argv[])
-{
-	QApplication a(argc, argv);
-
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
-
-	initPortAudio();
-
-	MainWindow w;
-	w.show();
-
-	return a.exec();
+	m_settings = settings;
 }

@@ -15,88 +15,144 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
+#include <QInputDialog>
+#include <QMessageBox>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "gui/indicator.h"
-#include "dsp/channelizer.h"
+#include "gui/presetitem.h"
+#include "gui/scopewindow.h"
+#include "dsp/spectrumvis.h"
+#include "dsp/dspcommands.h"
+#include "hardware/samplesourcegui.h"
 #include "osdrupgrade.h"
+#include "hardware/osmosdrinput.h"
 
 MainWindow::MainWindow(QWidget* parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow),
+	m_messageQueue(),
 	m_settings(),
-	m_dspEngine(&m_settings),
-	m_startOSDRUpdateAfterStop(false)
+	m_dspEngine(&m_messageQueue),
+	m_lastEngineState((DSPEngine::State)-1),
+	m_startOSDRUpdateAfterStop(false),
+	m_scopeWindow(NULL),
+	m_sampleRate(0),
+	m_centerFrequency(0)
 {
-	m_settings.load();
-
 	ui->setupUi(this);
 	createStatusBar();
 
-	m_dspEngine.setGLSpectrum(ui->glSpectrum);
-	m_dspEngine.start();
-	m_lastEngineState = (DSPEngine::State)-1;
+	connect(&m_messageQueue, SIGNAL(messageEnqueued()), this, SLOT(handleMessages()), Qt::QueuedConnection);
+
+	loadSettings();
 
 	connect(&m_statusTimer, SIGNAL(timeout()), this, SLOT(updateStatus()));
 	m_statusTimer.start(500);
 
-	ui->centerFrequency->setValueRange(7, 20000U, 2200000U);
+	m_dspEngine.start();
 
-	for(int i = 0; i < 6; i++) {
-		if(m_settings.fftSize() == (1 << (i + 7))) {
-			ui->fftSize->setValue(i);
-			break;
-		}
-	}
-	ui->fftWindow->setCurrentIndex(m_settings.fftWindow());
+	m_sampleSource = new OsmoSDRInput();
+	m_dspEngine.setSource(m_sampleSource);
+	m_sampleSourceGUI = m_sampleSource->createGUI(m_dspEngine.getMessageQueue());
+	ui->inputDock->setWidget(m_sampleSourceGUI);
+	ui->inputDock->setWindowTitle(ui->inputDock->widget()->windowTitle());
 
-	ui->waterfall->setChecked(m_settings.displayWaterfall());
-	ui->action_View_Waterfall->setChecked(m_settings.displayWaterfall());
-	ui->glSpectrum->setDisplayWaterfall(m_settings.displayWaterfall());
-	ui->glSpectrum->setInvertedWaterfall(m_settings.invertedWaterfall());
-	ui->liveSpectrum->setChecked(m_settings.displayLiveSpectrum());
-	ui->action_View_LiveSpectrum->setChecked(m_settings.displayLiveSpectrum());
-	ui->glSpectrum->setDisplayLiveSpectrum(m_settings.displayLiveSpectrum());
-	ui->action_View_Histogram->setChecked(m_settings.displayHistogram());
-	ui->glSpectrum->setDisplayHistogram(m_settings.displayHistogram());
-	ui->histogram->setChecked(m_settings.displayHistogram());
+	m_spectrumVis = new SpectrumVis(ui->glSpectrum);
+	m_dspEngine.addSink(m_spectrumVis);
 
-	ui->iqSwap->setChecked(m_settings.iqSwap());
-	ui->decimation->setValue(m_settings.decimation());
-	ui->dcOffset->setChecked(m_settings.dcOffsetCorrection());
-	ui->iqImbalance->setChecked(m_settings.iqImbalanceCorrection());
-	ui->e4000LNAGain->setValue(e4kLNAGainToIdx(m_settings.e4000LNAGain()));
-	ui->e4000MixerGain->setCurrentIndex((m_settings.e4000MixerGain() - 40) / 80);
-	if(m_settings.e4000MixerEnh() == 0)
-		ui->e4000MixerEnh->setCurrentIndex(0);
-	else ui->e4000MixerEnh->setCurrentIndex((m_settings.e4000MixerEnh() + 10) / 20);
+	applySettings();
+	updatePresets();
 
-	ui->e4000if1->setCurrentIndex((m_settings.e4000if1() + 30) / 90);
-	ui->e4000if2->setCurrentIndex(m_settings.e4000if2() / 30);
-	ui->e4000if3->setCurrentIndex(m_settings.e4000if3() / 30);
-	ui->e4000if4->setCurrentIndex(m_settings.e4000if4() / 10);
-	ui->e4000if5->setCurrentIndex(m_settings.e4000if5() / 30 - 1);
-	ui->e4000if6->setCurrentIndex(m_settings.e4000if6() / 30 - 1);
-	ui->filterI1->setValue(m_settings.filterI1());
-	ui->filterI2->setValue(m_settings.filterI2());
-	ui->filterQ1->setValue(m_settings.filterQ1());
-	ui->filterQ2->setValue(m_settings.filterQ2());
-
-	updateSampleRate();
-	updateCenterFreqDisplay();
+/*
+	NFMDemod* nfmDemod = new NFMDemod;
+	m_dspEngine.addChannelizer(nfmDemod);
+*/
 /*
 	Channelizer* channelizer = new Channelizer;
-	channelizer->setGLSpectrum(ui->chanSpectrum);
+	//channelizer->setGLSpectrum(ui->chanSpectrum);
 	m_dspEngine.addChannelizer(channelizer);
-*/
+	*/
 }
 
 MainWindow::~MainWindow()
 {
+	m_dspEngine.removeSink(m_spectrumVis);
 	m_dspEngine.stop();
 
-	m_settings.save();
+	if(m_scopeWindow != NULL) {
+		delete m_scopeWindow;
+		m_scopeWindow = NULL;
+	}
+
+	m_settings.setSourceSettings(m_sampleSourceGUI->serializeSettings());
+	saveSettings();
 	delete ui;
+}
+
+void MainWindow::loadSettings()
+{
+	if(m_settingsStorage.value("version", 0).toInt() != 3) {
+		m_settingsStorage.clear();
+		return;
+	}
+
+	// load current settings
+	m_settings.load(&m_settingsStorage, "");
+
+	// load presets
+	QStringList groups = m_settingsStorage.childGroups();
+	for(int i = 0; i < groups.size(); ++i) {
+		if(groups[i].startsWith("preset")) {
+			// load preset name
+			m_settingsStorage.beginGroup(groups[i]);
+			QString name = m_settingsStorage.value("presetname", tr("Preset %1").arg(m_presetList.size() + 1)).toString();
+			m_settingsStorage.endGroup();
+
+			// load preset content
+			Settings settings;
+			settings.load(&m_settingsStorage, groups[i]);
+
+			// create preset struct
+			Preset* preset = new Preset(name, settings);
+			m_presetList.append(preset);
+
+			// insert into preset widget
+			QStringList strings;
+			strings.append(tr("%1").arg(settings.centerFrequency() / 1000));
+			strings.append(name);
+			PresetItem* item = new PresetItem(ui->presetTree, strings, settings.centerFrequency());
+			item->setTextAlignment(0, Qt::AlignRight);
+			item->setData(0, Qt::UserRole, qVariantFromValue(preset));
+		}
+	}
+	ui->presetTree->sortItems(0, Qt::AscendingOrder);
+}
+
+void MainWindow::saveSettings()
+{
+	m_settingsStorage.setValue("version", 3);
+
+	// save current settings
+	m_settings.save(&m_settingsStorage, "");
+
+	// delete all old presets
+	QStringList groups = m_settingsStorage.childGroups();
+	for(int i = 0; i < groups.size(); ++i) {
+		if(groups[i].startsWith("preset")) {
+			m_settingsStorage.remove(groups[i]);
+		}
+	}
+
+	// save presets
+	for(int i = 0; i < m_presetList.size(); ++i) {
+		QString group = tr("preset%1").arg(i + 1);
+		m_settingsStorage.beginGroup(group);
+		m_settingsStorage.setValue("presetname", m_presetList[i]->name());
+		m_settingsStorage.endGroup();
+
+		m_presetList[i]->settings()->save(&m_settingsStorage, group);
+	}
 }
 
 void MainWindow::createStatusBar()
@@ -120,38 +176,84 @@ void MainWindow::createStatusBar()
 
 void MainWindow::updateCenterFreqDisplay()
 {
-	qint64 freq = m_settings.centerFreq();
-	ui->centerFrequency->setValue(freq / 1000);
-	ui->glSpectrum->setCenterFrequency(freq);
+	ui->glSpectrum->setCenterFrequency(m_centerFrequency);
+	//ui->glSpectrum->setDisplayChannel(true, freq + 100000.0, 25000.0);
 }
 
 void MainWindow::updateSampleRate()
 {
-	m_sampleRate = 4000000 / (1 << m_settings.decimation());
 	ui->glSpectrum->setSampleRate(m_sampleRate);
 	m_sampleRateWidget->setText(tr("Rate: %1 kHz").arg((float)m_sampleRate / 1000));
 }
 
-int MainWindow::e4kLNAGainToIdx(int gain) const
+void MainWindow::updatePresets()
 {
-	static const quint32 gainList[13] = {
-		-50, -25, 0, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300
-	};
-	for(int i = 0; i < 13; i++) {
-		if(gainList[i] == gain)
-			return i;
+	ui->presetTree->resizeColumnToContents(0);
+	if(ui->presetTree->currentItem() != NULL) {
+		ui->presetDelete->setEnabled(true);
+		ui->presetLoad->setEnabled(true);
+	} else {
+		ui->presetDelete->setEnabled(false);
+		ui->presetLoad->setEnabled(false);
 	}
-	return 0;
 }
 
-int MainWindow::e4kIdxToLNAGain(int idx) const
+void MainWindow::applySettings()
 {
-	static const quint32 gainList[13] = {
-		-50, -25, 0, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300
-	};
-	if((idx < 0) || (idx >= 13))
-		return -50;
-	else return gainList[idx];
+	for(int i = 0; i < 6; i++) {
+		if(m_settings.fftSize() == (1 << (i + 7))) {
+			ui->fftSize->setValue(i);
+			break;
+		}
+	}
+
+	ui->fftWindow->setCurrentIndex(m_settings.fftWindow());
+
+	ui->waterfall->setChecked(m_settings.displayWaterfall());
+	ui->action_View_Waterfall->setChecked(m_settings.displayWaterfall());
+	ui->glSpectrum->setDisplayWaterfall(m_settings.displayWaterfall());
+	ui->glSpectrum->setInvertedWaterfall(m_settings.invertedWaterfall());
+	ui->liveSpectrum->setChecked(m_settings.displayLiveSpectrum());
+	ui->action_View_LiveSpectrum->setChecked(m_settings.displayLiveSpectrum());
+	ui->glSpectrum->setDisplayLiveSpectrum(m_settings.displayLiveSpectrum());
+	ui->action_View_Histogram->setChecked(m_settings.displayHistogram());
+	ui->glSpectrum->setDisplayHistogram(m_settings.displayHistogram());
+	ui->histogram->setChecked(m_settings.displayHistogram());
+
+	ui->dcOffset->setChecked(m_settings.dcOffsetCorrection());
+	ui->iqImbalance->setChecked(m_settings.iqImbalanceCorrection());
+
+	updateCenterFreqDisplay();
+	updateSampleRate();
+
+	m_dspEngine.configureCorrections(m_settings.dcOffsetCorrection(), m_settings.iqImbalanceCorrection());
+	m_spectrumVis->configure(m_dspEngine.getMessageQueue(), m_settings.fftSize(), m_settings.fftOverlap(), (FFTWindow::Function)m_settings.fftWindow());
+	m_sampleSourceGUI->deserializeSettings(m_settings.sourceSettings());
+}
+
+void MainWindow::handleMessages()
+{
+	Message* cmd;
+	while((cmd = m_messageQueue.accept()) != NULL) {
+		qDebug("CMD: %s", cmd->name());
+
+		switch(cmd->type()) {
+			case DSPRepEngineReport::Type: {
+				DSPRepEngineReport* rep = (DSPRepEngineReport*)cmd;
+				m_sampleRate = rep->getSampleRate();
+				m_centerFrequency = rep->getCenterFrequency();
+				qDebug("SampleRate:%d, CenterFrequency:%llu", rep->getSampleRate(), rep->getCenterFrequency());
+				updateCenterFreqDisplay();
+				updateSampleRate();
+				cmd->completed();
+				break;
+			}
+
+			default:
+				cmd->completed();
+				break;
+		}
+	}
 }
 
 void MainWindow::updateStatus()
@@ -179,14 +281,14 @@ void MainWindow::updateStatus()
 				m_engineIdle->setColor(Qt::gray);
 				m_engineRunning->setColor(Qt::green);
 				m_engineError->setColor(Qt::gray);
-				statusBar()->showMessage(tr("Sampling from %1").arg(m_dspEngine.deviceDesc()));
+				statusBar()->showMessage(tr("Sampling from %1").arg(m_dspEngine.deviceDescription()));
 				break;
 
 			case DSPEngine::StError:
 				m_engineIdle->setColor(Qt::gray);
 				m_engineRunning->setColor(Qt::gray);
 				m_engineError->setColor(Qt::red);
-				statusBar()->showMessage(tr("Error: %1").arg(m_dspEngine.errorMsg()));
+				statusBar()->showMessage(tr("Error: %1").arg(m_dspEngine.errorMessage()));
 				if(m_startOSDRUpdateAfterStop)
 					on_actionOsmoSDR_Firmware_Upgrade_triggered();
 				break;
@@ -195,15 +297,10 @@ void MainWindow::updateStatus()
 	}
 }
 
-void MainWindow::viewToolBoxClosed()
+void MainWindow::scopeWindowDestroyed()
 {
-	ui->action_View_Toolbox->setChecked(false);
-}
-
-void MainWindow::viewToolBoxWaterfallUpward(bool checked)
-{
-	ui->glSpectrum->setInvertedWaterfall(checked);
-	m_settings.setInvertedWaterfall(checked);
+	m_scopeWindow = NULL;
+	ui->action_Oscilloscope->setChecked(false);
 }
 
 void MainWindow::on_action_Start_triggered()
@@ -219,115 +316,45 @@ void MainWindow::on_action_Stop_triggered()
 void MainWindow::on_fftWindow_currentIndexChanged(int index)
 {
 	m_settings.setFFTWindow(index);
-}
-
-void MainWindow::on_iqSwap_toggled(bool checked)
-{
-	m_settings.setIQSwap(checked);
-}
-
-void MainWindow::on_e4000MixerGain_currentIndexChanged(int index)
-{
-	m_settings.setE4000MixerGain(index * 80 + 40);
-}
-
-void MainWindow::on_e4000MixerEnh_currentIndexChanged(int index)
-{
-	if(index == 0)
-		m_settings.setE4000MixerEnh(0);
-	else m_settings.setE4000MixerEnh(index * 20 - 10);
-}
-
-void MainWindow::on_e4000if1_currentIndexChanged(int index)
-{
-	m_settings.setE4000if1(index * 90 - 30);
-}
-
-void MainWindow::on_e4000if2_currentIndexChanged(int index)
-{
-	m_settings.setE4000if2(index * 30);
-}
-
-void MainWindow::on_e4000if3_currentIndexChanged(int index)
-{
-	m_settings.setE4000if3(index * 30);
-}
-
-void MainWindow::on_e4000if4_currentIndexChanged(int index)
-{
-	m_settings.setE4000if4(index * 10);
-}
-
-void MainWindow::on_e4000if5_currentIndexChanged(int index)
-{
-	m_settings.setE4000if5((index + 1) * 30);
-}
-
-void MainWindow::on_e4000if6_currentIndexChanged(int index)
-{
-	m_settings.setE4000if6((index + 1) * 30);
-}
-
-void MainWindow::on_centerFrequency_changed(quint64 value)
-{
-	m_settings.setCenterFreq(value * 1000);
-	updateCenterFreqDisplay();
+	m_spectrumVis->configure(m_dspEngine.getMessageQueue(), m_settings.fftSize(), m_settings.fftOverlap(), (FFTWindow::Function)m_settings.fftWindow());
 }
 
 void MainWindow::on_action_Debug_triggered()
 {
-	m_dspEngine.triggerDebug();
+//	m_dspEngine.triggerDebug();
 }
 
 void MainWindow::on_dcOffset_toggled(bool checked)
 {
 	m_settings.setDCOffsetCorrection(checked);
+	m_dspEngine.configureCorrections(m_settings.dcOffsetCorrection(), m_settings.iqImbalanceCorrection());
 }
 
 void MainWindow::on_iqImbalance_toggled(bool checked)
 {
 	m_settings.setIQImbalanceCorrection(checked);
-}
-
-void MainWindow::on_filterI1_valueChanged(int value)
-{
-	m_settings.setFilterI1(value);
-}
-
-void MainWindow::on_filterI2_valueChanged(int value)
-{
-	m_settings.setFilterI2(value);
-}
-
-void MainWindow::on_filterQ1_valueChanged(int value)
-{
-	m_settings.setFilterQ1(value);
-}
-
-void MainWindow::on_filterQ2_valueChanged(int value)
-{
-	m_settings.setFilterQ2(value);
+	m_dspEngine.configureCorrections(m_settings.dcOffsetCorrection(), m_settings.iqImbalanceCorrection());
 }
 
 void MainWindow::on_action_View_Waterfall_toggled(bool checked)
 {
+	m_settings.setDisplayWaterfall(checked);
 	ui->action_View_Waterfall->setChecked(checked);
 	ui->glSpectrum->setDisplayWaterfall(checked);
-	m_settings.setDisplayWaterfall(checked);
 }
 
 void MainWindow::on_action_View_Histogram_toggled(bool checked)
 {
+	m_settings.setDisplayHistogram(checked);
 	ui->action_View_Histogram->setChecked(checked);
 	ui->glSpectrum->setDisplayHistogram(checked);
-	m_settings.setDisplayHistogram(checked);
 }
 
 void MainWindow::on_action_View_LiveSpectrum_toggled(bool checked)
 {
+	m_settings.setDisplayLiveSpectrum(checked);
 	ui->action_View_LiveSpectrum->setChecked(checked);
 	ui->glSpectrum->setDisplayLiveSpectrum(checked);
-	m_settings.setDisplayLiveSpectrum(checked);
 }
 
 void MainWindow::on_action_View_Fullscreen_toggled(bool checked)
@@ -351,45 +378,33 @@ void MainWindow::on_actionOsmoSDR_Firmware_Upgrade_triggered()
 	osdrUpgrade.exec();
 }
 
-void MainWindow::on_decimation_valueChanged(int value)
-{
-	ui->decimationDisplay->setText(tr("1:%1").arg(1 << value));
-	m_settings.setDecimation(value);
-	updateSampleRate();
-}
-
 void MainWindow::on_fftSize_valueChanged(int value)
 {
 	ui->fftSizeDisplay->setText(tr("%1").arg(1 << (7 + value)));
 	m_settings.setFFTSize(1 << (7 + value));
-}
 
-void MainWindow::on_e4000LNAGain_valueChanged(int value)
-{
-	int gain = e4kIdxToLNAGain(value);
-	ui->e4000LNAGainDisplay->setText(tr("%1.%2").arg(gain / 10).arg(abs(gain % 10)));
-	m_settings.setE4000LNAGain(gain);
+	m_spectrumVis->configure(m_dspEngine.getMessageQueue(), m_settings.fftSize(), m_settings.fftOverlap(), (FFTWindow::Function)m_settings.fftWindow());
 }
 
 void MainWindow::on_waterfall_toggled(bool checked)
 {
+	m_settings.setDisplayWaterfall(checked);
 	ui->action_View_Waterfall->setChecked(checked);
 	ui->glSpectrum->setDisplayWaterfall(checked);
-	m_settings.setDisplayWaterfall(checked);
 }
 
 void MainWindow::on_histogram_toggled(bool checked)
 {
+	m_settings.setDisplayHistogram(checked);
 	ui->action_View_Histogram->setChecked(checked);
 	ui->glSpectrum->setDisplayHistogram(checked);
-	m_settings.setDisplayHistogram(checked);
 }
 
 void MainWindow::on_liveSpectrum_toggled(bool checked)
 {
+	m_settings.setDisplayLiveSpectrum(checked);
 	ui->action_View_LiveSpectrum->setChecked(checked);
 	ui->glSpectrum->setDisplayLiveSpectrum(checked);
-	m_settings.setDisplayLiveSpectrum(checked);
 }
 
 void MainWindow::on_refLevel_valueChanged(int value)
@@ -402,4 +417,76 @@ void MainWindow::on_levelRange_valueChanged(int value)
 {
 	ui->glSpectrum->setPowerRange(value * 10);
 	ui->levelRangeDisplay->setText(tr("%1").arg(value * 10));
+}
+
+void MainWindow::on_presetSave_clicked()
+{
+	bool ok;
+	QString name = QInputDialog::getText(this, tr("Save Preset"), tr("Preset name"), QLineEdit::Normal, tr(""), &ok);
+	if(!ok)
+		return;
+
+	m_settings.setCenterFrequency(m_centerFrequency);
+	m_settings.setSourceSettings(m_sampleSourceGUI->serializeSettings());
+
+	Preset* preset = new Preset(name, m_settings);
+	m_presetList.append(preset);
+
+	QStringList strings;
+	strings.append(tr("%1").arg(m_centerFrequency / 1000));
+	strings.append(name);
+	PresetItem* item = new PresetItem(ui->presetTree, strings, m_settings.centerFrequency()); // FIXME
+	item->setTextAlignment(0, Qt::AlignRight);
+	item->setData(0, Qt::UserRole, qVariantFromValue(preset));
+	ui->presetTree->sortItems(0, Qt::AscendingOrder);
+}
+
+void MainWindow::on_presetLoad_clicked()
+{
+	QTreeWidgetItem* item = ui->presetTree->currentItem();
+	if(item == NULL) {
+		updatePresets();
+		return;
+	}
+	Preset* preset = qvariant_cast<Preset*>(item->data(0, Qt::UserRole));
+
+	m_settings = *preset->settings();
+	applySettings();
+}
+
+void MainWindow::on_presetDelete_clicked()
+{
+	QTreeWidgetItem* item = ui->presetTree->currentItem();
+	if(item == NULL) {
+		updatePresets();
+		return;
+	}
+	Preset* preset = qvariant_cast<Preset*>(item->data(0, Qt::UserRole));
+
+	if(QMessageBox::question(this, tr("Delete Preset"), tr("Do you want to delete preset '%1'?").arg(preset->name()), QMessageBox::No | QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
+		delete item;
+		m_presetList.removeAll(preset);
+	}
+}
+
+void MainWindow::on_presetTree_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous)
+{
+	updatePresets();
+}
+
+void MainWindow::on_presetTree_itemActivated(QTreeWidgetItem *item, int column)
+{
+	on_presetLoad_clicked();
+}
+
+void MainWindow::on_action_Oscilloscope_triggered()
+{
+	if(m_scopeWindow == NULL) {
+		m_scopeWindow = new ScopeWindow();
+		connect(m_scopeWindow, SIGNAL(destroyed()), this, SLOT(scopeWindowDestroyed()));
+		m_scopeWindow->show();
+	} else {
+		delete m_scopeWindow;
+		m_scopeWindow = NULL;
+	}
 }

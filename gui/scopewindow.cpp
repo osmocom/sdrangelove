@@ -15,37 +15,18 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QMessageBox>
-#include "mainwindow.h"
-#include "portaudio.h"
+#include "scopewindow.h"
+#include "ui_scopewindow.h"
 
-static void initPortAudio()
+ScopeWindow::ScopeWindow(QWidget* parent) :
+	QWidget(parent),
+	ui(new Ui::ScopeWindow)
 {
-	PaError err;
-
-	if((err = Pa_Initialize()) != paNoError) {
-		qCritical("PortAudio: could not initialise: %s (%d)", Pa_GetErrorText(err), err);
-		QString error = QObject::tr("PortAudio could not be initialised: %1 (%2)").arg(Pa_GetErrorText(err)).arg(err);
-		QMessageBox::critical(NULL, "PortAudio failure", error);
-	}
+	ui->setupUi(this);
+	setAttribute(Qt::WA_DeleteOnClose);
 }
 
-int main(int argc, char* argv[])
+ScopeWindow::~ScopeWindow()
 {
-	QApplication a(argc, argv);
-
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
-
-	initPortAudio();
-
-	MainWindow w;
-	w.show();
-
-	return a.exec();
+	delete ui;
 }

@@ -1,3 +1,22 @@
+#if 0
+
+///////////////////////////////////////////////////////////////////////////////////
+// Copyright (C) 2012 maintech GmbH, Otto-Hahn-Str. 15, 97204 Hoechberg, Germany //
+// written by Christian Daniel                                                   //
+//                                                                               //
+// This program is free software; you can redistribute it and/or modify          //
+// it under the terms of the GNU General Public License as published by          //
+// the Free Software Foundation as version 3 of the License, or                  //
+//                                                                               //
+// This program is distributed in the hope that it will be useful,               //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of                //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the                  //
+// GNU General Public License V3 for more details.                               //
+//                                                                               //
+// You should have received a copy of the GNU General Public License             //
+// along with this program. If not, see <http://www.gnu.org/licenses/>.          //
+///////////////////////////////////////////////////////////////////////////////////
+
 #include <QTime>
 #include <stdio.h>
 #include "channelizer.h"
@@ -5,14 +24,15 @@
 
 Channelizer::Channelizer()
 {
+#if 0
 	m_spectrum.configure(128 , 25, FFTWindow::Bartlett);
 	m_buffer.resize(2048);
 	m_bufferFill = 0;
-	m_nco.setFreq(125000, 500000);
+	m_nco.setFreq(-100000, 500000);
 	m_interpolator.create(51, 32, 32 * 500000, 150000 / 2);
 	m_distance = 500000.0 / 176400.0;
 
-	m_interpolator2.create(19, 8, 8 * 176400, 16000 / 2);
+	m_interpolator2.create(19, 8, 8 * 176400, 15000 / 2);
 	m_distance2 = 4;
 
 	m_audioFifo.setSize(4, 44100 / 2 * 4);
@@ -21,26 +41,35 @@ Channelizer::Channelizer()
 	m_resampler = 1.0;
 
 	m_resamplerCtrl.setup(0.00001, 0, -0.00001);
+#endif
 }
 
 Channelizer::~Channelizer()
 {
+#if 0
 	m_audioOutput->stop();
 	delete m_audioOutput;
+#endif
 }
 
+#if 0
 void Channelizer::setGLSpectrum(GLSpectrum* glSpectrum)
 {
 	m_spectrum.setGLSpectrum(glSpectrum);
 }
+#endif
 
 size_t Channelizer::workUnitSize()
 {
+#if 0
 	return m_buffer.size();
+#endif
+	return 0;
 }
 
 size_t Channelizer::work(SampleVector::const_iterator begin, SampleVector::const_iterator end)
 {
+#if 0
 	int buffered = m_audioOutput->bufferedSamples();
 
 	if(m_audioFifo.fill() < (m_audioFifo.size() / 6)) {
@@ -50,7 +79,6 @@ size_t Channelizer::work(SampleVector::const_iterator begin, SampleVector::const
 		}
 		qDebug("underflow - fill %d (vs %d)", m_audioFifo.fill(), m_audioFifo.size() / 4 / 2);
 	}
-
 
 	buffered = m_audioOutput->bufferedSamples();
 	int fill = m_audioFifo.fill() / 4 + buffered;
@@ -86,7 +114,7 @@ size_t Channelizer::work(SampleVector::const_iterator begin, SampleVector::const
 
 	for(SampleVector::const_iterator it = begin; it < end; it++) {
 		Complex c(it->real() / 32768.0, it->imag() / 32768.0);
-		//c *= m_nco.nextIQ();
+		c *= m_nco.nextIQ();
 
 		consumed = false;
 		if(m_interpolator.interpolate(&m_distance, c, &consumed, &ci)) {
@@ -119,4 +147,7 @@ size_t Channelizer::work(SampleVector::const_iterator begin, SampleVector::const
 	}
 
 	return count;
+#endif
 }
+
+#endif

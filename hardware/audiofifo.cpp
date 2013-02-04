@@ -21,31 +21,6 @@
 
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 
-bool AudioFifo::create(uint sampleSize, uint size)
-{
-	if(m_fifo != NULL) {
-		delete[] m_fifo;
-		m_fifo = NULL;
-	}
-
-	m_sampleSize = sampleSize;
-	m_size = 0;
-	m_fill = 0;
-	m_head = 0;
-	m_tail = 0;
-
-	// only allow space for full samples
-	size -= size % sampleSize;
-
-	if((m_fifo = new qint8[size]) == NULL) {
-		qDebug("out of memory");
-		return false;
-	}
-
-	m_size = size;
-	return true;
-}
-
 AudioFifo::AudioFifo() :
 	m_fifo(NULL)
 {
@@ -55,10 +30,12 @@ AudioFifo::AudioFifo() :
 	m_tail = 0;
 }
 
-AudioFifo::AudioFifo(uint sampleSize, uint size) :
+AudioFifo::AudioFifo(uint sampleSize, uint numSamples) :
 	m_fifo(NULL)
 {
-	create(sampleSize, size);
+	QMutexLocker mutexLocker(&m_mutex);
+
+	create(sampleSize, numSamples);
 }
 
 AudioFifo::~AudioFifo()
@@ -76,14 +53,14 @@ AudioFifo::~AudioFifo()
 	m_size = 0;
 }
 
-bool AudioFifo::setSize(uint sampleSize, uint size)
+bool AudioFifo::setSize(uint sampleSize, uint numSamples)
 {
 	QMutexLocker mutexLocker(&m_mutex);
 
-	return create(sampleSize, size);
+	return create(sampleSize, numSamples);
 }
 
-uint AudioFifo::write(const quint8* data, uint len, int timeout)
+uint AudioFifo::write(const quint8* data, uint numSamples, int timeout)
 {
 	QTime time;
 	uint total;
@@ -97,11 +74,8 @@ uint AudioFifo::write(const quint8* data, uint len, int timeout)
 	m_mutex.lock();
 
 	if(timeout == 0)
-		total = MIN(len, m_size - m_fill);
-	else total = len;
-
-	// make sure, only complete samples are handled
-	total -= total % m_sampleSize;
+		total = MIN(numSamples, m_size - m_fill);
+	else total = numSamples;
 
 	remaining = total;
 	while(remaining > 0) {
@@ -128,11 +102,11 @@ uint AudioFifo::write(const quint8* data, uint len, int timeout)
 		}
 		copyLen = MIN(remaining, m_size - m_fill);
 		copyLen = MIN(copyLen, m_size - m_tail);
-		memcpy(m_fifo + m_tail, data, copyLen);
+		memcpy(m_fifo + (m_tail * m_sampleSize), data, copyLen * m_sampleSize);
 		m_tail += copyLen;
 		m_tail %= m_size;
 		m_fill += copyLen;
-		data += copyLen;
+		data += copyLen * m_sampleSize;
 		remaining -= copyLen;
 		m_readWaitCondition.wakeOne();
 	}
@@ -141,7 +115,7 @@ uint AudioFifo::write(const quint8* data, uint len, int timeout)
 	return total;
 }
 
-uint AudioFifo::read(quint8* data, uint len, int timeout)
+uint AudioFifo::read(quint8* data, uint numSamples, int timeout)
 {
 	QTime time;
 	uint total;
@@ -155,8 +129,8 @@ uint AudioFifo::read(quint8* data, uint len, int timeout)
 	m_mutex.lock();
 
 	if(timeout == 0)
-		total = MIN(len, m_fill);
-	else total = len;
+		total = MIN(numSamples, m_fill);
+	else total = numSamples;
 
 	remaining = total;
 	while(remaining > 0) {
@@ -184,11 +158,11 @@ uint AudioFifo::read(quint8* data, uint len, int timeout)
 
 		copyLen = MIN(remaining, m_fill);
 		copyLen = MIN(copyLen, m_size - m_head);
-		memcpy(data, m_fifo + m_head, copyLen);
+		memcpy(data, m_fifo + (m_head * m_sampleSize), copyLen * m_sampleSize);
 		m_head += copyLen;
 		m_head %= m_size;
 		m_fill -= copyLen;
-		data += copyLen;
+		data += copyLen * m_sampleSize;
 		remaining -= copyLen;
 		m_writeWaitCondition.wakeOne();
 	}
@@ -197,15 +171,37 @@ uint AudioFifo::read(quint8* data, uint len, int timeout)
 	return total;
 }
 
-uint AudioFifo::drain(uint len)
+uint AudioFifo::drain(uint numSamples)
 {
 	QMutexLocker mutexLocker(&m_mutex);
 
-	if(len > m_fill)
-		len = m_fill;
-	m_head = (m_head + len) % m_size;
-	m_fill -= len;
+	if(numSamples > m_fill)
+		numSamples = m_fill;
+	m_head = (m_head + numSamples) % m_size;
+	m_fill -= numSamples;
 
 	m_writeWaitCondition.wakeOne();
-	return len;
+	return numSamples;
+}
+
+bool AudioFifo::create(uint sampleSize, uint numSamples)
+{
+	if(m_fifo != NULL) {
+		delete[] m_fifo;
+		m_fifo = NULL;
+	}
+
+	m_sampleSize = sampleSize;
+	m_size = 0;
+	m_fill = 0;
+	m_head = 0;
+	m_tail = 0;
+
+	if((m_fifo = new qint8[numSamples * m_sampleSize]) == NULL) {
+		qDebug("out of memory");
+		return false;
+	}
+
+	m_size = numSamples;
+	return true;
 }

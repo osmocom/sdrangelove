@@ -15,37 +15,38 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QMessageBox>
-#include "mainwindow.h"
-#include "portaudio.h"
+#ifndef INCLUDE_SCOPE_H
+#define INCLUDE_SCOPE_H
 
-static void initPortAudio()
-{
-	PaError err;
+#include <QWidget>
+#include <QPen>
+#include <QTimer>
+#include <QMutex>
+#include "dsp/dsptypes.h"
+#include "scaleengine.h"
 
-	if((err = Pa_Initialize()) != paNoError) {
-		qCritical("PortAudio: could not initialise: %s (%d)", Pa_GetErrorText(err), err);
-		QString error = QObject::tr("PortAudio could not be initialised: %1 (%2)").arg(Pa_GetErrorText(err)).arg(err);
-		QMessageBox::critical(NULL, "PortAudio failure", error);
-	}
-}
+class Scope: public QWidget {
+	Q_OBJECT
 
-int main(int argc, char* argv[])
-{
-	QApplication a(argc, argv);
+public:
+	Scope(QWidget* parent = NULL);
+	~Scope();
 
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+	void newTrace(const std::vector<Real>& trace);
 
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
+protected:
+	// state
+	QTimer m_timer;
+	QMutex m_mutex;
+	bool m_changed;
 
-	initPortAudio();
+	// traces
+	std::vector<Real> m_trace;
 
-	MainWindow w;
-	w.show();
+	void paintEvent(QPaintEvent* event);
 
-	return a.exec();
-}
+protected slots:
+	void tick();
+};
+
+#endif // INCLUDE_SCOPE_H

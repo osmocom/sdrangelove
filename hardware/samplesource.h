@@ -19,24 +19,43 @@
 #define INCLUDE_SAMPLESOURCE_H
 
 #include <QtGlobal>
+#include "samplefifo.h"
+#include "../util/message.h"
 
-class SampleFifo;
+class SampleSourceGUI;
+class MessageQueue;
+
+class DSPCmdConfigureSource : public Message {
+public:
+	enum {
+		Type = 13
+	};
+
+	DSPCmdConfigureSource() { }
+	int type() const;
+	const char* name() const;
+	virtual int sourceType() const = 0;
+};
 
 class SampleSource {
 public:
-	SampleSource(SampleFifo* sampleFifo);
+	SampleSource();
 
-	virtual bool startInput(int device, int rate) = 0;
+	virtual bool startInput(int device) = 0;
 	virtual void stopInput() = 0;
 
-	virtual bool setCenterFrequency(qint64 freq) = 0;
-	virtual bool setIQSwap(bool sw) = 0;
-	virtual bool setDecimation(int dec) = 0;
+	virtual const QString& getDeviceDescription() const = 0;
+	virtual int getSampleRate() const = 0;
+	virtual quint64 getCenterFrequency() const = 0;
 
-	virtual const QString& deviceDesc() const = 0;
+	virtual SampleSourceGUI* createGUI(MessageQueue* msgQueue, QWidget* parent = NULL) const = 0;
+
+	virtual void handleConfiguration(DSPCmdConfigureSource* cmd) = 0;
+
+	SampleFifo* getSampleFifo() { return &m_sampleFifo; }
 
 protected:
-	SampleFifo* m_sampleFifo;
+	SampleFifo m_sampleFifo;
 };
 
 #endif // INCLUDE_SAMPLESOURCE_H

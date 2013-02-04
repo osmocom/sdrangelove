@@ -58,7 +58,7 @@ void OsmoSDRThread::run()
 	//m_f = fopen("/tmp/samples.bin", "wb");
 
 	while(m_running) {
-		if((res = osmosdr_read_async(m_dev, &OsmoSDRThread::callbackHelper, this, 8, sizeof(Sample) * 16384)) < 0) {
+		if((res = osmosdr_read_async(m_dev, &OsmoSDRThread::callbackHelper, this, 16, sizeof(Sample) * 8192 * 2)) < 0) {
 			qCritical("OsmoSDRThread: async error: %s", strerror(errno));
 			break;
 		}
