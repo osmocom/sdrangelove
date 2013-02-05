@@ -131,3 +131,13 @@ const char* DSPRepEngineReport::name() const
 {
 	return "EngineReport";
 }
+
+int DSPCmdConfigureScopeVis::type() const
+{
+	return Type;
+}
+
+const char* DSPCmdConfigureScopeVis::name() const
+{
+	return "ConfigureScopeVis";
+}

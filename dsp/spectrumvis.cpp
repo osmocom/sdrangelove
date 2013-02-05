@@ -6,6 +6,7 @@
 #define MAX_FFT_SIZE 4096
 
 SpectrumVis::SpectrumVis(GLSpectrum* glSpectrum) :
+	SampleSink(),
 	m_fftBuffer(MAX_FFT_SIZE),
 	m_fftIn(MAX_FFT_SIZE),
 	m_fftOut(MAX_FFT_SIZE),
@@ -15,19 +16,19 @@ SpectrumVis::SpectrumVis(GLSpectrum* glSpectrum) :
 {
 	handleConfigure(1024, 10, FFTWindow::BlackmanHarris);
 }
-
+/*
 void SpectrumVis::setGLSpectrum(GLSpectrum* glSpectrum)
 {
 	m_glSpectrum = glSpectrum;
 }
-
+*/
 void SpectrumVis::configure(MessageQueue* msgQueue, int fftSize, int overlapPercent, FFTWindow::Function window)
 {
 	Message* cmd = DSPCmdConfigureSpectrumVis::create(fftSize, overlapPercent, window);
 	cmd->submit(msgQueue);
 }
 
-void SpectrumVis::feed(SampleVector::const_iterator begin, SampleVector::const_iterator end)
+void SpectrumVis::feed(SampleVector::const_iterator begin, SampleVector::const_iterator end, bool firstOfBurst)
 {
 	// if no visualisation is set, send the samples to /dev/null
 	if(m_glSpectrum == NULL)
@@ -81,6 +82,10 @@ void SpectrumVis::start()
 }
 
 void SpectrumVis::stop()
+{
+}
+
+void SpectrumVis::setSampleRate(int sampleRate)
 {
 }
 

@@ -189,6 +189,7 @@ void DSPEngine::work()
 {
 	SampleFifo* sampleFifo = m_sampleSource->getSampleFifo();
 	size_t samplesDone = 0;
+	bool firstOfBurst = true;
 
 	while((sampleFifo->fill() > 0) && (m_messageQueue.countPending() == 0) && (samplesDone < m_sampleRate)) {
 		SampleVector::iterator part1begin;
@@ -207,7 +208,8 @@ void DSPEngine::work()
 				imbalance(part1begin, part1end);
 			// feed data to handlers
 			for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
-				(*it)->feed(part1begin, part1end);
+				(*it)->feed(part1begin, part1end, firstOfBurst);
+			firstOfBurst = false;
 		}
 		// second part of FIFO data (used when block wraps around)
 		if(part2begin != part2end) {
@@ -218,7 +220,8 @@ void DSPEngine::work()
 				imbalance(part2begin, part2end);
 			// feed data to handlers
 			for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
-				(*it)->feed(part1begin, part1end);
+				(*it)->feed(part1begin, part1end, firstOfBurst);
+			firstOfBurst = false;
 		}
 
 		// adjust FIFO pointers
@@ -378,6 +381,8 @@ void DSPEngine::generateReport()
 	if(sampleRate != m_sampleRate) {
 		m_sampleRate = sampleRate;
 		needReport = true;
+		for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
+			(*it)->setSampleRate(m_sampleRate);
 	}
 	if(centerFrequency != m_centerFrequency) {
 		m_centerFrequency = centerFrequency;
@@ -443,8 +448,10 @@ void DSPEngine::handleMessages()
 
 			case DSPCmdAddSink::Type: {
 				SampleSink* sink = ((DSPCmdAddSink*)cmd)->getSink();
-				if(m_state == StRunning)
+				if(m_state == StRunning) {
+					sink->setSampleRate(m_sampleRate);
 					sink->start();
+				}
 				m_sampleSinks.push_back(sink);
 				cmd->completed();
 				break;

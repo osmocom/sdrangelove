@@ -208,4 +208,34 @@ private:
 
 // Type == 13 -> DSPCmdConfigureSource (defined in samplesource.h)
 
+class DSPCmdConfigureScopeVis : public Message {
+public:
+	enum {
+		Type = 14
+	};
+	int type() const;
+	const char* name() const;
+
+	int getTriggerChannel() const { return m_triggerChannel; }
+	Real getTriggerLevelHigh() const { return m_triggerLevelHigh; }
+	Real getTriggerLevelLow() const { return m_triggerLevelLow; }
+
+	static DSPCmdConfigureScopeVis* create(int triggerChannel, Real triggerLevelHigh, Real triggerLevelLow)
+	{
+		return new DSPCmdConfigureScopeVis(triggerChannel, triggerLevelHigh, triggerLevelLow);
+	}
+
+private:
+	int m_triggerChannel;
+	Real m_triggerLevelHigh;
+	Real m_triggerLevelLow;
+
+	DSPCmdConfigureScopeVis(int triggerChannel, Real triggerLevelHigh, Real triggerLevelLow) :
+		Message(),
+		m_triggerChannel(triggerChannel),
+		m_triggerLevelHigh(triggerLevelHigh),
+		m_triggerLevelLow(triggerLevelLow)
+	{ }
+};
+
 #endif // INCLUDE_DSPCOMMANDS_H

@@ -12,12 +12,12 @@ class SpectrumVis : public SampleSink {
 public:
 	SpectrumVis(GLSpectrum* glSpectrum = NULL);
 
-	void setGLSpectrum(GLSpectrum* glSpectrum);
 	void configure(MessageQueue* msgQueue, int fftSize, int overlapPercent, FFTWindow::Function window);
 
-	void feed(SampleVector::const_iterator begin, SampleVector::const_iterator end);
+	void feed(SampleVector::const_iterator begin, SampleVector::const_iterator end, bool firstOfBurst);
 	void start();
 	void stop();
+	void setSampleRate(int sampleRate);
 	void handleMessage(Message* cmd);
 
 private:

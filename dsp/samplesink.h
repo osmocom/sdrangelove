@@ -10,9 +10,10 @@ public:
 	SampleSink();
 	virtual ~SampleSink();
 
-	virtual void feed(SampleVector::const_iterator begin, SampleVector::const_iterator end) = 0;
+	virtual void feed(SampleVector::const_iterator begin, SampleVector::const_iterator end, bool firstOfBurst) = 0;
 	virtual void start() = 0;
 	virtual void stop() = 0;
+	virtual void setSampleRate(int sampleRate) = 0;
 	virtual void handleMessage(Message* cmd) = 0;
 };
 

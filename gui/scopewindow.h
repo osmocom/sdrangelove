@@ -19,6 +19,9 @@
 #define INCLUDE_SCOPEWINDOW_H
 
 #include <QWidget>
+#include "../dsp/dsptypes.h"
+
+class DSPEngine;
 
 namespace Ui {
 	class ScopeWindow;
@@ -28,11 +31,22 @@ class ScopeWindow : public QWidget {
 	Q_OBJECT
 
 public:
-	explicit ScopeWindow(QWidget* parent = NULL);
+	explicit ScopeWindow(DSPEngine* dspEngine, QWidget* parent = NULL);
 	~ScopeWindow();
+
+	void setSampleRate(int sampleRate);
+
+private slots:
+	void on_amp_valueChanged(int value);
+	void on_scope_traceSizeChanged(int value);
+	void on_time_valueChanged(int value);
+
+	void on_timeOfs_valueChanged(int value);
 
 private:
 	Ui::ScopeWindow *ui;
+	int m_sampleRate;
+	int m_timeStep;
 };
 
 #endif // INCLUDE_SCOPEWINDOW_H

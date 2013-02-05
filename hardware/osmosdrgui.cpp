@@ -64,7 +64,7 @@ void OsmoSDRGui::displaySettings()
 void OsmoSDRGui::sendSettings()
 {
 	if(!m_updateTimer.isActive())
-		m_updateTimer.start(200);
+		m_updateTimer.start(100);
 }
 
 int OsmoSDRGui::e4kLNAGainToIdx(int gain) const

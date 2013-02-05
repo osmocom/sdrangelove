@@ -661,6 +661,8 @@ void GLSpectrum::stopSplitterMove()
 
 void GLSpectrum::applyChanges()
 {
+	m_changesPending = false;
+
 	if(m_fftSize <= 0)
 		return;
 
@@ -982,8 +984,6 @@ void GLSpectrum::applyChanges()
 		delete[] data;
 		m_waterfallTexturePos = 0;
 	}
-
-	m_changesPending = false;
 }
 
 void GLSpectrum::mouseMoveEvent(QMouseEvent* event)

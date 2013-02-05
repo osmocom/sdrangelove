@@ -79,6 +79,7 @@ private:
 	void saveSettings();
 
 	void createStatusBar();
+	void closeEvent(QCloseEvent*);
 	void updateCenterFreqDisplay();
 	void updateSampleRate();
 	void updatePresets();

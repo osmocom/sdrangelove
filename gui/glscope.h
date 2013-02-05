@@ -15,38 +15,76 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#ifndef INCLUDE_SCOPE_H
-#define INCLUDE_SCOPE_H
+#ifndef INCLUDE_GLSCOPE_H
+#define INCLUDE_GLSCOPE_H
 
-#include <QWidget>
+#include <QGLWidget>
 #include <QPen>
 #include <QTimer>
 #include <QMutex>
 #include "dsp/dsptypes.h"
-#include "scaleengine.h"
+#include "../dsp/scopevis.h"
 
-class Scope: public QWidget {
+class DSPEngine;
+class ScopeVis;
+
+class GLScope: public QGLWidget {
 	Q_OBJECT
 
 public:
-	Scope(QWidget* parent = NULL);
-	~Scope();
+	GLScope(QWidget* parent = NULL);
+	~GLScope();
 
-	void newTrace(const std::vector<Real>& trace);
+	void setDSPEngine(DSPEngine* dspEngine);
+	void setAmp(Real amp);
+	void setTimeStep(int timeStep);
+	void setTimeOfsProMill(int timeOfsProMill);
 
-protected:
+	void newTrace(const std::vector<Complex>& trace, int sampleRate);
+
+	int getTraceSize() const { return m_trace.size(); }
+
+signals:
+	void traceSizeChanged(int);
+
+private:
 	// state
 	QTimer m_timer;
 	QMutex m_mutex;
 	bool m_changed;
+	bool m_changesPending;
 
 	// traces
-	std::vector<Real> m_trace;
+	std::vector<Complex> m_trace;
+	int m_oldTraceSize;
+	int m_sampleRate;
 
-	void paintEvent(QPaintEvent* event);
+	// sample sink
+	DSPEngine* m_dspEngine;
+	ScopeVis* m_scopeVis;
+
+	// config
+	Real m_amp;
+	int m_timeStep;
+	int m_timeOfsProMill;
+	ScopeVis::TriggerChannel m_triggerChannel;
+	Real m_triggerLevelHigh;
+	Real m_triggerLevelLow;
+
+	// graphics stuff
+	QRectF m_glScopeRectI;
+	QRectF m_glScopeRectQ;
+
+	void initializeGL();
+	void resizeGL(int width, int height);
+	void paintGL();
+
+	void mousePressEvent(QMouseEvent*);
+
+	void applyChanges();
 
 protected slots:
 	void tick();
 };
 
-#endif // INCLUDE_SCOPE_H
+#endif // INCLUDE_GLSCOPE_H

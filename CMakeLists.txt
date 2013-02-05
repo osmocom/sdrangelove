@@ -32,14 +32,15 @@ set(sdrangelove_SOURCES
 	dsp/nfmdemod.cpp
 	dsp/pidcontroller.cpp
 	dsp/samplesink.cpp
+	dsp/scopevis.cpp
 	dsp/spectrumvis.cpp
 
+	gui/glscope.cpp
 	gui/glspectrum.cpp
 	gui/indicator.cpp
 	gui/presetitem.cpp
 	gui/scale.cpp
 	gui/scaleengine.cpp
-	gui/scope.cpp
 	gui/scopewindow.cpp
 	gui/valuedial.cpp
 
@@ -76,15 +77,16 @@ set(sdrangelove_HEADERS
 	dsp/nfmdemod.h
 	dsp/pidcontroller.h
 	dsp/samplesink.h
+	dsp/scopevis.h
 	dsp/spectrumvis.h
 
+	gui/glscope.h
 	gui/glspectrum.h
 	gui/indicator.h
 	gui/physicalunit.h
 	gui/presetitem.h
 	gui/scale.h
 	gui/scaleengine.h
-	gui/scope.h
 	gui/scopewindow.h
 	gui/valuedial.h
 

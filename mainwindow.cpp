@@ -42,6 +42,20 @@ MainWindow::MainWindow(QWidget* parent) :
 {
 	ui->setupUi(this);
 	createStatusBar();
+	setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
+	setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
+	setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
+	setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+	// work around broken Qt dock widget ordering
+	removeDockWidget(ui->inputDock);
+	removeDockWidget(ui->processingDock);
+	removeDockWidget(ui->presetDock);
+	addDockWidget(Qt::LeftDockWidgetArea, ui->inputDock);
+	addDockWidget(Qt::LeftDockWidgetArea, ui->processingDock);
+	addDockWidget(Qt::LeftDockWidgetArea, ui->presetDock);
+	ui->inputDock->show();
+	ui->processingDock->show();
+	ui->presetDock->show();
 
 	connect(&m_messageQueue, SIGNAL(messageEnqueued()), this, SLOT(handleMessages()), Qt::QueuedConnection);
 
@@ -97,6 +111,9 @@ void MainWindow::loadSettings()
 		return;
 	}
 
+	// local dock layout
+	restoreState(QByteArray::fromBase64(m_settingsStorage.value("docklayout").toByteArray()));
+
 	// load current settings
 	m_settings.load(&m_settingsStorage, "");
 
@@ -132,6 +149,9 @@ void MainWindow::loadSettings()
 void MainWindow::saveSettings()
 {
 	m_settingsStorage.setValue("version", 3);
+
+	// save dock layout
+	m_settingsStorage.setValue("docklayout", saveState().toBase64());
 
 	// save current settings
 	m_settings.save(&m_settingsStorage, "");
@@ -174,6 +194,14 @@ void MainWindow::createStatusBar()
 	statusBar()->addPermanentWidget(m_engineError);
 }
 
+void MainWindow::closeEvent(QCloseEvent*)
+{
+	if(m_scopeWindow != NULL) {
+		delete m_scopeWindow;
+		m_scopeWindow = NULL;
+	}
+}
+
 void MainWindow::updateCenterFreqDisplay()
 {
 	ui->glSpectrum->setCenterFrequency(m_centerFrequency);
@@ -184,6 +212,8 @@ void MainWindow::updateSampleRate()
 {
 	ui->glSpectrum->setSampleRate(m_sampleRate);
 	m_sampleRateWidget->setText(tr("Rate: %1 kHz").arg((float)m_sampleRate / 1000));
+	if(m_scopeWindow != NULL)
+		m_scopeWindow->setSampleRate(m_sampleRate);
 }
 
 void MainWindow::updatePresets()
@@ -482,8 +512,9 @@ void MainWindow::on_presetTree_itemActivated(QTreeWidgetItem *item, int column)
 void MainWindow::on_action_Oscilloscope_triggered()
 {
 	if(m_scopeWindow == NULL) {
-		m_scopeWindow = new ScopeWindow();
+		m_scopeWindow = new ScopeWindow(&m_dspEngine);
 		connect(m_scopeWindow, SIGNAL(destroyed()), this, SLOT(scopeWindowDestroyed()));
+		m_scopeWindow->setSampleRate(m_sampleRate);
 		m_scopeWindow->show();
 	} else {
 		delete m_scopeWindow;
