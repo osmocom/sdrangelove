@@ -220,7 +220,7 @@ void DSPEngine::work()
 				imbalance(part2begin, part2end);
 			// feed data to handlers
 			for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
-				(*it)->feed(part1begin, part1end, firstOfBurst);
+				(*it)->feed(part2begin, part2end, firstOfBurst);
 			firstOfBurst = false;
 		}
 
