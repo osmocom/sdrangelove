@@ -5,7 +5,7 @@
 
 ScopeVis::ScopeVis(GLScope* glScope) :
 	m_glScope(glScope),
-	m_trace(50000),
+	m_trace(100000),
 	m_fill(0),
 	m_triggerState(Untriggered),
 	m_triggerChannel(TriggerFreeRun),
