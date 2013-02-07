@@ -165,7 +165,7 @@ bool OsmoSDRInput::startInput(int device)
 	char serial[256];
 	int res;
 
-	if(!m_sampleFifo.setSize(2 * 500000)) {
+	if(!m_sampleFifo.setSize(524288)) {
 		qCritical("Could not allocate SampleFifo");
 		return false;
 	}

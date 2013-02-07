@@ -36,6 +36,14 @@ public:
 	void stop();
 
 private:
+	struct Sample {
+		qint16 i;
+		qint16 q;
+	} __attribute__((packed));
+	qint16 m_nextI;
+	qint16 m_nextQ;
+	quint64 m_samplePos;
+
 	QMutex m_startWaitMutex;
 	QWaitCondition m_startWaiter;
 	bool m_running;
@@ -46,7 +54,9 @@ private:
 
 	void run();
 
-	void callback(quint8* buf, qint32 len);
+	void checkData(const quint8* buf, qint32 len);
+	void callback(const quint8* buf, qint32 len);
+
 	static void callbackHelper(unsigned char* buf, uint32_t len, void* ctx);
 };
 

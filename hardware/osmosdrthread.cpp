@@ -67,18 +67,45 @@ void OsmoSDRThread::run()
 	m_running = false;
 }
 
-void OsmoSDRThread::callback(quint8* buf, qint32 len)
+void OsmoSDRThread::checkData(const quint8* buf, qint32 len)
+{
+	const Sample* s = (const Sample*)buf;
+	len /= sizeof(Sample);
+
+	while(len) {
+		if((s->i != m_nextI) || (s->q != m_nextQ)) {
+			qDebug("continuity error after %llu samples", m_samplePos);
+			m_samplePos = 0;
+			m_nextI = s->i - 1;
+			m_nextQ = s->q + 1;
+		} else {
+			m_nextI--;
+			m_nextQ++;
+			m_samplePos++;
+		}
+		len--;
+		s++;
+	}
+}
+
+int cntr;
+
+void OsmoSDRThread::callback(const quint8* buf, qint32 len)
 {
 	/*
 	qDebug("%d", len);
-
+*/
+	/*
 	for(int i = 0; i < len / 2; i += 2) {
-		((qint16*)buf)[i] = sin((float)(cntr) * 16384* 2.0 * M_PI / 65536.0) * 5000.0;
-		((qint16*)buf)[i + 1] = -cos((float)(cntr++) * 16384*2.0 * M_PI / 65536.0) * 5000.0;
-	}*/
+		((qint16*)buf)[i] = sin((float)(cntr) * 1024* 2.0 * M_PI / 65536.0) * 32000.0;
+		((qint16*)buf)[i + 1] = -cos((float)(cntr++) * 1024*2.0 * M_PI / 65536.0) * 32000.0;
+	}
+	*/
 
 	//m_sampleFifo->write((SampleVector::const_iterator)((Sample*)buf), (SampleVector::const_iterator)((Sample*)(buf + len)));
 	//fwrite(buf, 1, len, m_f);
+	//checkData(buf, len);
+
 	m_sampleFifo->write(buf, len);
 	if(!m_running)
 		osmosdr_cancel_async(m_dev);
