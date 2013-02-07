@@ -335,9 +335,6 @@ DSPEngine::State DSPEngine::gotoRunning()
 	if(m_sampleSource == NULL)
 		return gotoError("No sample source configured");
 
-	m_sampleRate = 4000000 / (1 << 0);
-	qDebug("current rate: %d", m_sampleRate);
-
 	m_iOffset = 0;
 	m_qOffset = 0;
 	m_iRange = 1 << 16;
