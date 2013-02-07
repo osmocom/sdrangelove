@@ -42,9 +42,9 @@ void ScopeWindow::setSampleRate(int sampleRate)
 
 void ScopeWindow::on_amp_valueChanged(int value)
 {
-	static qreal amps[9] = { 0.05, 0.02, 0.01, 0.005, 0.002, 0.001, 0.0005, 0.0002, 0.0001 };
+	static qreal amps[11] = { 0.2, 0.1, 0.05, 0.02, 0.01, 0.005, 0.002, 0.001, 0.0005, 0.0002, 0.0001 };
 	ui->ampText->setText(tr("%1\n/div").arg(amps[value], 0, 'f', 4));
-	ui->scope->setAmp(0.1 / amps[value]);
+	ui->scope->setAmp(0.2 / amps[value]);
 }
 
 void ScopeWindow::on_scope_traceSizeChanged(int)

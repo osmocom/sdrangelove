@@ -146,7 +146,7 @@ void GLScope::paintGL()
 	if(m_triggerChannel == ScopeVis::TriggerChannelI) {
 		glPushMatrix();
 		glTranslatef(m_glScopeRectI.x(), m_glScopeRectI.y() + m_glScopeRectI.height() / 2.0, 0);
-		glScalef(m_glScopeRectI.width(), -m_glScopeRectI.height() * m_amp, 1);
+		glScalef(m_glScopeRectI.width(), -(m_glScopeRectI.height() / 2) * m_amp, 1);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_LINE_SMOOTH);
@@ -168,7 +168,7 @@ void GLScope::paintGL()
 	if(m_trace.size() > 0) {
 		glPushMatrix();
 		glTranslatef(m_glScopeRectI.x(), m_glScopeRectI.y() + m_glScopeRectI.height() / 2.0, 0);
-		glScalef(m_glScopeRectI.width() * (float)m_timeStep / (float)(m_trace.size() - 1), -m_glScopeRectI.height() * m_amp, 1);
+		glScalef(m_glScopeRectI.width() * (float)m_timeStep / (float)(m_trace.size() - 1), -(m_glScopeRectI.height() / 2) * m_amp, 1);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_LINE_SMOOTH);
@@ -179,8 +179,8 @@ void GLScope::paintGL()
 		if(end - start < 2)
 			start--;
 		float prev = m_trace[start].real();
-		float posLimit = 0.5 / m_amp;
-		float negLimit = -0.5 / m_amp;
+		float posLimit = 1.0 / m_amp;
+		float negLimit = -1.0 / m_amp;
 		if(prev > posLimit)
 			prev = posLimit;
 		else if(prev < negLimit)
@@ -240,7 +240,7 @@ void GLScope::paintGL()
 	if(m_triggerChannel == ScopeVis::TriggerChannelQ) {
 		glPushMatrix();
 		glTranslatef(m_glScopeRectQ.x(), m_glScopeRectQ.y() + m_glScopeRectQ.height() / 2.0, 0);
-		glScalef(m_glScopeRectQ.width(), -m_glScopeRectQ.height() * m_amp, 1);
+		glScalef(m_glScopeRectQ.width(), -(m_glScopeRectQ.height() / 2) * m_amp, 1);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_LINE_SMOOTH);
@@ -262,7 +262,7 @@ void GLScope::paintGL()
 	if(m_trace.size() > 0) {
 		glPushMatrix();
 		glTranslatef(m_glScopeRectQ.x(), m_glScopeRectQ.y() + m_glScopeRectQ.height() / 2.0, 0);
-		glScalef(m_glScopeRectQ.width() * (float)m_timeStep / (float)(m_trace.size() - 1), -m_glScopeRectQ.height() * m_amp, 1);
+		glScalef(m_glScopeRectQ.width() * (float)m_timeStep / (float)(m_trace.size() - 1), -(m_glScopeRectQ.height() / 2) * m_amp, 1);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_LINE_SMOOTH);
@@ -273,8 +273,8 @@ void GLScope::paintGL()
 		if(end - start < 2)
 			start--;
 		float prev = m_trace[start].imag();
-		float posLimit = 0.5 / m_amp;
-		float negLimit = -0.5 / m_amp;
+		float posLimit = 1.0 / m_amp;
+		float negLimit = -1.0 / m_amp;
 		if(prev > posLimit)
 			prev = posLimit;
 		else if(prev < negLimit)
@@ -319,19 +319,20 @@ void GLScope::mousePressEvent(QMouseEvent* event)
 	if(y < (height() - 30) / 2) {
 		channel = ScopeVis::TriggerChannelI;
 		if((m_amp != 0) && (height() > 30))
-			amplitude = 1.0 * ((height() - 30) * 0.25 - (Real)y) / (m_amp * (height() - 30) / 2.0);
+			amplitude = 2.0 * ((height() - 30) * 0.25 - (Real)y) / (m_amp * (height() - 30) / 2.0);
 		else amplitude = -1;
 	} else if(y > (height() - 30) / 2 + 10) {
 		y -= 10 + (height() - 30) / 2;
 		channel = ScopeVis::TriggerChannelQ;
 		if((m_amp != 0) && (height() > 30))
-			amplitude = 1.0 * ((height() - 30) * 0.25 - (Real)y) / (m_amp * (height() - 30) / 2.0);
+			amplitude = 2.0 * ((height() - 30) * 0.25 - (Real)y) / (m_amp * (height() - 30) / 2.0);
 		else amplitude = -1;
 	} else {
 		channel = ScopeVis::TriggerFreeRun;
 	}
 
 	if(m_dspEngine != NULL) {
+		qDebug("amp %f", amplitude);
 		m_triggerLevelHigh = amplitude + 0.01 / m_amp;
 		m_triggerLevelLow = amplitude - 0.01 / m_amp;
 		if(m_triggerLevelHigh > 1.0)
