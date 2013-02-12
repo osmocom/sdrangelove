@@ -18,7 +18,6 @@ find_package(LibUSB REQUIRED)
 set(sdrangelove_SOURCES
 	main.cpp
 	mainwindow.cpp
-	miniz.cpp
 	preset.cpp
 	settings.cpp
 
@@ -63,6 +62,7 @@ set(sdrangelove_SOURCES
 
 	util/message.cpp
 	util/messagequeue.cpp
+	util/miniz.cpp
 	util/spinlock.cpp
 )
 
@@ -115,6 +115,7 @@ set(sdrangelove_HEADERS
 
 	util/message.h
 	util/messagequeue.h
+	util/miniz.h
 	util/spinlock.h
 )
 

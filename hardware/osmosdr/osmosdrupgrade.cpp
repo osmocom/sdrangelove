@@ -6,9 +6,6 @@
 #include "osmosdrupgrade.h"
 #include "ui_osmosdrupgrade.h"
 
-#define MINIZ_HEADER_FILE_ONLY
-#include "miniz.cpp"
-
 #define OSMOSDR_USB_VID 0x16c0
 #define OSMOSDR_USB_PID 0x0763
 

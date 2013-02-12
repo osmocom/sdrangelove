@@ -3,9 +3,7 @@
 
 #include <QDialog>
 #include <QTimer>
-
-#define MINIZ_HEADER_FILE_ONLY
-#include "miniz.cpp"
+#include "../util/miniz.h"
 
 typedef struct libusb_context libusb_context;
 typedef struct libusb_device_handle libusb_device_handle;
