@@ -203,25 +203,18 @@ void GLScope::paintGL()
 		int end = start + m_trace.size() / m_timeStep;
 		if(end - start < 2)
 			start--;
-		float prev = m_trace[start].real();
 		float posLimit = 1.0 / m_amp;
 		float negLimit = -1.0 / m_amp;
-		if(prev > posLimit)
-			prev = posLimit;
-		else if(prev < negLimit)
-			prev = negLimit;
-		for(int i = start + 1; i < end; i++) {
+		glBegin(GL_LINE_STRIP);
+		for(int i = start; i < end; i++) {
 			float v = m_trace[i].real();
 			if(v > posLimit)
 				v = posLimit;
 			else if(v < negLimit)
 				v = negLimit;
-			glBegin(GL_LINE_LOOP);
-			glVertex2f(i - 1 - start, prev);
 			glVertex2f(i - start, v);
-			glEnd();
-			prev = v;
 		}
+		glEnd();
 		glDisable(GL_LINE_SMOOTH);
 		glPopMatrix();
 	}
@@ -297,25 +290,18 @@ void GLScope::paintGL()
 		int end = start + m_trace.size() / m_timeStep;
 		if(end - start < 2)
 			start--;
-		float prev = m_trace[start].imag();
 		float posLimit = 1.0 / m_amp;
 		float negLimit = -1.0 / m_amp;
-		if(prev > posLimit)
-			prev = posLimit;
-		else if(prev < negLimit)
-			prev = negLimit;
-		for(int i = start + 1; i < end; i++) {
+		glBegin(GL_LINE_STRIP);
+		for(int i = start; i < end; i++) {
 			float v = m_trace[i].imag();
 			if(v > posLimit)
 				v = posLimit;
 			else if(v < negLimit)
 				v = negLimit;
-			glBegin(GL_LINE_LOOP);
-			glVertex2f(i - 1 - start, prev);
 			glVertex2f(i - start, v);
-			glEnd();
-			prev = v;
 		}
+		glEnd();
 		glDisable(GL_LINE_SMOOTH);
 		glPopMatrix();
 	}

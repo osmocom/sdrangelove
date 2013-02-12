@@ -532,25 +532,18 @@ void GLSpectrum::paintGL()
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_LINE_SMOOTH);
 		glLineWidth(1.0f);
-		glColor4f(1, 1, 1, 0.5f);
+		glColor4f(1, 1, 1, 0.75f);
 		Real bottom = -m_powerRange;
-		Real prev = m_liveSpectrum[0] - m_referenceLevel;
-		if(prev > 0)
-			prev = 0;
-		else if(prev < bottom)
-			prev = bottom;
-		for(int i = 1; i < m_fftSize; i++) {
+		glBegin(GL_LINE_STRIP);
+		for(int i = 0; i < m_fftSize; i++) {
 			Real v = m_liveSpectrum[i] - m_referenceLevel;
 			if(v > 0)
 				v = 0;
 			else if(v < bottom)
 				v = bottom;
-			glBegin(GL_LINE_LOOP);
-			glVertex2f(i - 1, prev);
 			glVertex2f(i, v);
-			glEnd();
-			prev = v;
 		}
+		glEnd();
 		glDisable(GL_LINE_SMOOTH);
 		glPopMatrix();
 	}
