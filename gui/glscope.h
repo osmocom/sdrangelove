@@ -45,6 +45,7 @@ public:
 	void setAmp(Real amp);
 	void setTimeStep(int timeStep);
 	void setTimeOfsProMill(int timeOfsProMill);
+	void setMode(Mode mode);
 
 	void newTrace(const std::vector<Complex>& trace, int sampleRate);
 

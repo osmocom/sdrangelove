@@ -70,3 +70,20 @@ void ScopeWindow::on_timeOfs_valueChanged(int value)
 {
 	ui->scope->setTimeOfsProMill(value);
 }
+
+void ScopeWindow::on_displayMode_currentIndexChanged(int index)
+{
+	switch(index) {
+		case 0: // i+q
+			ui->scope->setMode(GLScope::ModeIQ);
+			break;
+		case 1: // mag+pha
+			ui->scope->setMode(GLScope::ModeMagPha);
+			break;
+		case 2: // derived1+derived2
+			ui->scope->setMode(GLScope::ModeDerived12);
+			break;
+		default:
+			break;
+	}
+}

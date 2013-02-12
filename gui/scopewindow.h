@@ -40,8 +40,8 @@ private slots:
 	void on_amp_valueChanged(int value);
 	void on_scope_traceSizeChanged(int value);
 	void on_time_valueChanged(int value);
-
 	void on_timeOfs_valueChanged(int value);
+	void on_displayMode_currentIndexChanged(int index);
 
 private:
 	Ui::ScopeWindow *ui;

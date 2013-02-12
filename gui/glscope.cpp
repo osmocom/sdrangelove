@@ -60,6 +60,13 @@ void GLScope::setTimeOfsProMill(int timeOfsProMill)
 	update();
 }
 
+void GLScope::setMode(Mode mode)
+{
+	m_mode = mode;
+	m_changed = true;
+	update();
+}
+
 void GLScope::newTrace(const std::vector<Complex>& trace, int sampleRate)
 {
 	if(!m_mutex.tryLock(2))
