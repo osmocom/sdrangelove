@@ -36,10 +36,13 @@ public:
 	void stopWork();
 
 private:
+#pragma pack(push, 1)
 	struct Sample {
 		qint16 i;
 		qint16 q;
-	} __attribute__((packed));
+	};
+#pragma pack(pop)
+
 	qint16 m_nextI;
 	qint16 m_nextQ;
 	quint64 m_samplePos;

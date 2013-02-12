@@ -5,6 +5,13 @@
 
 #define MAX_FFT_SIZE 4096
 
+#ifdef _WIN32
+double log2f(double n)  
+{  
+    return log(n) / log(2.0);
+}
+#endif
+
 SpectrumVis::SpectrumVis(GLSpectrum* glSpectrum) :
 	SampleSink(),
 	m_fftBuffer(MAX_FFT_SIZE),
