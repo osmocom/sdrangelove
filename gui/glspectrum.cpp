@@ -358,7 +358,7 @@ void GLSpectrum::paintGL()
 		if(m_displayChannel) {
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glColor4f(1, 0, 0, 0.15);
+			glColor4f(1, 0, 0, 0.15f);
 			glPushMatrix();
 			glTranslatef(m_glChannelRect.x(), m_glChannelRect.y(), 0);
 			glScalef(m_glChannelRect.width(), m_glChannelRect.height(), 1);
@@ -433,7 +433,7 @@ void GLSpectrum::paintGL()
 		if(m_displayChannel) {
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glColor4f(1, 0, 0, 0.15);
+			glColor4f(1, 0, 0, 0.15f);
 			glPushMatrix();
 			glTranslatef(m_glChannelRect.x(), m_glChannelRect.y(), 0);
 			glScalef(m_glChannelRect.width(), m_glChannelRect.height(), 1);
@@ -444,7 +444,7 @@ void GLSpectrum::paintGL()
 			glVertex2f(0, 1);
 			glEnd();
 			glDisable(GL_BLEND);
-			glColor3f(0.8, 0.8, 0.6);
+			glColor3f(0.8f, 0.8f, 0.6f);
 			glBegin(GL_LINE_LOOP);
 			glVertex2f(0.5, 0);
 			glVertex2f(0.5, 1);
@@ -561,7 +561,7 @@ void GLSpectrum::paintGL()
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glLineWidth(1.0f);
-		glColor4f(1, 1, 1, 0.05);
+		glColor4f(1, 1, 1, 0.05f);
 
 		glPushMatrix();
 		glTranslatef(m_glWaterfallRect.x(), m_glWaterfallRect.y(), 0);
@@ -606,7 +606,7 @@ void GLSpectrum::paintGL()
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glLineWidth(1.0f);
-		glColor4f(1, 1, 1, 0.05);
+		glColor4f(1, 1, 1, 0.05f);
 
 		glPushMatrix();
 		glTranslatef(m_glHistogramRect.x(), m_glHistogramRect.y(), 0);
@@ -1010,9 +1010,9 @@ void GLSpectrum::mouseMoveEvent(QMouseEvent* event)
 			newShare = (float)(event->y() - m_frequencyScaleRect.height()) / (float)height();
 		else newShare = 1.0 - (float)(event->y() + m_frequencyScaleRect.height()) / (float)height();
 		if(newShare < 0.1)
-			newShare = 0.1;
+			newShare = 0.1f;
 		else if(newShare > 0.8)
-			newShare = 0.8;
+			newShare = 0.8f;
 		m_waterfallShare = newShare;
 		m_changesPending = true;
 		update();

@@ -85,7 +85,7 @@ void GLScope::newTrace(const std::vector<Complex>& trace, int sampleRate)
 		case ModeDerived12: {
 			m_trace.resize(trace.size() - 3);
 			std::vector<Complex>::iterator dst = m_trace.begin();
-			for(int i = 3; i < trace.size() ; i++) {
+			for(uint i = 3; i < trace.size() ; i++) {
 				*dst++ = Complex(
 					abs(trace[i] - trace[i - 1]),
 					abs(trace[i] - trace[i - 1]) - abs(trace[i - 2] - trace[i - 3]));
@@ -153,7 +153,7 @@ void GLScope::paintGL()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glLineWidth(1.0f);
-	glColor4f(1, 1, 1, 0.05);
+	glColor4f(1, 1, 1, 0.05f);
 	for(int i = 1; i < 10; i++) {
 		glBegin(GL_LINE_LOOP);
 		glVertex2f(0, i * 0.1);
@@ -181,7 +181,7 @@ void GLScope::paintGL()
 		glVertex2f(0, m_triggerLevelHigh);
 		glVertex2f(1, m_triggerLevelHigh);
 		glEnd();
-		glColor4f(0, 0.8, 0.0, 0.3f);
+		glColor4f(0, 0.8f, 0.0, 0.3f);
 		glBegin(GL_LINE_LOOP);
 		glVertex2f(0, m_triggerLevelLow);
 		glVertex2f(1, m_triggerLevelLow);
@@ -247,7 +247,7 @@ void GLScope::paintGL()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glLineWidth(1.0f);
-	glColor4f(1, 1, 1, 0.05);
+	glColor4f(1, 1, 1, 0.05f);
 	for(int i = 1; i < 10; i++) {
 		glBegin(GL_LINE_LOOP);
 		glVertex2f(0, i * 0.1);
@@ -275,7 +275,7 @@ void GLScope::paintGL()
 		glVertex2f(0, m_triggerLevelHigh);
 		glVertex2f(1, m_triggerLevelHigh);
 		glEnd();
-		glColor4f(0, 0.8, 0.0, 0.3f);
+		glColor4f(0, 0.8f, 0.0, 0.3f);
 		glBegin(GL_LINE_LOOP);
 		glVertex2f(0, m_triggerLevelLow);
 		glVertex2f(1, m_triggerLevelLow);

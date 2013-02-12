@@ -71,8 +71,8 @@ size_t SampleFifo::write(const quint8* data, size_t count)
 {
 	QMutexLocker mutexLocker(&m_mutex);
 	size_t total;
-	int remaining;
-	int len;
+	size_t remaining;
+	size_t len;
 	const Sample* begin = (const Sample*)data;
 	count /= 4;
 
@@ -115,8 +115,8 @@ size_t SampleFifo::write(SampleVector::const_iterator begin, SampleVector::const
 	QMutexLocker mutexLocker(&m_mutex);
 	size_t count = end - begin;
 	size_t total;
-	int remaining;
-	int len;
+	size_t remaining;
+	size_t len;
 
 	total = MIN(count, m_size - m_fill);
 	if(total < count) {

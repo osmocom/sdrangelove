@@ -51,7 +51,7 @@ void RTLSDRGui::displaySettings()
 	if(m_gains.size() > 0) {
 		int dist = abs(m_settings.gain - m_gains[0]);
 		int pos = 0;
-		for(int i = 1; i < m_gains.size(); i++) {
+		for(uint i = 1; i < m_gains.size(); i++) {
 			if(abs(m_settings.gain - m_gains[i]) < dist) {
 				dist = abs(m_settings.gain - m_gains[i]);
 				pos = i;
