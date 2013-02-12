@@ -24,6 +24,7 @@
 #include "gui/scopewindow.h"
 #include "dsp/spectrumvis.h"
 #include "dsp/dspcommands.h"
+#include "dsp/nfmdemod.h"
 #include "hardware/samplesourcegui.h"
 #include "hardware/osmosdr/osmosdrinput.h"
 #include "hardware/osmosdr/osmosdrupgrade.h"
@@ -79,10 +80,9 @@ MainWindow::MainWindow(QWidget* parent) :
 
 	applySettings();
 	updatePresets();
-
 /*
 	NFMDemod* nfmDemod = new NFMDemod;
-	m_dspEngine.addChannelizer(nfmDemod);
+	m_dspEngine.addSink(nfmDemod);
 */
 /*
 	Channelizer* channelizer = new Channelizer;
@@ -221,7 +221,7 @@ void MainWindow::closeEvent(QCloseEvent*)
 void MainWindow::updateCenterFreqDisplay()
 {
 	ui->glSpectrum->setCenterFrequency(m_centerFrequency);
-	//ui->glSpectrum->setDisplayChannel(true, freq + 100000.0, 25000.0);
+	//ui->glSpectrum->setDisplayChannel(true, m_centerFrequency + 50000.0, 12500.0);
 }
 
 void MainWindow::updateSampleRate()

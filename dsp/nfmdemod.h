@@ -1,4 +1,3 @@
-#if 0
 ///////////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2012 maintech GmbH, Otto-Hahn-Str. 15, 97204 Hoechberg, Germany //
 // written by Christian Daniel                                                   //
@@ -20,21 +19,25 @@
 #define INCLUDE_NFMDEMOD_H
 
 #include <vector>
-#include "channelizer.h"
+#include "samplesink.h"
 #include "nco.h"
 #include "interpolator.h"
+#include "lowpass.h"
 #include "pidcontroller.h"
 #include "hardware/audiofifo.h"
 
 class AudioOutput;
 
-class NFMDemod : public Channelizer {
+class NFMDemod : public SampleSink {
 public:
 	NFMDemod();
 	~NFMDemod();
 
-	size_t workUnitSize();
-	size_t work(SampleVector::const_iterator begin, SampleVector::const_iterator end);
+	void feed(SampleVector::const_iterator begin, SampleVector::const_iterator end, bool firstOfBurst);
+	void start();
+	void stop();
+	void setSampleRate(int sampleRate);
+	void handleMessage(Message* cmd);
 
 private:
 	struct AudioSample {
@@ -43,9 +46,16 @@ private:
 	};
 	typedef std::vector<AudioSample> AudioVector;
 
+	Real m_squelchLevel;
+	int m_sampleRate;
+	int m_frequency;
+
 	NCO m_nco;
 	Interpolator m_interpolator;
-	Real m_distance;
+	Real m_sampleDistanceRemain;
+	Lowpass<Real> m_lowpass;
+
+	int m_squelchState;
 
 	Complex m_lastSample;
 
@@ -56,4 +66,3 @@ private:
 };
 
 #endif // INCLUDE_NFMDEMOD_H
-#endif

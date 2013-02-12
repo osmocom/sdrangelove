@@ -46,14 +46,6 @@ int AudioOutput::callback(
 	Q_UNUSED(timeInfo);
 	Q_UNUSED(statusFlags);
 
-	double speed = (double)m_audioFifo->fill() / (double)(m_audioFifo->size() / 2);
-	if(speed < 0.999)
-		speed = 0.999;
-	else if(speed > 1.001)
-		speed = 1.001;
-	m_rateCorrection = m_rateCorrection * 0.9999 + speed * 0.0001;
-	//qDebug("rate correction %f (have %d, want %d)", m_rateCorrection, m_audioFifo->fill(), m_audioFifo->size() / 2);
-
 	uint needed = framesPerBuffer;
 	uint done = m_audioFifo->read((quint8*)outputBuffer, needed, 1);
 
@@ -90,7 +82,6 @@ bool AudioOutput::start(int device, int rate, AudioFifo* audioFifo)
 	PaError err;
 
 	m_audioFifo = audioFifo;
-	m_rateCorrection = 1.0;
 
 	outputParameters.device = device;
 	outputParameters.channelCount = 2;
