@@ -36,6 +36,7 @@ Settings& Settings::operator=(const Settings& other)
 	m_iqImbalanceCorrection = other.m_iqImbalanceCorrection;
 	m_centerFrequency = other.m_centerFrequency;
 	m_sourceSettings = other.m_sourceSettings;
+	return *this;
 }
 
 void Settings::defaults()
