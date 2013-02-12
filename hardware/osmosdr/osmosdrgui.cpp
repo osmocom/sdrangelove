@@ -34,6 +34,10 @@ bool OsmoSDRGui::deserializeSettings(const QString& settings)
 	}
 }
 
+void OsmoSDRGui::handleSourceMessage(DSPCmdSourceToGUI* cmd)
+{
+}
+
 void OsmoSDRGui::displaySettings()
 {
 	ui->centerFrequency->setValue(m_settings.centerFrequency / 1000);

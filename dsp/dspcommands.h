@@ -206,12 +206,13 @@ private:
 	{ }
 };
 
-// Type == 13 -> DSPCmdConfigureSource (defined in samplesource.h)
+// Type == 13 -> DSPCmdGUIToSource (defined in samplesource.h)
+// Type == 14 -> DSPCmdSourceToGUI (defined in samplesource.h)
 
 class DSPCmdConfigureScopeVis : public Message {
 public:
 	enum {
-		Type = 14
+		Type = 15
 	};
 	int type() const;
 	const char* name() const;

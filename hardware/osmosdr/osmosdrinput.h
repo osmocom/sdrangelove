@@ -18,7 +18,7 @@
 #ifndef INCLUDE_OSMOSDRINPUT_H
 #define INCLUDE_OSMOSDRINPUT_H
 
-#include "samplesource.h"
+#include "../samplesource.h"
 #include <osmosdr.h>
 #include <QString>
 
@@ -51,7 +51,7 @@ public:
 		bool deserialize(const QString& settings);
 	};
 
-	OsmoSDRInput();
+	OsmoSDRInput(MessageQueue* msgQueueToGUI);
 	~OsmoSDRInput();
 
 	bool startInput(int device);
@@ -61,9 +61,9 @@ public:
 	int getSampleRate() const;
 	quint64 getCenterFrequency() const;
 
-	SampleSourceGUI* createGUI(MessageQueue* msgQueue, QWidget* parent = NULL) const;
+	SampleSourceGUI* createGUI(MessageQueue* msgQueueToEngine, QWidget* parent = NULL) const;
 
-	void handleConfiguration(DSPCmdConfigureSource* cmd);
+	void handleGUIMessage(DSPCmdGUIToSource* cmd);
 
 private:
 	QMutex m_mutex;
@@ -75,7 +75,7 @@ private:
 	bool applySettings(const Settings& settings, bool force);
 };
 
-class DSPCmdConfigureSourceOsmoSDR : public DSPCmdConfigureSource {
+class DSPCmdConfigureSourceOsmoSDR : public DSPCmdGUIToSource {
 public:
 	enum {
 		SourceType = 1

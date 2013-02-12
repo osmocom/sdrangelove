@@ -15,61 +15,49 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#ifndef INCLUDE_SAMPLESOURCE_H
-#define INCLUDE_SAMPLESOURCE_H
+#ifndef INCLUDE_OSMOSDRTHREAD_H
+#define INCLUDE_OSMOSDRTHREAD_H
 
-#include <QtGlobal>
-#include "samplefifo.h"
-#include "../util/message.h"
+#include <QThread>
+#include <QMutex>
+#include <QWaitCondition>
+#include <osmosdr.h>
 
-class SampleSourceGUI;
-class MessageQueue;
+class SampleFifo;
 
-class DSPCmdGUIToSource : public Message {
+class OsmoSDRThread : public QThread {
+	Q_OBJECT
+
 public:
-	enum {
-		Type = 13
-	};
+	OsmoSDRThread(osmosdr_dev_t* dev, SampleFifo* sampleFifo, QObject* parent = NULL);
+	~OsmoSDRThread();
 
-	DSPCmdGUIToSource() { }
-	int type() const;
-	const char* name() const;
-	virtual int sourceType() const = 0;
+	void startWork();
+	void stopWork();
+
+private:
+	struct Sample {
+		qint16 i;
+		qint16 q;
+	} __attribute__((packed));
+	qint16 m_nextI;
+	qint16 m_nextQ;
+	quint64 m_samplePos;
+
+	QMutex m_startWaitMutex;
+	QWaitCondition m_startWaiter;
+	bool m_running;
+	FILE* m_f;
+
+	osmosdr_dev_t* m_dev;
+	SampleFifo* m_sampleFifo;
+
+	void run();
+
+	void checkData(const quint8* buf, qint32 len);
+	void callback(const quint8* buf, qint32 len);
+
+	static void callbackHelper(unsigned char* buf, uint32_t len, void* ctx);
 };
 
-class DSPCmdSourceToGUI : public Message {
-public:
-	enum {
-		Type = 14
-	};
-
-	DSPCmdSourceToGUI() { }
-	int type() const;
-	const char* name() const;
-	virtual int sourceType() const = 0;
-};
-
-class SampleSource {
-public:
-	SampleSource(MessageQueue* msgQueueToGUI);
-	virtual ~SampleSource();
-
-	virtual bool startInput(int device) = 0;
-	virtual void stopInput() = 0;
-
-	virtual const QString& getDeviceDescription() const = 0;
-	virtual int getSampleRate() const = 0;
-	virtual quint64 getCenterFrequency() const = 0;
-
-	virtual SampleSourceGUI* createGUI(MessageQueue* msgQueueToEngine, QWidget* parent = NULL) const = 0;
-
-	virtual void handleGUIMessage(DSPCmdGUIToSource* cmd) = 0;
-
-	SampleFifo* getSampleFifo() { return &m_sampleFifo; }
-
-protected:
-	SampleFifo m_sampleFifo;
-	MessageQueue* m_guiMessageQueue;
-};
-
-#endif // INCLUDE_SAMPLESOURCE_H
+#endif // INCLUDE_OSMOSDRTHREAD_H

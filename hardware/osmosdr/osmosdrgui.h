@@ -2,7 +2,7 @@
 #define INCLUDE_OSMOSDRGUI_H
 
 #include <QTimer>
-#include "samplesourcegui.h"
+#include "../samplesourcegui.h"
 #include "osmosdrinput.h"
 
 namespace Ui {
@@ -18,6 +18,8 @@ public:
 
 	QString serializeSettings() const;
 	bool deserializeSettings(const QString& settings);
+
+	void handleSourceMessage(DSPCmdSourceToGUI* cmd);
 
 private:
 	Ui::OsmoSDRGui* ui;

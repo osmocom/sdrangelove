@@ -19,8 +19,8 @@
 #include "dspengine.h"
 #include "settings.h"
 #include "channelizer.h"
-#include "hardware/osmosdrinput.h"
 #include "hardware/samplefifo.h"
+#include "hardware/samplesource.h"
 #include "samplesink.h"
 #include "dspcommands.h"
 
@@ -365,15 +365,24 @@ void DSPEngine::handleSetSource(SampleSource* source)
 	if(m_sampleSource != NULL)
 		disconnect(m_sampleSource->getSampleFifo(), SIGNAL(dataReady()), this, SLOT(handleData()));
 	m_sampleSource = source;
-	connect(m_sampleSource->getSampleFifo(), SIGNAL(dataReady()), this, SLOT(handleData()), Qt::QueuedConnection);
+	if(m_sampleSource != NULL)
+		connect(m_sampleSource->getSampleFifo(), SIGNAL(dataReady()), this, SLOT(handleData()), Qt::QueuedConnection);
 	generateReport();
 }
 
 void DSPEngine::generateReport()
 {
 	bool needReport = false;
-	int sampleRate = m_sampleSource->getSampleRate();
-	quint64 centerFrequency = m_sampleSource->getCenterFrequency();
+	int sampleRate;
+	quint64 centerFrequency;
+
+	if(m_sampleSource != NULL) {
+		sampleRate = m_sampleSource->getSampleRate();
+		centerFrequency = m_sampleSource->getCenterFrequency();
+	} else {
+		sampleRate = 100000;
+		centerFrequency = 100000000;
+	}
 
 	if(sampleRate != m_sampleRate) {
 		m_sampleRate = sampleRate;
@@ -481,9 +490,9 @@ void DSPEngine::handleMessages()
 				break;
 			}
 
-			case DSPCmdConfigureSource::Type:
+			case DSPCmdGUIToSource::Type:
 				if(m_sampleSource != NULL) {
-					m_sampleSource->handleConfiguration((DSPCmdConfigureSource*)cmd);
+					m_sampleSource->handleGUIMessage((DSPCmdGUIToSource*)cmd);
 					generateReport();
 				}
 				cmd->completed();

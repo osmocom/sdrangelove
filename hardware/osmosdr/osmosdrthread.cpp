@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include "osmosdrthread.h"
-#include "samplefifo.h"
+#include "../samplefifo.h"
 
 OsmoSDRThread::OsmoSDRThread(osmosdr_dev_t* dev, SampleFifo* sampleFifo, QObject* parent) :
 	QThread(parent),
@@ -30,19 +30,19 @@ OsmoSDRThread::OsmoSDRThread(osmosdr_dev_t* dev, SampleFifo* sampleFifo, QObject
 
 OsmoSDRThread::~OsmoSDRThread()
 {
-	stop();
+	stopWork();
 }
 
-void OsmoSDRThread::start()
+void OsmoSDRThread::startWork()
 {
 	m_startWaitMutex.lock();
-	QThread::start();
+	start();
 	while(!m_running)
 		m_startWaiter.wait(&m_startWaitMutex, 100);
 	m_startWaitMutex.unlock();
 }
 
-void OsmoSDRThread::stop()
+void OsmoSDRThread::stopWork()
 {
 	m_running = false;
 	wait();
@@ -87,8 +87,6 @@ void OsmoSDRThread::checkData(const quint8* buf, qint32 len)
 		s++;
 	}
 }
-
-int cntr;
 
 void OsmoSDRThread::callback(const quint8* buf, qint32 len)
 {

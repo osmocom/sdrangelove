@@ -25,8 +25,9 @@
 #include "dsp/spectrumvis.h"
 #include "dsp/dspcommands.h"
 #include "hardware/samplesourcegui.h"
-#include "osdrupgrade.h"
-#include "hardware/osmosdrinput.h"
+#include "hardware/osmosdr/osmosdrinput.h"
+#include "hardware/osmosdr/osmosdrupgrade.h"
+#include "hardware/rtlsdr/rtlsdrinput.h"
 
 MainWindow::MainWindow(QWidget* parent) :
 	QMainWindow(parent),
@@ -35,7 +36,7 @@ MainWindow::MainWindow(QWidget* parent) :
 	m_settings(),
 	m_dspEngine(&m_messageQueue),
 	m_lastEngineState((DSPEngine::State)-1),
-	m_startOSDRUpdateAfterStop(false),
+	m_startOsmoSDRUpdateAfterStop(false),
 	m_scopeWindow(NULL),
 	m_sampleRate(0),
 	m_centerFrequency(0)
@@ -66,7 +67,8 @@ MainWindow::MainWindow(QWidget* parent) :
 
 	m_dspEngine.start();
 
-	m_sampleSource = new OsmoSDRInput();
+	m_sampleSource = new OsmoSDRInput(&m_messageQueue);
+	//m_sampleSource = new RTLSDRInput(&m_messageQueue);
 	m_dspEngine.setSource(m_sampleSource);
 	m_sampleSourceGUI = m_sampleSource->createGUI(m_dspEngine.getMessageQueue());
 	ui->inputDock->setWidget(m_sampleSourceGUI);
@@ -91,8 +93,10 @@ MainWindow::MainWindow(QWidget* parent) :
 
 MainWindow::~MainWindow()
 {
+	m_dspEngine.stopAcquistion();
+
 	m_dspEngine.removeSink(m_spectrumVis);
-	m_dspEngine.stop();
+	delete m_spectrumVis;
 
 	if(m_scopeWindow != NULL) {
 		delete m_scopeWindow;
@@ -101,6 +105,18 @@ MainWindow::~MainWindow()
 
 	m_settings.setSourceSettings(m_sampleSourceGUI->serializeSettings());
 	saveSettings();
+
+	if(m_sampleSource != NULL) {
+		m_dspEngine.setSource(NULL);
+		delete m_sampleSource;
+		m_sampleSource = NULL;
+	}
+
+	m_dspEngine.stop();
+
+	while(!m_presetList.empty())
+		delete m_presetList.takeLast();
+
 	delete ui;
 }
 
@@ -279,6 +295,12 @@ void MainWindow::handleMessages()
 				break;
 			}
 
+			case DSPCmdSourceToGUI::Type:
+				if(m_sampleSourceGUI != NULL)
+					m_sampleSourceGUI->handleSourceMessage((DSPCmdSourceToGUI*)cmd);
+				cmd->completed();
+				break;
+
 			default:
 				cmd->completed();
 				break;
@@ -303,7 +325,7 @@ void MainWindow::updateStatus()
 				m_engineRunning->setColor(Qt::gray);
 				m_engineError->setColor(Qt::gray);
 				statusBar()->clearMessage();
-				if(m_startOSDRUpdateAfterStop)
+				if(m_startOsmoSDRUpdateAfterStop)
 					on_actionOsmoSDR_Firmware_Upgrade_triggered();
 				break;
 
@@ -319,7 +341,7 @@ void MainWindow::updateStatus()
 				m_engineRunning->setColor(Qt::gray);
 				m_engineError->setColor(Qt::red);
 				statusBar()->showMessage(tr("Error: %1").arg(m_dspEngine.errorMessage()));
-				if(m_startOSDRUpdateAfterStop)
+				if(m_startOsmoSDRUpdateAfterStop)
 					on_actionOsmoSDR_Firmware_Upgrade_triggered();
 				break;
 		}
@@ -398,14 +420,14 @@ void MainWindow::on_actionOsmoSDR_Firmware_Upgrade_triggered()
 {
 	DSPEngine::State engineState = m_dspEngine.state();
 	if((engineState != DSPEngine::StIdle) && (engineState != DSPEngine::StError)) {
-		m_startOSDRUpdateAfterStop = true;
+		m_startOsmoSDRUpdateAfterStop = true;
 		m_dspEngine.stopAcquistion();
 		return;
 	}
-	m_startOSDRUpdateAfterStop = false;
+	m_startOsmoSDRUpdateAfterStop = false;
 
-	OSDRUpgrade osdrUpgrade;
-	osdrUpgrade.exec();
+	OsmoSDRUpgrade osmoSDRUpgrade;
+	osmoSDRUpgrade.exec();
 }
 
 void MainWindow::on_fftSize_valueChanged(int value)

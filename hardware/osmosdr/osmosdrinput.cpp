@@ -138,8 +138,8 @@ bool OsmoSDRInput::Settings::deserialize(const QString& settings)
 	}
 }
 
-OsmoSDRInput::OsmoSDRInput() :
-	SampleSource(),
+OsmoSDRInput::OsmoSDRInput(MessageQueue* msgQueueToGUI) :
+	SampleSource(msgQueueToGUI),
 	m_settings(),
 	m_dev(NULL),
 	m_osmoSDRThread(NULL),
@@ -149,7 +149,6 @@ OsmoSDRInput::OsmoSDRInput() :
 
 OsmoSDRInput::~OsmoSDRInput()
 {
-	QMutexLocker mutexLocker(&m_mutex);
 	stopInput();
 }
 
@@ -199,7 +198,7 @@ bool OsmoSDRInput::startInput(int device)
 		qFatal("out of memory");
 		goto failed;
 	}
-	m_osmoSDRThread->start();
+	m_osmoSDRThread->startWork();
 
 	mutexLocker.unlock();
 	applySettings(m_settings, true);
@@ -218,7 +217,7 @@ void OsmoSDRInput::stopInput()
 	QMutexLocker mutexLocker(&m_mutex);
 
 	if(m_osmoSDRThread != NULL) {
-		m_osmoSDRThread->stop();
+		m_osmoSDRThread->stopWork();
 		delete m_osmoSDRThread;
 		m_osmoSDRThread = NULL;
 	}
@@ -244,12 +243,12 @@ quint64 OsmoSDRInput::getCenterFrequency() const
 	return m_settings.centerFrequency;
 }
 
-SampleSourceGUI* OsmoSDRInput::createGUI(MessageQueue* msgQueue, QWidget* parent) const
+SampleSourceGUI* OsmoSDRInput::createGUI(MessageQueue* msgQueueToEngine, QWidget* parent) const
 {
-	return new OsmoSDRGui(msgQueue, parent);
+	return new OsmoSDRGui(msgQueueToEngine, parent);
 }
 
-void OsmoSDRInput::handleConfiguration(DSPCmdConfigureSource* cmd)
+void OsmoSDRInput::handleGUIMessage(DSPCmdGUIToSource* cmd)
 {
 	if(cmd->sourceType() != DSPCmdConfigureSourceOsmoSDR::SourceType)
 		return;

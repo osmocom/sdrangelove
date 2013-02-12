@@ -1,5 +1,5 @@
-#ifndef INCLUDE_OSDRUPGRADE_H
-#define INCLUDE_OSDRUPGRADE_H
+#ifndef INCLUDE_OSMOSDRUPGRADE_H
+#define INCLUDE_OSMOSDRUPGRADE_H
 
 #include <QDialog>
 #include <QTimer>
@@ -11,15 +11,15 @@ typedef struct libusb_context libusb_context;
 typedef struct libusb_device_handle libusb_device_handle;
 
 namespace Ui {
-	class OSDRUpgrade;
+	class OsmoSDRUpgrade;
 }
 
-class OSDRUpgrade : public QDialog {
+class OsmoSDRUpgrade : public QDialog {
 	Q_OBJECT
 
 public:
-	explicit OSDRUpgrade(QWidget* parent = NULL);
-	~OSDRUpgrade();
+	explicit OsmoSDRUpgrade(QWidget* parent = NULL);
+	~OsmoSDRUpgrade();
 
 private slots:
 	void on_browse_clicked();
@@ -30,7 +30,7 @@ private slots:
 	void searchDeviceTick();
 
 private:
-	Ui::OSDRUpgrade* ui;
+	Ui::OsmoSDRUpgrade* ui;
 
 	libusb_context* m_usb;
 
@@ -59,4 +59,4 @@ private:
 	static size_t zipHelper(void* pOpaque, mz_uint64 file_ofs, const void* pBuf, size_t n);
 };
 
-#endif // INCLUDE_OSDRUPGRADE_H
+#endif // INCLUDE_OSMOSDRUPGRADE_H

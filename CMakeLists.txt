@@ -11,6 +11,7 @@ find_package(Qt4 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(PkgConfig)
 find_package(LibOsmoSDR REQUIRED)
+find_package(LibRTLSDR REQUIRED)
 find_package(Portaudio REQUIRED)
 find_package(LibUSB REQUIRED)
 
@@ -18,7 +19,6 @@ set(sdrangelove_SOURCES
 	main.cpp
 	mainwindow.cpp
 	miniz.cpp
-	osdrupgrade.cpp
 	preset.cpp
 	settings.cpp
 
@@ -27,6 +27,7 @@ set(sdrangelove_SOURCES
 	dsp/dspengine.cpp
 	dsp/fftwindow.cpp
 	dsp/interpolator.cpp
+	dsp/inthalfbandfilter.cpp
 	dsp/lowpass.cpp
 	dsp/nco.cpp
 	dsp/nfmdemod.cpp
@@ -46,13 +47,19 @@ set(sdrangelove_SOURCES
 
 	hardware/audiofifo.cpp
 	hardware/audiooutput.cpp
-	hardware/osmosdrgui.cpp
-	hardware/osmosdrinput.cpp
-	hardware/osmosdrthread.cpp
 	hardware/samplefifo.cpp
 	hardware/samplesource.cpp
 	hardware/samplesourcegui.cpp
 	hardware/soundcardinfo.cpp
+
+	hardware/osmosdr/osmosdrgui.cpp
+	hardware/osmosdr/osmosdrinput.cpp
+	hardware/osmosdr/osmosdrthread.cpp
+	hardware/osmosdr/osmosdrupgrade.cpp
+
+	hardware/rtlsdr/rtlsdrgui.cpp
+	hardware/rtlsdr/rtlsdrinput.cpp
+	hardware/rtlsdr/rtlsdrthread.cpp
 
 	util/message.cpp
 	util/messagequeue.cpp
@@ -61,7 +68,6 @@ set(sdrangelove_SOURCES
 
 set(sdrangelove_HEADERS
 	mainwindow.h
-	osdrupgrade.h
 	preset.h
 	settings.h
 
@@ -71,6 +77,7 @@ set(sdrangelove_HEADERS
 	dsp/dsptypes.h
 	dsp/fftwindow.h
 	dsp/interpolator.h
+	dsp/inthalfbandfilter.h
 	dsp/kissfft.h
 	dsp/lowpass.h
 	dsp/nco.h
@@ -92,13 +99,19 @@ set(sdrangelove_HEADERS
 
 	hardware/audiofifo.h
 	hardware/audiooutput.h
-	hardware/osmosdrgui.h
-	hardware/osmosdrinput.h
-	hardware/osmosdrthread.h
 	hardware/samplefifo.h
 	hardware/samplesource.h
 	hardware/samplesourcegui.h
 	hardware/soundcardinfo.h
+
+	hardware/osmosdr/osmosdrgui.h
+	hardware/osmosdr/osmosdrinput.h
+	hardware/osmosdr/osmosdrthread.h
+	hardware/osmosdr/osmosdrupgrade.h
+
+	hardware/rtlsdr/rtlsdrgui.h
+	hardware/rtlsdr/rtlsdrinput.h
+	hardware/rtlsdr/rtlsdrthread.h
 
 	util/message.h
 	util/messagequeue.h
@@ -107,11 +120,13 @@ set(sdrangelove_HEADERS
 
 set(sdrangelove_FORMS
 	mainwindow.ui
-	osdrupgrade.ui
 
 	gui/scopewindow.ui
 
-	hardware/osmosdrgui.ui
+	hardware/osmosdr/osmosdrgui.ui
+	hardware/osmosdr/osmosdrupgrade.ui
+
+	hardware/rtlsdr/rtlsdrgui.ui
 )
 
 set(sdrangelove_RESOURCES
@@ -150,6 +165,7 @@ target_link_libraries(sdrangelove
 	${QT_LIBRARIES}
 	${OPENGL_LIBRARIES}
 	${LIBOSMOSDR_LIBRARIES}
+	${LIBRTLSDR_LIBRARIES}
 	${PORTAUDIO_LIBRARIES}
 	${LIBUSB_LIBRARIES}
 )

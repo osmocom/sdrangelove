@@ -32,6 +32,12 @@ class GLScope: public QGLWidget {
 	Q_OBJECT
 
 public:
+	enum Mode {
+		ModeIQ,
+		ModeMagPha,
+		ModeDerived12
+	};
+
 	GLScope(QWidget* parent = NULL);
 	~GLScope();
 
@@ -53,6 +59,7 @@ private:
 	QMutex m_mutex;
 	bool m_changed;
 	bool m_changesPending;
+	Mode m_mode;
 
 	// traces
 	std::vector<Complex> m_trace;

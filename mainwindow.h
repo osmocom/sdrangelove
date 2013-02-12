@@ -68,7 +68,7 @@ private:
 	Indicator* m_engineRunning;
 	Indicator* m_engineError;
 
-	bool m_startOSDRUpdateAfterStop;
+	bool m_startOsmoSDRUpdateAfterStop;
 
 	ScopeWindow* m_scopeWindow;
 

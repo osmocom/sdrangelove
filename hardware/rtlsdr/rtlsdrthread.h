@@ -15,49 +15,54 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#ifndef INCLUDE_OSMOSDRTHREAD_H
-#define INCLUDE_OSMOSDRTHREAD_H
+#ifndef INCLUDE_RTLSDRTHREAD_H
+#define INCLUDE_RTLSDRTHREAD_H
 
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
-#include <osmosdr.h>
+#include <rtl-sdr.h>
+#include "../samplefifo.h"
 
-class SampleFifo;
+#include "../dsp/inthalfbandfilter.h"
 
-class OsmoSDRThread : public QThread {
+class RTLSDRThread : public QThread {
 	Q_OBJECT
 
 public:
-	OsmoSDRThread(osmosdr_dev_t* dev, SampleFifo* sampleFifo, QObject* parent = NULL);
-	~OsmoSDRThread();
+	RTLSDRThread(rtlsdr_dev_t* dev, SampleFifo* sampleFifo, QObject* parent = NULL);
+	~RTLSDRThread();
 
-	void start();
-	void stop();
+	void startWork();
+	void stopWork();
+
+	void setDecimation(int decimation);
 
 private:
-	struct Sample {
-		qint16 i;
-		qint16 q;
-	} __attribute__((packed));
-	qint16 m_nextI;
-	qint16 m_nextQ;
-	quint64 m_samplePos;
-
 	QMutex m_startWaitMutex;
 	QWaitCondition m_startWaiter;
 	bool m_running;
-	FILE* m_f;
 
-	osmosdr_dev_t* m_dev;
+	rtlsdr_dev_t* m_dev;
+	SampleVector m_convertBuffer;
 	SampleFifo* m_sampleFifo;
+
+	int m_decimation;
+
+	IntHalfbandFilter m_decimator2;
+	IntHalfbandFilter m_decimator4;
+	IntHalfbandFilter m_decimator8;
+	IntHalfbandFilter m_decimator16;
 
 	void run();
 
-	void checkData(const quint8* buf, qint32 len);
+	void decimate2(SampleVector::iterator* it, const quint8* buf, qint32 len);
+	void decimate4(SampleVector::iterator* it, const quint8* buf, qint32 len);
+	void decimate8(SampleVector::iterator* it, const quint8* buf, qint32 len);
+	void decimate16(SampleVector::iterator* it, const quint8* buf, qint32 len);
 	void callback(const quint8* buf, qint32 len);
 
 	static void callbackHelper(unsigned char* buf, uint32_t len, void* ctx);
 };
 
-#endif // INCLUDE_OSMOSDRTHREAD_H
+#endif // INCLUDE_RTLSDRTHREAD_H

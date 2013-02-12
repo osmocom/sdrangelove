@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>OSDRUpgrade</class>
- <widget class="QDialog" name="OSDRUpgrade">
+ <class>OsmoSDRUpgrade</class>
+ <widget class="QDialog" name="OsmoSDRUpgrade">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -196,7 +196,7 @@
   <connection>
    <sender>close</sender>
    <signal>clicked()</signal>
-   <receiver>OSDRUpgrade</receiver>
+   <receiver>OsmoSDRUpgrade</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

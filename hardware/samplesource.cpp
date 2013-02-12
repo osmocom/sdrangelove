@@ -17,17 +17,32 @@
 
 #include "samplesource.h"
 
-SampleSource::SampleSource() :
-	m_sampleFifo()
+SampleSource::SampleSource(MessageQueue* msgQueueToGUI) :
+	m_sampleFifo(),
+	m_guiMessageQueue(msgQueueToGUI)
 {
 }
 
-int DSPCmdConfigureSource::type() const
+SampleSource::~SampleSource()
+{
+}
+
+int DSPCmdGUIToSource::type() const
 {
 	return Type;
 }
 
-const char* DSPCmdConfigureSource::name() const
+const char* DSPCmdGUIToSource::name() const
 {
-	return "ConfigureSource";
+	return "GUIToSource";
+}
+
+int DSPCmdSourceToGUI::type() const
+{
+	return Type;
+}
+
+const char* DSPCmdSourceToGUI::name() const
+{
+	return "SourceToGUI";
 }

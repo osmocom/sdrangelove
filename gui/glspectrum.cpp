@@ -42,6 +42,8 @@ GLSpectrum::GLSpectrum(QWidget* parent) :
 	m_histogramTextureAllocated(false),
 	m_displayHistogram(true),
 	m_displayChannel(false),
+	m_channelCenterFrequency(100000000),
+	m_channelBandwidth(100000),
 	m_displayChanged(false)
 {
 	setAutoFillBackground(false);

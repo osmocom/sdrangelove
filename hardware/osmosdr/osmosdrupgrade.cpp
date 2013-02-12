@@ -3,8 +3,8 @@
 #include <QCursor>
 #include <QThread>
 #include <libusb.h>
-#include "osdrupgrade.h"
-#include "ui_osdrupgrade.h"
+#include "osmosdrupgrade.h"
+#include "ui_osmosdrupgrade.h"
 
 #define MINIZ_HEADER_FILE_ONLY
 #include "miniz.cpp"
@@ -46,21 +46,21 @@ struct dfu_getstatus {
 #pragma pack(pop)
 
 
-OSDRUpgrade::OSDRUpgrade(QWidget* parent) :
+OsmoSDRUpgrade::OsmoSDRUpgrade(QWidget* parent) :
 	QDialog(parent),
-	ui(new Ui::OSDRUpgrade),
+	ui(new Ui::OsmoSDRUpgrade),
 	m_usb(NULL)
 {
 	ui->setupUi(this);
 	connect(&m_searchDeviceTimer, SIGNAL(timeout()), this, SLOT(searchDeviceTick()));
 }
 
-OSDRUpgrade::~OSDRUpgrade()
+OsmoSDRUpgrade::~OsmoSDRUpgrade()
 {
 	delete ui;
 }
 
-void OSDRUpgrade::on_browse_clicked()
+void OsmoSDRUpgrade::on_browse_clicked()
 {
 	QString filename = QFileDialog::getOpenFileName(this, tr("OsmoSDR Firmware File"), QString(), tr("OsmoSDR Firmware (*.ofw);;All Files (*)"));
 	if(filename.isEmpty())
@@ -157,29 +157,29 @@ void OSDRUpgrade::on_browse_clicked()
 	ui->filename->setText(fi.fileName());
 }
 
-void OSDRUpgrade::on_dfu_toggled(bool checked)
+void OsmoSDRUpgrade::on_dfu_toggled(bool checked)
 {
 	updateFlashButton();
 }
 
-void OSDRUpgrade::on_radio_toggled(bool checked)
+void OsmoSDRUpgrade::on_radio_toggled(bool checked)
 {
 	updateFlashButton();
 }
 
-void OSDRUpgrade::on_fpga_toggled(bool checked)
+void OsmoSDRUpgrade::on_fpga_toggled(bool checked)
 {
 	updateFlashButton();
 }
 
-void OSDRUpgrade::updateFlashButton()
+void OsmoSDRUpgrade::updateFlashButton()
 {
 	if(ui->dfu->isChecked() || ui->radio->isChecked() || ui->fpga->isChecked())
 		ui->progressBox->setEnabled(true);
 	else ui->progressBox->setEnabled(false);
 }
 
-void OSDRUpgrade::on_start_clicked()
+void OsmoSDRUpgrade::on_start_clicked()
 {
 	ui->close->setEnabled(false);
 	ui->start->setEnabled(false);
@@ -199,7 +199,7 @@ void OSDRUpgrade::on_start_clicked()
 	m_searchDeviceTimer.start(250);
 }
 
-void OSDRUpgrade::searchDeviceTick()
+void OsmoSDRUpgrade::searchDeviceTick()
 {
 	m_searchTries++;
 	log(tr("Searching device (try %1)").arg(m_searchTries));
@@ -359,7 +359,7 @@ void OSDRUpgrade::searchDeviceTick()
 	finish();
 }
 
-void OSDRUpgrade::switchToDFU()
+void OsmoSDRUpgrade::switchToDFU()
 {
 	libusb_device_handle* device = libusb_open_device_with_vid_pid(m_usb, OSMOSDR_USB_VID, OSMOSDR_USB_PID);
 	if(device == NULL) {
@@ -391,7 +391,7 @@ void OSDRUpgrade::switchToDFU()
 	libusb_close(device);
 }
 
-int OSDRUpgrade::dfuGetState(libusb_device_handle* device, quint8* state)
+int OsmoSDRUpgrade::dfuGetState(libusb_device_handle* device, quint8* state)
 {
 	int res;
 
@@ -408,7 +408,7 @@ int OSDRUpgrade::dfuGetState(libusb_device_handle* device, quint8* state)
 	return res;
 }
 
-int OSDRUpgrade::dfuGetStatus(libusb_device_handle* device)
+int OsmoSDRUpgrade::dfuGetStatus(libusb_device_handle* device)
 {
 	int res;
 	struct dfu_getstatus getstatus;
@@ -444,7 +444,7 @@ int OSDRUpgrade::dfuGetStatus(libusb_device_handle* device)
 	return res;
 }
 
-int OSDRUpgrade::dfuClrStatus(libusb_device_handle* device)
+int OsmoSDRUpgrade::dfuClrStatus(libusb_device_handle* device)
 {
 	return libusb_control_transfer(
 		device,
@@ -457,7 +457,7 @@ int OSDRUpgrade::dfuClrStatus(libusb_device_handle* device)
 		1000);
 }
 
-int OSDRUpgrade::dfuDownloadBlock(libusb_device_handle* device, quint16 block, const quint8* data, quint16 len)
+int OsmoSDRUpgrade::dfuDownloadBlock(libusb_device_handle* device, quint16 block, const quint8* data, quint16 len)
 {
 	return libusb_control_transfer(
 		device,
@@ -470,7 +470,7 @@ int OSDRUpgrade::dfuDownloadBlock(libusb_device_handle* device, quint16 block, c
 		10000);
 }
 
-int OSDRUpgrade::dfuDetach(libusb_device_handle* device)
+int OsmoSDRUpgrade::dfuDetach(libusb_device_handle* device)
 {
 	return libusb_control_transfer(
 		device,
@@ -483,14 +483,14 @@ int OSDRUpgrade::dfuDetach(libusb_device_handle* device)
 		1000);
 }
 
-void OSDRUpgrade::fail(const QString& msg)
+void OsmoSDRUpgrade::fail(const QString& msg)
 {
 	log(tr("Fatal error: %1").arg(msg));
 	QMessageBox::critical(this, tr("OsmoSDR Upgrade Failed"), msg);
 	finish();
 }
 
-void OSDRUpgrade::finish()
+void OsmoSDRUpgrade::finish()
 {
 	if(m_usb != NULL) {
 		libusb_exit(m_usb);
@@ -501,19 +501,19 @@ void OSDRUpgrade::finish()
 	ui->close->setEnabled(true);
 }
 
-void OSDRUpgrade::log(const QString& msg)
+void OsmoSDRUpgrade::log(const QString& msg)
 {
 	ui->log->appendPlainText(msg);
 	ui->log->moveCursor(QTextCursor::End);
 }
 
-void OSDRUpgrade::reject()
+void OsmoSDRUpgrade::reject()
 {
 	if(ui->close->isEnabled())
 		return QDialog::reject();
 }
 
-size_t OSDRUpgrade::zipHelper(void* pOpaque, mz_uint64 file_ofs, const void* pBuf, size_t n)
+size_t OsmoSDRUpgrade::zipHelper(void* pOpaque, mz_uint64 file_ofs, const void* pBuf, size_t n)
 {
 	QByteArray* bytes = (QByteArray*)pOpaque;
 	bytes->append((const char*)pBuf, n);

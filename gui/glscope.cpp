@@ -7,6 +7,7 @@ GLScope::GLScope(QWidget* parent) :
 	QGLWidget(parent),
 	m_changed(false),
 	m_changesPending(true),
+	m_mode(ModeIQ),
 	m_oldTraceSize(-1),
 	m_sampleRate(0),
 	m_dspEngine(NULL),
@@ -68,7 +69,31 @@ void GLScope::newTrace(const std::vector<Complex>& trace, int sampleRate)
 		return;
 	}
 
-	m_trace = trace;
+	switch(m_mode) {
+		case ModeIQ:
+			m_trace = trace;
+			break;
+
+		case ModeMagPha: {
+			m_trace.resize(trace.size());
+			std::vector<Complex>::iterator dst = m_trace.begin();
+			for(std::vector<Complex>::const_iterator src = trace.begin(); src != trace.end(); ++src)
+				*dst++ = Complex(abs(*src), arg(*src) / M_PI);
+			break;
+		}
+
+		case ModeDerived12: {
+			m_trace.resize(trace.size() - 3);
+			std::vector<Complex>::iterator dst = m_trace.begin();
+			for(int i = 3; i < trace.size() ; i++) {
+				*dst++ = Complex(
+					abs(trace[i] - trace[i - 1]),
+					abs(trace[i] - trace[i - 1]) - abs(trace[i - 2] - trace[i - 3]));
+			}
+			break;
+		}
+	}
+
 	m_sampleRate = sampleRate;
 	m_changed = true;
 

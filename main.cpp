@@ -18,6 +18,7 @@
 #include <QApplication>
 #include <QTextCodec>
 #include <QMessageBox>
+#include <QWindowsStyle>
 #include "mainwindow.h"
 #include "portaudio.h"
 
@@ -32,6 +33,11 @@ static void initPortAudio()
 	}
 }
 
+static void cleanupPortAudio()
+{
+	Pa_Terminate();
+}
+
 int main(int argc, char* argv[])
 {
 	QApplication a(argc, argv);
@@ -42,10 +48,16 @@ int main(int argc, char* argv[])
 	QCoreApplication::setOrganizationName("osmocom");
 	QCoreApplication::setApplicationName("SDRangelove");
 
+	//QApplication::setStyle(new QWindowsStyle);
+
 	initPortAudio();
 
 	MainWindow w;
 	w.show();
 
-	return a.exec();
+	int res = a.exec();
+
+	cleanupPortAudio();
+
+	return res;
 }
