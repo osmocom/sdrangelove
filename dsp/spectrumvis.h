@@ -2,7 +2,7 @@
 #define INCLUDE_SPECTRUMVIS_H
 
 #include "samplesink.h"
-#include "kissfft.h"
+#include "fftengine.h"
 #include "fftwindow.h"
 
 class GLSpectrum;
@@ -11,6 +11,7 @@ class MessageQueue;
 class SpectrumVis : public SampleSink {
 public:
 	SpectrumVis(GLSpectrum* glSpectrum = NULL);
+	~SpectrumVis();
 
 	void configure(MessageQueue* msgQueue, int fftSize, int overlapPercent, FFTWindow::Function window);
 
@@ -21,13 +22,10 @@ public:
 	void handleMessage(Message* cmd);
 
 private:
-	typedef kissfft<Real, Complex> KissFFT;
-	KissFFT m_fft;
+	FFTEngine* m_fft;
 	FFTWindow m_window;
 
 	std::vector<Complex> m_fftBuffer;
-	std::vector<Complex> m_fftIn;
-	std::vector<Complex> m_fftOut;
 	std::vector<Real> m_logPowerSpectrum;
 
 	size_t m_fftSize;

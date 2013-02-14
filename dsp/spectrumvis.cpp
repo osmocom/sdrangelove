@@ -6,29 +6,28 @@
 #define MAX_FFT_SIZE 4096
 
 #ifdef _WIN32
-double log2f(double n)  
-{  
-    return log(n) / log(2.0);
+double log2f(double n)
+{
+	return log(n) / log(2.0);
 }
 #endif
 
 SpectrumVis::SpectrumVis(GLSpectrum* glSpectrum) :
 	SampleSink(),
+	m_fft(FFTEngine::create()),
 	m_fftBuffer(MAX_FFT_SIZE),
-	m_fftIn(MAX_FFT_SIZE),
-	m_fftOut(MAX_FFT_SIZE),
 	m_logPowerSpectrum(MAX_FFT_SIZE),
 	m_fftBufferFill(0),
 	m_glSpectrum(glSpectrum)
 {
 	handleConfigure(1024, 10, FFTWindow::BlackmanHarris);
 }
-/*
-void SpectrumVis::setGLSpectrum(GLSpectrum* glSpectrum)
+
+SpectrumVis::~SpectrumVis()
 {
-	m_glSpectrum = glSpectrum;
+	delete m_fft;
 }
-*/
+
 void SpectrumVis::configure(MessageQueue* msgQueue, int fftSize, int overlapPercent, FFTWindow::Function window)
 {
 	Message* cmd = DSPCmdConfigureSpectrumVis::create(fftSize, overlapPercent, window);
@@ -52,16 +51,17 @@ void SpectrumVis::feed(SampleVector::const_iterator begin, SampleVector::const_i
 				*it++ = Complex(begin->real() / 32768.0, begin->imag() / 32768.0);
 
 			// apply fft window (and copy from m_fftBuffer to m_fftIn)
-			m_window.apply(m_fftBuffer, &m_fftIn);
+			m_window.apply(&m_fftBuffer[0], m_fft->in());
 
 			// calculate FFT
-			m_fft.transform(&m_fftIn[0], &m_fftOut[0]);
+			m_fft->transform();
 
 			// extract power spectrum and reorder buckets
 			Real ofs = 20.0f * log10f(1.0f / m_fftSize);
 			Real mult = (10.0f / log2f(10.0f));
+			const Complex* fftOut = m_fft->out();
 			for(size_t i = 0; i < m_fftSize; i++) {
-				Complex c = m_fftOut[((i + (m_fftSize >> 1)) & (m_fftSize - 1))];
+				Complex c = fftOut[((i + (m_fftSize >> 1)) & (m_fftSize - 1))];
 				Real v = c.real() * c.real() + c.imag() * c.imag();
 				v = mult * log2f(v) + ofs;
 				m_logPowerSpectrum[i] = v;
@@ -123,7 +123,7 @@ void SpectrumVis::handleConfigure(int fftSize, int overlapPercent, FFTWindow::Fu
 
 	m_fftSize = fftSize;
 	m_overlapPercent = overlapPercent;
-	m_fft.configure(m_fftSize, false);
+	m_fft->configure(m_fftSize, false);
 	m_window.create(window, m_fftSize);
 	m_overlapSize = (m_fftSize * m_overlapPercent) / 100;
 	m_refillSize = m_fftSize - m_overlapSize;

@@ -66,3 +66,8 @@ void FFTWindow::apply(const std::vector<Complex>& in, std::vector<Complex>* out)
 		(*out)[i] = in[i] * m_window[i];
 }
 
+void FFTWindow::apply(const Complex* in, Complex* out)
+{
+	for(size_t i = 0; i < m_window.size(); i++)
+		out[i] = in[i] * m_window[i];
+}

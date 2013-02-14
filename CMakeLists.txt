@@ -10,10 +10,12 @@ set(QT_USE_QTOPENGL TRUE)
 find_package(Qt4 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(PkgConfig)
+
 find_package(LibOsmoSDR REQUIRED)
 find_package(LibRTLSDR REQUIRED)
 find_package(Portaudio REQUIRED)
 find_package(LibUSB REQUIRED)
+find_package(FFTW3F)
 
 set(sdrangelove_SOURCES
 	main.cpp
@@ -24,6 +26,7 @@ set(sdrangelove_SOURCES
 	dsp/channelizer.cpp
 	dsp/dspcommands.cpp
 	dsp/dspengine.cpp
+	dsp/fftengine.cpp
 	dsp/fftwindow.cpp
 	dsp/interpolator.cpp
 	dsp/inthalfbandfilter.cpp
@@ -75,10 +78,10 @@ set(sdrangelove_HEADERS
 	dsp/dspcommands.h
 	dsp/dspengine.h
 	dsp/dsptypes.h
+	dsp/fftengine.h
 	dsp/fftwindow.h
 	dsp/interpolator.h
 	dsp/inthalfbandfilter.h
-	dsp/kissfft.h
 	dsp/lowpass.h
 	dsp/nco.h
 	dsp/nfmdemod.h
@@ -145,6 +148,30 @@ include_directories(
 	${LIBUSB_INCLUDE_DIR}
 )
 
+if(FFTW3F_FOUND)
+	set(sdrangelove_SOURCES
+		${sdrangelove_SOURCES}
+		dsp/fftwengine.cpp
+	)
+	set(sdrangelove_HEADERS
+		${sdrangelove_HEADERS}
+		dsp/fftwengine.h
+	)
+	add_definitions(-DUSE_FFTW)
+	include_directories(${FFTW3F_INCLUDE_DIRS})
+else(FFTW3F_FOUND)
+	set(sdrangelove_SOURCES
+		${sdrangelove_SOURCES}
+		dsp/kissengine.cpp
+		dsp/kissfft.h
+	)
+	set(sdrangelove_HEADERS
+		${sdrangelove_HEADERS}
+		dsp/kissengine.h
+	)
+	add_definitions(-DUSE_KISSFFT)
+endif(FFTW3F_FOUND)
+
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
@@ -171,6 +198,10 @@ target_link_libraries(sdrangelove
 	${PORTAUDIO_LIBRARIES}
 	${LIBUSB_LIBRARIES}
 )
+
+if(FFTW3F_FOUND)
+	target_link_libraries(sdrangelove ${FFTW3F_LIBRARIES})
+endif(FFTW3F_FOUND)
 
 if(WIN32)
 	set_target_properties(sdrangelove PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
