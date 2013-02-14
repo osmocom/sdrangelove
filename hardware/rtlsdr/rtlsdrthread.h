@@ -24,7 +24,7 @@
 #include <rtl-sdr.h>
 #include "../samplefifo.h"
 
-#include "../dsp/inthalfbandfilter.h"
+#include "dsp/inthalfbandfilter.h"
 
 class RTLSDRThread : public QThread {
 	Q_OBJECT
