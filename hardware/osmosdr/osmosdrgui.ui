@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>252</width>
+    <width>253</width>
     <height>224</height>
    </rect>
   </property>
@@ -222,20 +222,11 @@
      </item>
      <item>
       <widget class="QComboBox" name="e4000MixerGain">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>50</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Tuner mixer amplification</string>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QComboBox::AdjustToMinimumContentsLength</enum>
        </property>
        <item>
         <property name="text">
@@ -271,20 +262,11 @@
      </item>
      <item>
       <widget class="QComboBox" name="e4000MixerEnh">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>50</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Tuner LNA amplification enhancement</string>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QComboBox::AdjustToMinimumContentsLength</enum>
        </property>
        <item>
         <property name="text">
@@ -322,12 +304,6 @@
      </item>
      <item>
       <widget class="QToolButton" name="iqSwap">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="MinimumExpanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
        <property name="text">
         <string>Swap IQ</string>
        </property>
@@ -348,20 +324,11 @@
      </property>
      <item row="1" column="1">
       <widget class="QComboBox" name="e4000if2">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>50</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Tuner IF 2 amplification</string>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QComboBox::AdjustToContents</enum>
        </property>
        <item>
         <property name="text">
@@ -387,20 +354,11 @@
      </item>
      <item row="1" column="3">
       <widget class="QComboBox" name="e4000if4">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>50</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Tuner IF 4 amplification</string>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QComboBox::AdjustToContents</enum>
        </property>
        <item>
         <property name="text">
@@ -447,20 +405,11 @@
      </item>
      <item row="0" column="5">
       <widget class="QComboBox" name="e4000if5">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>50</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Tuner IF 5 amplification</string>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QComboBox::AdjustToContents</enum>
        </property>
        <item>
         <property name="text">
@@ -504,20 +453,11 @@
      </item>
      <item row="0" column="3">
       <widget class="QComboBox" name="e4000if3">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>50</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Tuner IF 3 amplification</string>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QComboBox::AdjustToContents</enum>
        </property>
        <item>
         <property name="text">
@@ -556,20 +496,11 @@
      </item>
      <item row="1" column="5">
       <widget class="QComboBox" name="e4000if6">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>50</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Tuner IF 6 amplification</string>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QComboBox::AdjustToContents</enum>
        </property>
        <item>
         <property name="text">
@@ -613,20 +544,11 @@
      </item>
      <item row="0" column="1">
       <widget class="QComboBox" name="e4000if1">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>50</width>
-         <height>16777215</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>Tuner IF 1 amplification</string>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QComboBox::AdjustToContents</enum>
        </property>
        <item>
         <property name="text">

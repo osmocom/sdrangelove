@@ -3,11 +3,20 @@
 #include "glscope.h"
 #include "../dsp/dspengine.h"
 
+#ifdef _WIN32
+double log2f(double n)
+{
+	return log(n) / log(2.0);
+}
+#endif
+
 GLScope::GLScope(QWidget* parent) :
 	QGLWidget(parent),
-	m_changed(false),
-	m_changesPending(true),
+	m_dataChanged(false),
+	m_configChanged(true),
 	m_mode(ModeIQ),
+	m_orientation(Qt::Horizontal),
+	m_displayTrace(&m_rawTrace),
 	m_oldTraceSize(-1),
 	m_sampleRate(0),
 	m_dspEngine(NULL),
@@ -42,28 +51,32 @@ void GLScope::setDSPEngine(DSPEngine* dspEngine)
 void GLScope::setAmp(Real amp)
 {
 	m_amp = amp;
-	m_changed = true;
 	update();
 }
 
 void GLScope::setTimeStep(int timeStep)
 {
 	m_timeStep = timeStep;
-	m_changed = true;
 	update();
 }
 
 void GLScope::setTimeOfsProMill(int timeOfsProMill)
 {
 	m_timeOfsProMill = timeOfsProMill;
-	m_changed = true;
 	update();
 }
 
 void GLScope::setMode(Mode mode)
 {
 	m_mode = mode;
-	m_changed = true;
+	m_dataChanged = true;
+	update();
+}
+
+void GLScope::setOrientation(Qt::Orientation orientation)
+{
+	m_orientation = orientation;
+	m_configChanged = true;
 	update();
 }
 
@@ -71,38 +84,15 @@ void GLScope::newTrace(const std::vector<Complex>& trace, int sampleRate)
 {
 	if(!m_mutex.tryLock(2))
 		return;
-	if(m_changed) {
+	if(m_dataChanged) {
 		m_mutex.unlock();
 		return;
 	}
 
-	switch(m_mode) {
-		case ModeIQ:
-			m_trace = trace;
-			break;
-
-		case ModeMagPha: {
-			m_trace.resize(trace.size());
-			std::vector<Complex>::iterator dst = m_trace.begin();
-			for(std::vector<Complex>::const_iterator src = trace.begin(); src != trace.end(); ++src)
-				*dst++ = Complex(abs(*src), arg(*src) / M_PI);
-			break;
-		}
-
-		case ModeDerived12: {
-			m_trace.resize(trace.size() - 3);
-			std::vector<Complex>::iterator dst = m_trace.begin();
-			for(uint i = 3; i < trace.size() ; i++) {
-				*dst++ = Complex(
-					abs(trace[i] - trace[i - 1]),
-					abs(trace[i] - trace[i - 1]) - abs(trace[i - 2] - trace[i - 3]));
-			}
-			break;
-		}
-	}
+	m_rawTrace = trace;
 
 	m_sampleRate = sampleRate;
-	m_changed = true;
+	m_dataChanged = true;
 
 	m_mutex.unlock();
 }
@@ -115,8 +105,7 @@ void GLScope::initializeGL()
 void GLScope::resizeGL(int width, int height)
 {
 	glViewport(0, 0, width, height);
-
-	m_changesPending = true;
+	m_configChanged = true;
 }
 
 void GLScope::paintGL()
@@ -124,12 +113,14 @@ void GLScope::paintGL()
 	if(!m_mutex.tryLock(2))
 		return;
 
-	if(m_changesPending)
-		applyChanges();
+	if(m_configChanged)
+		applyConfig();
 
-	if(m_trace.size() != m_oldTraceSize) {
-		m_oldTraceSize = m_trace.size();
-		emit traceSizeChanged(m_trace.size());
+	handleMode();
+
+	if(m_displayTrace->size() != m_oldTraceSize) {
+		m_oldTraceSize = m_displayTrace->size();
+		emit traceSizeChanged(m_displayTrace->size());
 	}
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -143,8 +134,8 @@ void GLScope::paintGL()
 
 	// draw rect around
 	glPushMatrix();
-	glTranslatef(m_glScopeRectI.x(), m_glScopeRectI.y(), 0);
-	glScalef(m_glScopeRectI.width(), m_glScopeRectI.height(), 1);
+	glTranslatef(m_glScopeRect1.x(), m_glScopeRect1.y(), 0);
+	glScalef(m_glScopeRect1.width(), m_glScopeRect1.height(), 1);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glLineWidth(1.0f);
@@ -177,8 +168,8 @@ void GLScope::paintGL()
 
 	if(m_triggerChannel == ScopeVis::TriggerChannelI) {
 		glPushMatrix();
-		glTranslatef(m_glScopeRectI.x(), m_glScopeRectI.y() + m_glScopeRectI.height() / 2.0, 0);
-		glScalef(m_glScopeRectI.width(), -(m_glScopeRectI.height() / 2) * m_amp, 1);
+		glTranslatef(m_glScopeRect1.x(), m_glScopeRect1.y() + m_glScopeRect1.height() / 2.0, 0);
+		glScalef(m_glScopeRect1.width(), -(m_glScopeRect1.height() / 2) * m_amp1, 1);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_LINE_SMOOTH);
@@ -197,24 +188,24 @@ void GLScope::paintGL()
 		glPopMatrix();
 	}
 
-	if(m_trace.size() > 0) {
+	if(m_displayTrace->size() > 0) {
 		glPushMatrix();
-		glTranslatef(m_glScopeRectI.x(), m_glScopeRectI.y() + m_glScopeRectI.height() / 2.0, 0);
-		glScalef(m_glScopeRectI.width() * (float)m_timeStep / (float)(m_trace.size() - 1), -(m_glScopeRectI.height() / 2) * m_amp, 1);
+		glTranslatef(m_glScopeRect1.x(), m_glScopeRect1.y() + m_glScopeRect1.height() / 2.0, 0);
+		glScalef(m_glScopeRect1.width() * (float)m_timeStep / (float)(m_displayTrace->size() - 1), -(m_glScopeRect1.height() / 2) * m_amp1, 1);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_LINE_SMOOTH);
 		glLineWidth(1.0f);
 		glColor4f(1, 1, 0, 0.4f);
-		int start = m_timeOfsProMill * (m_trace.size() - (m_trace.size() / m_timeStep)) / 1000;
-		int end = start + m_trace.size() / m_timeStep;
+		int start = m_timeOfsProMill * (m_displayTrace->size() - (m_displayTrace->size() / m_timeStep)) / 1000;
+		int end = start + m_displayTrace->size() / m_timeStep;
 		if(end - start < 2)
 			start--;
-		float posLimit = 1.0 / m_amp;
-		float negLimit = -1.0 / m_amp;
+		float posLimit = 1.0 / m_amp1;
+		float negLimit = -1.0 / m_amp1;
 		glBegin(GL_LINE_STRIP);
 		for(int i = start; i < end; i++) {
-			float v = m_trace[i].real();
+			float v = (*m_displayTrace)[i].real() + m_ofs1;
 			if(v > posLimit)
 				v = posLimit;
 			else if(v < negLimit)
@@ -230,8 +221,8 @@ void GLScope::paintGL()
 
 	// draw rect around
 	glPushMatrix();
-	glTranslatef(m_glScopeRectQ.x(), m_glScopeRectQ.y(), 0);
-	glScalef(m_glScopeRectQ.width(), m_glScopeRectQ.height(), 1);
+	glTranslatef(m_glScopeRect2.x(), m_glScopeRect2.y(), 0);
+	glScalef(m_glScopeRect2.width(), m_glScopeRect2.height(), 1);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glLineWidth(1.0f);
@@ -264,8 +255,8 @@ void GLScope::paintGL()
 
 	if(m_triggerChannel == ScopeVis::TriggerChannelQ) {
 		glPushMatrix();
-		glTranslatef(m_glScopeRectQ.x(), m_glScopeRectQ.y() + m_glScopeRectQ.height() / 2.0, 0);
-		glScalef(m_glScopeRectQ.width(), -(m_glScopeRectQ.height() / 2) * m_amp, 1);
+		glTranslatef(m_glScopeRect2.x(), m_glScopeRect2.y() + m_glScopeRect2.height() / 2.0, 0);
+		glScalef(m_glScopeRect2.width(), -(m_glScopeRect2.height() / 2) * m_amp2, 1);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_LINE_SMOOTH);
@@ -284,24 +275,24 @@ void GLScope::paintGL()
 		glPopMatrix();
 	}
 
-	if(m_trace.size() > 0) {
+	if(m_displayTrace->size() > 0) {
 		glPushMatrix();
-		glTranslatef(m_glScopeRectQ.x(), m_glScopeRectQ.y() + m_glScopeRectQ.height() / 2.0, 0);
-		glScalef(m_glScopeRectQ.width() * (float)m_timeStep / (float)(m_trace.size() - 1), -(m_glScopeRectQ.height() / 2) * m_amp, 1);
+		glTranslatef(m_glScopeRect2.x(), m_glScopeRect2.y() + m_glScopeRect2.height() / 2.0, 0);
+		glScalef(m_glScopeRect2.width() * (float)m_timeStep / (float)(m_displayTrace->size() - 1), -(m_glScopeRect2.height() / 2) * m_amp2, 1);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_LINE_SMOOTH);
 		glLineWidth(1.0f);
 		glColor4f(1, 1, 0, 0.4f);
-		int start = m_timeOfsProMill * (m_trace.size() - (m_trace.size() / m_timeStep)) / 1000;
-		int end = start + m_trace.size() / m_timeStep;
+		int start = m_timeOfsProMill * (m_displayTrace->size() - (m_displayTrace->size() / m_timeStep)) / 1000;
+		int end = start + m_displayTrace->size() / m_timeStep;
 		if(end - start < 2)
 			start--;
-		float posLimit = 1.0 / m_amp;
-		float negLimit = -1.0 / m_amp;
+		float posLimit = 1.0 / m_amp2;
+		float negLimit = -1.0 / m_amp2;
 		glBegin(GL_LINE_STRIP);
 		for(int i = start; i < end; i++) {
-			float v = m_trace[i].imag();
+			float v = (*m_displayTrace)[i].imag();
 			if(v > posLimit)
 				v = posLimit;
 			else if(v < negLimit)
@@ -314,12 +305,13 @@ void GLScope::paintGL()
 	}
 
 	glPopMatrix();
-	m_changed = false;
+	m_dataChanged = false;
 	m_mutex.unlock();
 }
 
 void GLScope::mousePressEvent(QMouseEvent* event)
 {
+#if 0
 	int x = event->x() - 10;
 	int y = event->y() - 10;
 	Real time;
@@ -331,7 +323,7 @@ void GLScope::mousePressEvent(QMouseEvent* event)
 		return;
 
 	if((m_sampleRate != 0) && (m_timeStep != 0) && (width() > 20))
-		time = ((Real)x * (Real)m_trace.size()) / ((Real)m_sampleRate * (Real)m_timeStep * (Real)(width() - 20));
+		time = ((Real)x * (Real)m_displayTrace->size()) / ((Real)m_sampleRate * (Real)m_timeStep * (Real)(width() - 20));
 	else time = -1.0;
 
 	if(y < (height() - 30) / 2) {
@@ -366,29 +358,103 @@ void GLScope::mousePressEvent(QMouseEvent* event)
 		m_changed = true;
 		update();
 	}
+#endif
 }
 
-void GLScope::applyChanges()
+void GLScope::handleMode()
 {
-	m_changesPending = false;
+	switch(m_mode) {
+		case ModeIQ:
+			m_displayTrace = &m_rawTrace;
+			m_amp1 = m_amp;
+			m_amp2 = m_amp;
+			m_ofs1 = 0.0;
+			m_ofs2 = 0.0;
+			break;
 
-	m_glScopeRectI = QRectF(
-		(float)10 / (float)width(),
-		(float)10 / (float)height(),
-		(float)(width() - 10 - 10) / (float)width(),
-		(float)((height() - 10 - 10 - 10) / 2) / (float)height()
-	);
+		case ModeMagLinPha: {
+			m_mathTrace.resize(m_rawTrace.size());
+			std::vector<Complex>::iterator dst = m_mathTrace.begin();
+			for(std::vector<Complex>::const_iterator src = m_rawTrace.begin(); src != m_rawTrace.end(); ++src)
+				*dst++ = Complex(abs(*src), arg(*src) / M_PI);
+			m_displayTrace = &m_mathTrace;
+			m_amp1 = m_amp;
+			m_amp2 = 1.0;
+			m_ofs1 = -1.0 / m_amp1;
+			m_ofs2 = 0.0;
+			break;
+		}
 
-	m_glScopeRectQ = QRectF(
-		(float)10 / (float)width(),
-		(float)(10 + 10 + (height() - 10 - 10 - 10) / 2) / (float)height(),
-		(float)(width() - 10 - 10) / (float)width(),
-		(float)((height() - 10 - 10 - 10) / 2) / (float)height()
-	);
+		case ModeMagdBPha: {
+			m_mathTrace.resize(m_rawTrace.size());
+			std::vector<Complex>::iterator dst = m_mathTrace.begin();
+			Real mult = (10.0f / log2f(10.0f));
+			for(std::vector<Complex>::const_iterator src = m_rawTrace.begin(); src != m_rawTrace.end(); ++src) {
+				Real v = src->real() * src->real() + src->imag() * src->imag();
+				v = (96.0 + (mult * log2f(v))) / 96.0;
+				*dst++ = Complex(v, arg(*src) / M_PI);
+			}
+			m_displayTrace = &m_mathTrace;
+			m_amp1 = 2.0 * m_amp;
+			m_amp2 = 1.0;
+			m_ofs1 = -1.0 / m_amp1;
+			m_ofs2 = 0.0;
+			break;
+		}
+
+		case ModeDerived12: {
+			m_mathTrace.resize(m_rawTrace.size() - 3);
+			std::vector<Complex>::iterator dst = m_mathTrace.begin();
+			for(uint i = 3; i < m_rawTrace.size() ; i++) {
+				*dst++ = Complex(
+					abs(m_rawTrace[i] - m_rawTrace[i - 1]),
+					abs(m_rawTrace[i] - m_rawTrace[i - 1]) - abs(m_rawTrace[i - 2] - m_rawTrace[i - 3]));
+			}
+			m_displayTrace = &m_mathTrace;
+			m_amp1 = m_amp;
+			m_amp2 = m_amp;
+			m_ofs1 = -1.0 / m_amp1;
+			m_ofs2 = 0.0;
+			break;
+		}
+	}
+}
+
+void GLScope::applyConfig()
+{
+	m_configChanged = false;
+
+	if(m_orientation == Qt::Vertical) {
+		m_glScopeRect1 = QRectF(
+			(float)10 / (float)width(),
+			(float)10 / (float)height(),
+			(float)(width() - 10 - 10) / (float)width(),
+			(float)((height() - 10 - 10 - 10) / 2) / (float)height()
+		);
+		m_glScopeRect2 = QRectF(
+			(float)10 / (float)width(),
+			(float)(10 + 10 + (height() - 10 - 10 - 10) / 2) / (float)height(),
+			(float)(width() - 10 - 10) / (float)width(),
+			(float)((height() - 10 - 10 - 10) / 2) / (float)height()
+		);
+	} else {
+		m_glScopeRect1 = QRectF(
+			(float)10 / (float)width(),
+			(float)10 / (float)height(),
+			(float)((width() - 10 - 10 - 10) / 2) / (float)width(),
+			(float)(height() - 10 - 10) / (float)height()
+		);
+		m_glScopeRect2 = QRectF(
+			(float)(10 + 10 + ((width() - 10 - 10 - 10) / 2)) / (float)width(),
+			(float)10 / (float)height(),
+			(float)((width() - 10 - 10 - 10) / 2) / (float)width(),
+			(float)(height() - 10 - 10) / (float)height()
+		);
+	}
 }
 
 void GLScope::tick()
 {
-	if(m_changed)
+	if(m_dataChanged)
 		update();
 }

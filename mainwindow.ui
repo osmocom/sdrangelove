@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>756</width>
-    <height>560</height>
+    <width>1012</width>
+    <height>706</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,6 +16,9 @@
   <property name="windowIcon">
    <iconset resource="resources/res.qrc">
     <normaloff>:/appicon.png</normaloff>:/appicon.png</iconset>
+  </property>
+  <property name="documentMode">
+   <bool>true</bool>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -39,7 +42,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>756</width>
+     <width>1012</width>
      <height>21</height>
     </rect>
    </property>
@@ -233,14 +236,14 @@
      <item row="4" column="6">
       <widget class="QLabel" name="refLevelDisplay">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
        <property name="minimumSize">
         <size>
-         <width>30</width>
+         <width>25</width>
          <height>0</height>
         </size>
        </property>
@@ -255,14 +258,14 @@
      <item row="6" column="6">
       <widget class="QLabel" name="levelRangeDisplay">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
        <property name="minimumSize">
         <size>
-         <width>30</width>
+         <width>25</width>
          <height>0</height>
         </size>
        </property>
@@ -291,14 +294,14 @@
      <item row="7" column="6">
       <widget class="QLabel" name="levelRangeDisplay_2">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
        <property name="minimumSize">
         <size>
-         <width>30</width>
+         <width>25</width>
          <height>0</height>
         </size>
        </property>
@@ -546,6 +549,9 @@
          </property>
          <property name="toolTip">
           <string>FFT window function</string>
+         </property>
+         <property name="sizeAdjustPolicy">
+          <enum>QComboBox::AdjustToMinimumContentsLength</enum>
          </property>
          <item>
           <property name="text">

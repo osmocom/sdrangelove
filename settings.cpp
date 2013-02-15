@@ -34,6 +34,7 @@ Settings& Settings::operator=(const Settings& other)
 	m_displayHistogram = other.displayHistogram();
 	m_dcOffsetCorrection = other.m_dcOffsetCorrection;
 	m_iqImbalanceCorrection = other.m_iqImbalanceCorrection;
+	m_displayScope = other.m_displayScope;
 	m_centerFrequency = other.m_centerFrequency;
 	m_sourceSettings = other.m_sourceSettings;
 	return *this;
@@ -50,6 +51,7 @@ void Settings::defaults()
 	m_displayHistogram = true;
 	m_dcOffsetCorrection = true;
 	m_iqImbalanceCorrection = true;
+	m_displayScope = true;
 	m_centerFrequency = 0;
 	m_sourceSettings.clear();
 }
@@ -68,6 +70,11 @@ void Settings::load(QSettings* settings, const QString& path)
 	m_iqImbalanceCorrection = settings->value("iqimbalancecorrection", true).toBool();
 	m_centerFrequency = settings->value("centerfrequency", 0).toLongLong();
 	m_sourceSettings = settings->value("sourcesettings", "").toString();
+
+	if(path == "") {
+		m_displayScope = settings->value("displayscope", true).toBool();
+	}
+
 	settings->endGroup();
 }
 
@@ -85,5 +92,10 @@ void Settings::save(QSettings* settings, const QString& path) const
 	settings->setValue("iqimbalancecorrection", m_iqImbalanceCorrection);
 	settings->setValue("centerfrequency", m_centerFrequency);
 	settings->setValue("sourcesettings", m_sourceSettings);
+
+	if(path == "") {
+		settings->setValue("displayscope", m_displayScope);
+	}
+
 	settings->endGroup();
 }

@@ -61,12 +61,12 @@ MainWindow::MainWindow(QWidget* parent) :
 
 	connect(&m_messageQueue, SIGNAL(messageEnqueued()), this, SLOT(handleMessages()), Qt::QueuedConnection);
 
-	loadSettings();
-
 	connect(&m_statusTimer, SIGNAL(timeout()), this, SLOT(updateStatus()));
 	m_statusTimer.start(500);
 
 	m_dspEngine.start();
+
+	loadSettings();
 
 	m_sampleSource = new OsmoSDRInput(&m_messageQueue);
 	//m_sampleSource = new RTLSDRInput(&m_messageQueue);
@@ -95,6 +95,9 @@ MainWindow::~MainWindow()
 {
 	m_dspEngine.stopAcquistion();
 
+	m_settings.setSourceSettings(m_sampleSourceGUI->serializeSettings());
+	saveSettings();
+
 	m_dspEngine.removeSink(m_spectrumVis);
 	delete m_spectrumVis;
 
@@ -102,9 +105,6 @@ MainWindow::~MainWindow()
 		delete m_scopeWindow;
 		m_scopeWindow = NULL;
 	}
-
-	m_settings.setSourceSettings(m_sampleSourceGUI->serializeSettings());
-	saveSettings();
 
 	if(m_sampleSource != NULL) {
 		m_dspEngine.setSource(NULL);
@@ -127,11 +127,14 @@ void MainWindow::loadSettings()
 		return;
 	}
 
-	// local dock layout
-	restoreState(QByteArray::fromBase64(m_settingsStorage.value("docklayout").toByteArray()));
-
 	// load current settings
 	m_settings.load(&m_settingsStorage, "");
+
+	if(m_settings.displayScope())
+		on_action_Oscilloscope_triggered();
+
+	// local dock layout
+	restoreState(QByteArray::fromBase64(m_settingsStorage.value("docklayout").toByteArray()));
 
 	// load presets
 	QStringList groups = m_settingsStorage.childGroups();
@@ -212,10 +215,12 @@ void MainWindow::createStatusBar()
 
 void MainWindow::closeEvent(QCloseEvent*)
 {
+	/*
 	if(m_scopeWindow != NULL) {
 		delete m_scopeWindow;
 		m_scopeWindow = NULL;
 	}
+	*/
 }
 
 void MainWindow::updateCenterFreqDisplay()
@@ -351,8 +356,8 @@ void MainWindow::updateStatus()
 
 void MainWindow::scopeWindowDestroyed()
 {
-	m_scopeWindow = NULL;
 	ui->action_Oscilloscope->setChecked(false);
+	m_settings.setDisplayScope(false);
 }
 
 void MainWindow::on_action_Start_triggered()
@@ -487,7 +492,7 @@ void MainWindow::on_presetSave_clicked()
 	QStringList strings;
 	strings.append(tr("%1").arg(m_centerFrequency / 1000));
 	strings.append(name);
-	PresetItem* item = new PresetItem(ui->presetTree, strings, m_settings.centerFrequency()); // FIXME
+	PresetItem* item = new PresetItem(ui->presetTree, strings, m_settings.centerFrequency());
 	item->setTextAlignment(0, Qt::AlignRight);
 	item->setData(0, Qt::UserRole, qVariantFromValue(preset));
 	ui->presetTree->sortItems(0, Qt::AscendingOrder);
@@ -533,13 +538,19 @@ void MainWindow::on_presetTree_itemActivated(QTreeWidgetItem *item, int column)
 
 void MainWindow::on_action_Oscilloscope_triggered()
 {
-	if(m_scopeWindow == NULL) {
-		m_scopeWindow = new ScopeWindow(&m_dspEngine);
-		connect(m_scopeWindow, SIGNAL(destroyed()), this, SLOT(scopeWindowDestroyed()));
-		m_scopeWindow->setSampleRate(m_sampleRate);
-		m_scopeWindow->show();
-	} else {
-		delete m_scopeWindow;
-		m_scopeWindow = NULL;
+	if(m_scopeWindow != NULL) {
+		((QWidget*)m_scopeWindow->parent())->raise();
+		return;
 	}
+
+	QDockWidget* dock = new QDockWidget(tr("Signalscope"), this);
+	dock->setObjectName(QString::fromUtf8("scopeDock"));
+	m_scopeWindow = new ScopeWindow(&m_dspEngine);
+	connect(m_scopeWindow, SIGNAL(destroyed()), this, SLOT(scopeWindowDestroyed()));
+	m_scopeWindow->setSampleRate(m_sampleRate);
+	dock->setWidget(m_scopeWindow);
+	dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+	addDockWidget(Qt::BottomDockWidgetArea, dock);
+	dock->setAttribute(Qt::WA_DeleteOnClose);
+	m_settings.setDisplayScope(true);
 }

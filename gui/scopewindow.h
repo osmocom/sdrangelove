@@ -43,6 +43,9 @@ private slots:
 	void on_timeOfs_valueChanged(int value);
 	void on_displayMode_currentIndexChanged(int index);
 
+	void on_horizView_clicked();
+	void on_vertView_clicked();
+
 private:
 	Ui::ScopeWindow *ui;
 	int m_sampleRate;

@@ -25,7 +25,6 @@ ScopeWindow::ScopeWindow(DSPEngine* dspEngine, QWidget* parent) :
 	m_timeStep(1)
 {
 	ui->setupUi(this);
-	setAttribute(Qt::WA_DeleteOnClose);
 	ui->scope->setDSPEngine(dspEngine);
 }
 
@@ -77,13 +76,36 @@ void ScopeWindow::on_displayMode_currentIndexChanged(int index)
 		case 0: // i+q
 			ui->scope->setMode(GLScope::ModeIQ);
 			break;
-		case 1: // mag+pha
-			ui->scope->setMode(GLScope::ModeMagPha);
+		case 1: // mag(lin)+pha
+			ui->scope->setMode(GLScope::ModeMagLinPha);
 			break;
-		case 2: // derived1+derived2
+		case 2: // mag(dB)+pha
+			ui->scope->setMode(GLScope::ModeMagdBPha);
+			break;
+		case 3: // derived1+derived2
 			ui->scope->setMode(GLScope::ModeDerived12);
 			break;
 		default:
 			break;
+	}
+}
+
+void ScopeWindow::on_horizView_clicked()
+{
+	if(ui->horizView->isChecked()) {
+		ui->vertView->setChecked(false);
+		ui->scope->setOrientation(Qt::Horizontal);
+	} else {
+		ui->horizView->setChecked(true);
+	}
+}
+
+void ScopeWindow::on_vertView_clicked()
+{
+	if(ui->vertView->isChecked()) {
+		ui->horizView->setChecked(false);
+		ui->scope->setOrientation(Qt::Vertical);
+	} else {
+		ui->vertView->setChecked(true);
 	}
 }

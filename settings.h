@@ -58,6 +58,9 @@ public:
 	bool iqImbalanceCorrection() const { return m_iqImbalanceCorrection; }
 	void setIQImbalanceCorrection(bool v) { m_iqImbalanceCorrection = v; }
 
+	bool displayScope() const { return m_displayScope; }
+	void setDisplayScope(bool v) { m_displayScope = v; }
+
 	quint64 centerFrequency() const { return m_centerFrequency; }
 	void setCenterFrequency(quint64 v) { m_centerFrequency = v; }
 
@@ -74,6 +77,7 @@ private:
 	bool m_displayHistogram;
 	bool m_dcOffsetCorrection;
 	bool m_iqImbalanceCorrection;
+	bool m_displayScope;
 	quint64 m_centerFrequency;
 	QString m_sourceSettings;
 };

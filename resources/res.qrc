@@ -7,5 +7,7 @@
         <file>preset-load.png</file>
         <file>preset-save.png</file>
         <file>preset-delete.png</file>
+        <file>horizontal.png</file>
+        <file>vertical.png</file>
     </qresource>
 </RCC>

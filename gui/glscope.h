@@ -34,7 +34,8 @@ class GLScope: public QGLWidget {
 public:
 	enum Mode {
 		ModeIQ,
-		ModeMagPha,
+		ModeMagLinPha,
+		ModeMagdBPha,
 		ModeDerived12
 	};
 
@@ -46,10 +47,11 @@ public:
 	void setTimeStep(int timeStep);
 	void setTimeOfsProMill(int timeOfsProMill);
 	void setMode(Mode mode);
+	void setOrientation(Qt::Orientation orientation);
 
 	void newTrace(const std::vector<Complex>& trace, int sampleRate);
 
-	int getTraceSize() const { return m_trace.size(); }
+	int getTraceSize() const { return m_rawTrace.size(); }
 
 signals:
 	void traceSizeChanged(int);
@@ -58,14 +60,21 @@ private:
 	// state
 	QTimer m_timer;
 	QMutex m_mutex;
-	bool m_changed;
-	bool m_changesPending;
+	bool m_dataChanged;
+	bool m_configChanged;
 	Mode m_mode;
+	Qt::Orientation m_orientation;
 
 	// traces
-	std::vector<Complex> m_trace;
+	std::vector<Complex> m_rawTrace;
+	std::vector<Complex> m_mathTrace;
+	std::vector<Complex>* m_displayTrace;
 	int m_oldTraceSize;
 	int m_sampleRate;
+	Real m_amp1;
+	Real m_amp2;
+	Real m_ofs1;
+	Real m_ofs2;
 
 	// sample sink
 	DSPEngine* m_dspEngine;
@@ -80,8 +89,8 @@ private:
 	Real m_triggerLevelLow;
 
 	// graphics stuff
-	QRectF m_glScopeRectI;
-	QRectF m_glScopeRectQ;
+	QRectF m_glScopeRect1;
+	QRectF m_glScopeRect2;
 
 	void initializeGL();
 	void resizeGL(int width, int height);
@@ -89,7 +98,8 @@ private:
 
 	void mousePressEvent(QMouseEvent*);
 
-	void applyChanges();
+	void handleMode();
+	void applyConfig();
 
 protected slots:
 	void tick();
