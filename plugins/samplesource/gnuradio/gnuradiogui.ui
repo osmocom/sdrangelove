@@ -6,9 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>254</width>
-    <height>239</height>
-    <height>287</height>
+    <width>252</width>
+    <height>268</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -355,7 +354,13 @@
      </item>
     </layout>
    </item>
-
+   <item>
+    <widget class="Line" name="line_7">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_8">
      <property name="spacing">
@@ -373,14 +378,6 @@
      </item>
     </layout>
    </item>
-   <item>
-    <widget class="Line" name="line_8">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-
   </layout>
  </widget>
  <customwidgets>
