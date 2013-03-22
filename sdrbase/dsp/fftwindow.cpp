@@ -15,30 +15,59 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QWindowsStyle>
-#include "mainwindow.h"
+#include "dsp/fftwindow.h"
 
-static int runQtApplication(int argc, char* argv[])
+void FFTWindow::create(Function function, int n)
 {
-	QApplication a(argc, argv);
+	Real (*wFunc)(Real n, Real i);
 
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+	m_window.clear();
 
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
+	switch(function) {
+		case Flattop:
+			wFunc = flatTop;
+			break;
 
-	QApplication::setStyle(new QWindowsStyle);
+		case Bartlett:
+			wFunc = bartlett;
+			break;
 
-	MainWindow w;
-	w.show();
+		case BlackmanHarris:
+			wFunc = blackmanHarris;
+			break;
 
-	return a.exec();
+		case Hamming:
+			wFunc = hamming;
+			break;
+
+		case Hanning:
+			wFunc = hanning;
+			break;
+
+		case Rectangle:
+		default:
+			wFunc = rectangle;
+			break;
+	}
+
+	for(int i = 0; i < n; i++)
+		m_window.push_back(wFunc(n, i));
 }
 
-int main(int argc, char* argv[])
+void FFTWindow::apply(const std::vector<Real>& in, std::vector<Real>* out)
 {
-	return runQtApplication(argc, argv);
+	for(size_t i = 0; i < m_window.size(); i++)
+		(*out)[i] = in[i] * m_window[i];
+}
+
+void FFTWindow::apply(const std::vector<Complex>& in, std::vector<Complex>* out)
+{
+	for(size_t i = 0; i < m_window.size(); i++)
+		(*out)[i] = in[i] * m_window[i];
+}
+
+void FFTWindow::apply(const Complex* in, Complex* out)
+{
+	for(size_t i = 0; i < m_window.size(); i++)
+		out[i] = in[i] * m_window[i];
 }

@@ -15,30 +15,52 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QWindowsStyle>
-#include "mainwindow.h"
+#ifndef INCLUDE_SCOPEWINDOW_H
+#define INCLUDE_SCOPEWINDOW_H
 
-static int runQtApplication(int argc, char* argv[])
-{
-	QApplication a(argc, argv);
+#include <QWidget>
+#include "dsp/dsptypes.h"
 
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+class DSPEngine;
 
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
-
-	QApplication::setStyle(new QWindowsStyle);
-
-	MainWindow w;
-	w.show();
-
-	return a.exec();
+namespace Ui {
+	class ScopeWindow;
 }
 
-int main(int argc, char* argv[])
-{
-	return runQtApplication(argc, argv);
-}
+class ScopeWindow : public QWidget {
+	Q_OBJECT
+
+public:
+	explicit ScopeWindow(DSPEngine* dspEngine, QWidget* parent = NULL);
+	~ScopeWindow();
+
+	void setSampleRate(int sampleRate);
+
+	void resetToDefaults();
+	QByteArray serialize() const;
+	bool deserialize(const QByteArray& data);
+
+private slots:
+	void on_amp_valueChanged(int value);
+	void on_scope_traceSizeChanged(int value);
+	void on_time_valueChanged(int value);
+	void on_timeOfs_valueChanged(int value);
+	void on_displayMode_currentIndexChanged(int index);
+
+	void on_horizView_clicked();
+	void on_vertView_clicked();
+
+private:
+	Ui::ScopeWindow *ui;
+	int m_sampleRate;
+
+	qint32 m_displayData;
+	qint32 m_displayOrientation;
+	qint32 m_timeBase;
+	qint32 m_timeOffset;
+	qint32 m_amplification;
+
+	void applySettings();
+};
+
+#endif // INCLUDE_SCOPEWINDOW_H

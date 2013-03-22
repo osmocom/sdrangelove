@@ -15,30 +15,54 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QWindowsStyle>
-#include "mainwindow.h"
+#ifndef INCLUDE_SAMPLEFIFO_H
+#define INCLUDE_SAMPLEFIFO_H
 
-static int runQtApplication(int argc, char* argv[])
-{
-	QApplication a(argc, argv);
+#include <QObject>
+#include <QMutex>
+#include <QTime>
+#include "dsp/dsptypes.h"
 
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+class SampleFifo : public QObject {
+	Q_OBJECT
 
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
+private:
+	QMutex m_mutex;
+	QTime m_msgRateTimer;
+	int m_suppressed;
 
-	QApplication::setStyle(new QWindowsStyle);
+	SampleVector m_data;
 
-	MainWindow w;
-	w.show();
+	uint m_size;
+	uint m_fill;
+	uint m_head;
+	uint m_tail;
 
-	return a.exec();
-}
+	void create(uint s);
 
-int main(int argc, char* argv[])
-{
-	return runQtApplication(argc, argv);
-}
+public:
+	SampleFifo(QObject* parent = NULL);
+	SampleFifo(int size, QObject* parent = NULL);
+	~SampleFifo();
+
+	SampleFifo(const SampleFifo&);
+	SampleFifo& operator=(const SampleFifo&);
+
+	bool setSize(int size);
+	inline uint fill() const { return m_fill; }
+
+	uint write(const quint8* data, uint count);
+	uint write(SampleVector::const_iterator begin, SampleVector::const_iterator end);
+
+	uint read(SampleVector::iterator begin, SampleVector::iterator end);
+
+	uint readBegin(uint count,
+		SampleVector::iterator* part1Begin, SampleVector::iterator* part1End,
+		SampleVector::iterator* part2Begin, SampleVector::iterator* part2End);
+	uint readCommit(uint count);
+
+signals:
+	void dataReady();
+};
+
+#endif // INCLUDE_SAMPLEFIFO_H

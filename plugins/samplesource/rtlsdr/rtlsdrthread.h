@@ -15,30 +15,53 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QWindowsStyle>
-#include "mainwindow.h"
+#ifndef INCLUDE_RTLSDRTHREAD_H
+#define INCLUDE_RTLSDRTHREAD_H
 
-static int runQtApplication(int argc, char* argv[])
-{
-	QApplication a(argc, argv);
+#include <QThread>
+#include <QMutex>
+#include <QWaitCondition>
+#include <rtl-sdr.h>
+#include "dsp/samplefifo.h"
+#include "dsp/inthalfbandfilter.h"
 
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+class RTLSDRThread : public QThread {
+	Q_OBJECT
 
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
+public:
+	RTLSDRThread(rtlsdr_dev_t* dev, SampleFifo* sampleFifo, QObject* parent = NULL);
+	~RTLSDRThread();
 
-	QApplication::setStyle(new QWindowsStyle);
+	void startWork();
+	void stopWork();
 
-	MainWindow w;
-	w.show();
+	void setDecimation(int decimation);
 
-	return a.exec();
-}
+private:
+	QMutex m_startWaitMutex;
+	QWaitCondition m_startWaiter;
+	bool m_running;
 
-int main(int argc, char* argv[])
-{
-	return runQtApplication(argc, argv);
-}
+	rtlsdr_dev_t* m_dev;
+	SampleVector m_convertBuffer;
+	SampleFifo* m_sampleFifo;
+
+	int m_decimation;
+
+	IntHalfbandFilter m_decimator2;
+	IntHalfbandFilter m_decimator4;
+	IntHalfbandFilter m_decimator8;
+	IntHalfbandFilter m_decimator16;
+
+	void run();
+
+	void decimate2(SampleVector::iterator* it, const quint8* buf, qint32 len);
+	void decimate4(SampleVector::iterator* it, const quint8* buf, qint32 len);
+	void decimate8(SampleVector::iterator* it, const quint8* buf, qint32 len);
+	void decimate16(SampleVector::iterator* it, const quint8* buf, qint32 len);
+	void callback(const quint8* buf, qint32 len);
+
+	static void callbackHelper(unsigned char* buf, uint32_t len, void* ctx);
+};
+
+#endif // INCLUDE_RTLSDRTHREAD_H

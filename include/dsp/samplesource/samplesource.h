@@ -15,30 +15,46 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QWindowsStyle>
-#include "mainwindow.h"
+#ifndef INCLUDE_SAMPLESOURCE_H
+#define INCLUDE_SAMPLESOURCE_H
 
-static int runQtApplication(int argc, char* argv[])
-{
-	QApplication a(argc, argv);
+#include <QtGlobal>
+#include "dsp/samplefifo.h"
+#include "util/message.h"
 
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+class PluginGUI;
+class MessageQueue;
 
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
+class SampleSource {
+public:
+	struct GeneralSettings {
+		quint64 m_centerFrequency;
 
-	QApplication::setStyle(new QWindowsStyle);
+		GeneralSettings();
+		void resetToDefaults();
+		QByteArray serialize() const;
+		bool deserialize(const QByteArray& data);
+	};
 
-	MainWindow w;
-	w.show();
+	SampleSource(MessageQueue* guiMessageQueue);
+	virtual ~SampleSource();
 
-	return a.exec();
-}
+	virtual bool startInput(int device) = 0;
+	virtual void stopInput() = 0;
 
-int main(int argc, char* argv[])
-{
-	return runQtApplication(argc, argv);
-}
+	virtual const QString& getDeviceDescription() const = 0;
+	virtual int getSampleRate() const = 0;
+	virtual quint64 getCenterFrequency() const = 0;
+
+	virtual bool handleMessage(Message* message) = 0;
+
+	SampleFifo* getSampleFifo() { return &m_sampleFifo; }
+
+protected:
+	SampleFifo m_sampleFifo;
+	MessageQueue* m_guiMessageQueue;
+
+	GeneralSettings m_generalSettings;
+};
+
+#endif // INCLUDE_SAMPLESOURCE_H

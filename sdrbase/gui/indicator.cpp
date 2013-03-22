@@ -15,30 +15,41 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QWindowsStyle>
-#include "mainwindow.h"
+#include <QPainter>
+#include "gui/indicator.h"
 
-static int runQtApplication(int argc, char* argv[])
+void Indicator::paintEvent(QPaintEvent*)
 {
-	QApplication a(argc, argv);
+	QPainter painter(this);
 
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+	painter.setPen(Qt::black);
+	painter.setBrush(m_color);
 
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
-
-	QApplication::setStyle(new QWindowsStyle);
-
-	MainWindow w;
-	w.show();
-
-	return a.exec();
+	painter.drawRect(0, 0, 18, 15);
+	painter.drawText(0, 0, 19, 16, Qt::AlignCenter | Qt::AlignHCenter, m_text);
 }
 
-int main(int argc, char* argv[])
+QSize Indicator::sizeHint() const
 {
-	return runQtApplication(argc, argv);
+	return QSize(20, 16);
+}
+
+Indicator::Indicator(const QString& text, QWidget* parent) :
+	QWidget(parent),
+	m_color(Qt::gray),
+	m_text(text)
+{
+	setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+	QFont f = font();
+	f.setPixelSize(8);
+	setFont(f);
+}
+
+void Indicator::setColor(const QColor& color)
+{
+	if(m_color != color) {
+		m_color = color;
+		update();
+	}
 }

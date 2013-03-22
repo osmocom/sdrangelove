@@ -15,30 +15,56 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QWindowsStyle>
-#include "mainwindow.h"
+#include <QtGlobal>
+#include <stdio.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include "dsp/nco.h"
 
-static int runQtApplication(int argc, char* argv[])
+Real NCO::m_table[NCO::TableSize];
+bool NCO::m_tableInitialized = false;
+
+void NCO::initTable()
 {
-	QApplication a(argc, argv);
+	if(m_tableInitialized)
+		return;
 
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+	for(int i = 0; i < TableSize; i++)
+		m_table[i] = cos((2.0 * M_PI * i) / TableSize);
 
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
-
-	QApplication::setStyle(new QWindowsStyle);
-
-	MainWindow w;
-	w.show();
-
-	return a.exec();
+	m_tableInitialized = true;
 }
 
-int main(int argc, char* argv[])
+NCO::NCO()
 {
-	return runQtApplication(argc, argv);
+	initTable();
+	m_phase = 0;
+}
+
+void NCO::setFreq(Real freq, Real sampleRate)
+{
+	m_phaseIncrement = (freq * TableSize) / sampleRate;
+	qDebug("NCO phase inc %d", m_phaseIncrement);
+}
+
+float NCO::next()
+{
+	m_phase += m_phaseIncrement;
+	while(m_phase >= TableSize)
+		m_phase -= TableSize;
+	while(m_phase < 0)
+		m_phase += TableSize;
+
+	return m_table[m_phase];
+}
+
+Complex NCO::nextIQ()
+{
+	m_phase += m_phaseIncrement;
+	while(m_phase >= TableSize)
+		m_phase -= TableSize;
+	while(m_phase < 0)
+		m_phase += TableSize;
+
+	return Complex(m_table[m_phase], -m_table[(m_phase + TableSize / 4) % TableSize]);
 }

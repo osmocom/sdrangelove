@@ -11,163 +11,178 @@ find_package(Qt4 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(PkgConfig)
 
-find_package(LibOsmoSDR REQUIRED)
-find_package(LibRTLSDR REQUIRED)
 find_package(Portaudio REQUIRED)
 find_package(LibUSB REQUIRED)
 find_package(FFTW3F)
 
-set(sdrangelove_SOURCES
-	main.cpp
-	mainwindow.cpp
-	preset.cpp
-	settings.cpp
+##############################################################################
 
-	dsp/channelizer.cpp
-	dsp/dspcommands.cpp
-	dsp/dspengine.cpp
-	dsp/fftengine.cpp
-	dsp/fftwindow.cpp
-	dsp/interpolator.cpp
-	dsp/inthalfbandfilter.cpp
-	dsp/lowpass.cpp
-	dsp/nco.cpp
-	dsp/nfmdemod.cpp
-	dsp/pidcontroller.cpp
-	dsp/samplesink.cpp
-	dsp/scopevis.cpp
-	dsp/spectrumvis.cpp
+include(${QT_USE_FILE})
+add_definitions(${QT_DEFINITIONS})
 
-	gui/glscope.cpp
-	gui/glspectrum.cpp
-	gui/indicator.cpp
-	gui/presetitem.cpp
-	gui/scale.cpp
-	gui/scaleengine.cpp
-	gui/scopewindow.cpp
-	gui/valuedial.cpp
+##############################################################################
 
-	hardware/audiofifo.cpp
-	hardware/audiooutput.cpp
-	hardware/samplefifo.cpp
-	hardware/samplesource.cpp
-	hardware/samplesourcegui.cpp
-	hardware/soundcardinfo.cpp
+set(sdrbase_SOURCES
+	sdrbase/mainwindow.cpp
 
-	hardware/osmosdr/osmosdrgui.cpp
-	hardware/osmosdr/osmosdrinput.cpp
-	hardware/osmosdr/osmosdrthread.cpp
-	hardware/osmosdr/osmosdrupgrade.cpp
+	sdrbase/audio/audiodeviceinfo.cpp
+	sdrbase/audio/audiofifo.cpp
+	sdrbase/audio/audiooutput.cpp
+	sdrbase/audio/portaudioholder.cpp
 
-	hardware/rtlsdr/rtlsdrgui.cpp
-	hardware/rtlsdr/rtlsdrinput.cpp
-	hardware/rtlsdr/rtlsdrthread.cpp
+	sdrbase/dsp/channelizer.cpp
+	sdrbase/dsp/channelmarker.cpp
+	sdrbase/dsp/dspcommands.cpp
+	sdrbase/dsp/dspengine.cpp
+	sdrbase/dsp/fftengine.cpp
+	sdrbase/dsp/fftwindow.cpp
+	sdrbase/dsp/interpolator.cpp
+	sdrbase/dsp/inthalfbandfilter.cpp
+	sdrbase/dsp/lowpass.cpp
+	sdrbase/dsp/nco.cpp
+	sdrbase/dsp/pidcontroller.cpp
+	sdrbase/dsp/samplefifo.cpp
+	sdrbase/dsp/samplesink.cpp
+	sdrbase/dsp/scopevis.cpp
+	sdrbase/dsp/spectrumvis.cpp
+	sdrbase/dsp/threadedsamplesink.cpp
 
-	util/message.cpp
-	util/messagequeue.cpp
-	util/miniz.cpp
-	util/spinlock.cpp
+	sdrbase/gui/addpresetdialog.cpp
+	sdrbase/gui/glscope.cpp
+	sdrbase/gui/glspectrum.cpp
+	sdrbase/gui/glspectrumgui.cpp
+	sdrbase/gui/indicator.cpp
+	sdrbase/gui/pluginsdialog.cpp
+	sdrbase/gui/preferencesdialog.cpp
+	sdrbase/gui/presetitem.cpp
+	sdrbase/gui/scale.cpp
+	sdrbase/gui/scaleengine.cpp
+	sdrbase/gui/scopewindow.cpp
+	sdrbase/gui/valuedial.cpp
+
+	sdrbase/dsp/samplesource/samplesource.cpp
+
+	sdrbase/plugin/pluginapi.cpp
+	sdrbase/plugin/plugingui.cpp
+	sdrbase/plugin/plugininterface.cpp
+	sdrbase/plugin/pluginmanager.cpp
+
+	sdrbase/settings/preferences.cpp
+	sdrbase/settings/preset.cpp
+	sdrbase/settings/settings.cpp
+
+	sdrbase/util/message.cpp
+	sdrbase/util/messagequeue.cpp
+	sdrbase/util/miniz.cpp
+	sdrbase/util/simpleserializer.cpp
+	sdrbase/util/spinlock.cpp
 )
 
-set(sdrangelove_HEADERS
-	mainwindow.h
-	preset.h
-	settings.h
+set(sdrbase_HEADERS
+	include-gpl/mainwindow.h
 
-	dsp/channelizer.h
-	dsp/dspcommands.h
-	dsp/dspengine.h
-	dsp/dsptypes.h
-	dsp/fftengine.h
-	dsp/fftwindow.h
-	dsp/interpolator.h
-	dsp/inthalfbandfilter.h
-	dsp/lowpass.h
-	dsp/nco.h
-	dsp/nfmdemod.h
-	dsp/pidcontroller.h
-	dsp/samplesink.h
-	dsp/scopevis.h
-	dsp/spectrumvis.h
+	include-gpl/audio/audiodeviceinfo.h
+	include-gpl/audio/audiofifo.h
+	include-gpl/audio/audiooutput.h
+	include-gpl/audio/portaudioholder.h
 
-	gui/glscope.h
-	gui/glspectrum.h
-	gui/indicator.h
-	gui/physicalunit.h
-	gui/presetitem.h
-	gui/scale.h
-	gui/scaleengine.h
-	gui/scopewindow.h
-	gui/valuedial.h
+	include-gpl/dsp/channelizer.h
+	include/dsp/channelmarker.h
+	include-gpl/dsp/dspcommands.h
+	include-gpl/dsp/dspengine.h
+	include/dsp/dsptypes.h
+	include-gpl/dsp/fftengine.h
+	include-gpl/dsp/fftwindow.h
+	include-gpl/dsp/interpolator.h
+	include-gpl/dsp/inthalfbandfilter.h
+	include-gpl/dsp/lowpass.h
+	include-gpl/dsp/nco.h
+	sdrbase/dsp/pidcontroller.h
+	include/dsp/samplefifo.h
+	include/dsp/samplesink.h
+	include-gpl/dsp/scopevis.h
+	include-gpl/dsp/spectrumvis.h
+	include/dsp/threadedsamplesink.h
 
-	hardware/audiofifo.h
-	hardware/audiooutput.h
-	hardware/samplefifo.h
-	hardware/samplesource.h
-	hardware/samplesourcegui.h
-	hardware/soundcardinfo.h
+	include-gpl/gui/addpresetdialog.h
+	include-gpl/gui/glscope.h
+	include-gpl/gui/glspectrum.h
+	include-gpl/gui/glspectrumgui.h
+	include-gpl/gui/indicator.h
+	include-gpl/gui/physicalunit.h
+	include-gpl/gui/pluginsdialog.h
+	include-gpl/gui/preferencesdialog.h
+	include-gpl/gui/presetitem.h
+	include-gpl/gui/scale.h
+	include-gpl/gui/scaleengine.h
+	include-gpl/gui/scopewindow.h
+	include-gpl/gui/valuedial.h
 
-	hardware/osmosdr/osmosdrgui.h
-	hardware/osmosdr/osmosdrinput.h
-	hardware/osmosdr/osmosdrthread.h
-	hardware/osmosdr/osmosdrupgrade.h
+	include/dsp/samplesource/samplesource.h
 
-	hardware/rtlsdr/rtlsdrgui.h
-	hardware/rtlsdr/rtlsdrinput.h
-	hardware/rtlsdr/rtlsdrthread.h
+	include/plugin/pluginapi.h
+	include/plugin/plugingui.h
+	include/plugin/plugininterface.h
+	include-gpl/plugin/pluginmanager.h
 
-	util/message.h
-	util/messagequeue.h
-	util/miniz.h
-	util/spinlock.h
+	include-gpl/settings/preferences.h
+	include-gpl/settings/preset.h
+	include-gpl/settings/settings.h
+
+	include/util/message.h
+	include/util/messagequeue.h
+	include/util/miniz.h
+	include/util/simpleserializer.h
+	include/util/spinlock.h
 )
 
-set(sdrangelove_FORMS
-	mainwindow.ui
-
-	gui/scopewindow.ui
-
-	hardware/osmosdr/osmosdrgui.ui
-	hardware/osmosdr/osmosdrupgrade.ui
-
-	hardware/rtlsdr/rtlsdrgui.ui
+set(sdrbase_SOURCES
+	${sdrbase_SOURCES}
+	${sdrbase_HEADERS}
 )
 
-set(sdrangelove_RESOURCES
-	resources/res.qrc
+set(sdrbase_FORMS
+	sdrbase/mainwindow.ui
+
+	sdrbase/gui/addpresetdialog.ui
+	sdrbase/gui/glspectrumgui.ui
+	sdrbase/gui/pluginsdialog.ui
+	sdrbase/gui/preferencesdialog.ui
+	sdrbase/gui/scopewindow.ui
+)
+
+set(sdrbase_RESOURCES
+	sdrbase/resources/res.qrc
 )
 
 include_directories(
-	.
-	portaudio/include
 	${CMAKE_CURRENT_BINARY_DIR}
+	${CMAKE_SOURCE_DIR}/include
+	${CMAKE_SOURCE_DIR}/include-gpl
 	${OPENGL_INCLUDE_DIR}
-	${LIBOSMOSDR_INCLUDE_DIR}
-	${LIBRTLSDR_INCLUDE_DIR}
 	${PORTAUDIO_INCLUDE_DIRS}
-	${LIBUSB_INCLUDE_DIR}
 )
 
 if(FFTW3F_FOUND)
-	set(sdrangelove_SOURCES
-		${sdrangelove_SOURCES}
-		dsp/fftwengine.cpp
+	set(sdrbase_SOURCES
+		${sdrbase_SOURCES}
+		sdrbase/dsp/fftwengine.cpp
 	)
-	set(sdrangelove_HEADERS
-		${sdrangelove_HEADERS}
-		dsp/fftwengine.h
+	set(sdrbase_HEADERS
+		${sdrbase_HEADERS}
+		include-gpl/dsp/fftwengine.h
 	)
 	add_definitions(-DUSE_FFTW)
 	include_directories(${FFTW3F_INCLUDE_DIRS})
 else(FFTW3F_FOUND)
-	set(sdrangelove_SOURCES
-		${sdrangelove_SOURCES}
-		dsp/kissengine.cpp
-		dsp/kissfft.h
+	set(sdrbase_SOURCES
+		${sdrbase_SOURCES}
+		sdrbase/dsp/kissengine.cpp
+		include/dsp/kissfft.h
 	)
-	set(sdrangelove_HEADERS
-		${sdrangelove_HEADERS}
-		dsp/kissengine.h
+	set(sdrbase_HEADERS
+		${sdrbase_HEADERS}
+		include-gpl/dsp/kissengine.h
 	)
 	add_definitions(-DUSE_KISSFFT)
 endif(FFTW3F_FOUND)
@@ -175,9 +190,37 @@ endif(FFTW3F_FOUND)
 include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
-qt4_wrap_cpp(sdrangelove_HEADERS_MOC ${sdrangelove_HEADERS})
-qt4_wrap_ui(sdrangelove_FORMS_HEADERS ${sdrangelove_FORMS})
-qt4_add_resources(sdrangelove_RESOURCES_RCC ${sdrangelove_RESOURCES})
+qt4_wrap_cpp(sdrbase_HEADERS_MOC ${sdrbase_HEADERS})
+qt4_wrap_ui(sdrbase_FORMS_HEADERS ${sdrbase_FORMS})
+qt4_add_resources(sdrbase_RESOURCES_RCC ${sdrbase_RESOURCES})
+
+if(WIN32)
+	SET(sdrbase_SOURCES ${sdrbase_SOURCES} resources/sdrbase.rc)
+endif(WIN32)
+
+add_library(sdrbase SHARED
+	${sdrbase_SOURCES}
+	${sdrbase_HEADERS_MOC}
+	${sdrbase_FORMS_HEADERS}
+	${sdrbase_RESOURCES_RCC}
+)
+
+target_link_libraries(sdrbase
+	${QT_LIBRARIES}
+	${OPENGL_LIBRARIES}
+	${PORTAUDIO_LIBRARIES}
+	${LIBUSB_LIBRARIES}
+)
+
+if(FFTW3F_FOUND)
+	target_link_libraries(sdrbase ${FFTW3F_LIBRARIES})
+endif(FFTW3F_FOUND)
+
+##############################################################################
+
+set(sdrangelove_SOURCES
+	main.cpp
+)
 
 if(WIN32)
 	SET(sdrangelove_SOURCES ${sdrangelove_SOURCES} resources/sdrangelove.rc)
@@ -185,23 +228,13 @@ endif(WIN32)
 
 add_executable(sdrangelove
 	${sdrangelove_SOURCES}
-	${sdrangelove_HEADERS_MOC}
-	${sdrangelove_FORMS_HEADERS}
-	${sdrangelove_RESOURCES_RCC}
 )
 
 target_link_libraries(sdrangelove
+	sdrbase
 	${QT_LIBRARIES}
 	${OPENGL_LIBRARIES}
-	${LIBOSMOSDR_LIBRARIES}
-	${LIBRTLSDR_LIBRARIES}
-	${PORTAUDIO_LIBRARIES}
-	${LIBUSB_LIBRARIES}
 )
-
-if(FFTW3F_FOUND)
-	target_link_libraries(sdrangelove ${FFTW3F_LIBRARIES})
-endif(FFTW3F_FOUND)
 
 if(WIN32)
 	set_target_properties(sdrangelove PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:CONSOLE")
@@ -211,3 +244,7 @@ if(WIN32)
 	set_target_properties(sdrangelove PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 	set_target_properties(sdrangelove PROPERTIES LINK_FLAGS_MINSIZEREL "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 endif(WIN32)
+
+##############################################################################
+
+add_subdirectory(plugins)

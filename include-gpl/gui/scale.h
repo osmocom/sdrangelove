@@ -15,30 +15,22 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QWindowsStyle>
-#include "mainwindow.h"
+#include <QWidget>
+#include "gui/scaleengine.h"
 
-static int runQtApplication(int argc, char* argv[])
-{
-	QApplication a(argc, argv);
+class Scale : public QWidget {
+	Q_OBJECT
 
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+public:
+	Scale(QWidget* parent = NULL);
 
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
+	void setOrientation(Qt::Orientation orientation);
+	void setRange(Unit::Physical physicalUnit, float rangeMin, float rangeMax);
 
-	QApplication::setStyle(new QWindowsStyle);
+private:
+	Qt::Orientation m_orientation;
+	ScaleEngine m_scaleEngine;
 
-	MainWindow w;
-	w.show();
-
-	return a.exec();
-}
-
-int main(int argc, char* argv[])
-{
-	return runQtApplication(argc, argv);
-}
+	void paintEvent(QPaintEvent*);
+	void resizeEvent(QResizeEvent*);
+};

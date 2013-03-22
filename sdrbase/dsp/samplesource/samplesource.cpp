@@ -15,30 +15,50 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QWindowsStyle>
-#include "mainwindow.h"
+#include "dsp/samplesource/samplesource.h"
+#include "util/simpleserializer.h"
 
-static int runQtApplication(int argc, char* argv[])
+SampleSource::GeneralSettings::GeneralSettings() :
+	m_centerFrequency(100000000)
 {
-	QApplication a(argc, argv);
-
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
-
-	QApplication::setStyle(new QWindowsStyle);
-
-	MainWindow w;
-	w.show();
-
-	return a.exec();
 }
 
-int main(int argc, char* argv[])
+void SampleSource::GeneralSettings::resetToDefaults()
 {
-	return runQtApplication(argc, argv);
+	m_centerFrequency = 100000000;
+}
+
+QByteArray SampleSource::GeneralSettings::serialize() const
+{
+	SimpleSerializer s(1);
+	s.writeU64(1, m_centerFrequency);
+	return s.final();
+}
+
+bool SampleSource::GeneralSettings::deserialize(const QByteArray& data)
+{
+	SimpleDeserializer d(data);
+
+	if(!d.isValid()) {
+		resetToDefaults();
+		return false;
+	}
+
+	if(d.getVersion() == 1) {
+		d.readU64(1, &m_centerFrequency, 100000000);
+		return true;
+	} else {
+		resetToDefaults();
+		return false;
+	}
+}
+
+SampleSource::SampleSource(MessageQueue* guiMessageQueue) :
+	m_sampleFifo(),
+	m_guiMessageQueue(guiMessageQueue)
+{
+}
+
+SampleSource::~SampleSource()
+{
 }

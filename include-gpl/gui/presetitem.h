@@ -15,30 +15,13 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QWindowsStyle>
-#include "mainwindow.h"
+#include <QTreeWidgetItem>
 
-static int runQtApplication(int argc, char* argv[])
-{
-	QApplication a(argc, argv);
+class PresetItem : public QTreeWidgetItem {
+public:
+	PresetItem(QTreeWidgetItem* parent, const QStringList& strings, quint64 frequency, int type);
+	bool operator<(const QTreeWidgetItem& other) const;
 
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
-
-	QApplication::setStyle(new QWindowsStyle);
-
-	MainWindow w;
-	w.show();
-
-	return a.exec();
-}
-
-int main(int argc, char* argv[])
-{
-	return runQtApplication(argc, argv);
-}
+private:
+	quint64 m_frequency;
+};

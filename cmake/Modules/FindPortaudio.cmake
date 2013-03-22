@@ -6,27 +6,27 @@
 #  PORTAUDIO_LIBRARIES - Link these to use Portaudio
 
 include(FindPkgConfig)
-pkg_check_modules(PC_PORTAUDIO portaudio)
+pkg_check_modules(PC_PORTAUDIO portaudio-2.0)
 
 find_path(PORTAUDIO_INCLUDE_DIRS
   NAMES
-    portaudio.h
+	portaudio.h
   PATHS
-      /usr/local/include
-      /usr/include
+	  /usr/local/include
+	  /usr/include
   HINTS
-    ${PC_PORTAUDIO_INCLUDE_DIR}
+	${PC_PORTAUDIO_INCLUDE_DIR}
 )
 
 find_library(PORTAUDIO_LIBRARIES
   NAMES
-    portaudio
+	portaudio
   PATHS
-      /usr/local/lib
-      /usr/lib
-      /usr/lib64
+	  /usr/local/lib
+	  /usr/lib
+	  /usr/lib64
   HINTS
-    ${PC_PORTAUDIO_LIBDIR}
+	${PC_PORTAUDIO_LIBDIR}
 )
 
 mark_as_advanced(PORTAUDIO_INCLUDE_DIRS PORTAUDIO_LIBRARIES)

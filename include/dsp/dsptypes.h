@@ -15,30 +15,40 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QWindowsStyle>
-#include "mainwindow.h"
+#ifndef INCLUDE_DSPTYPES_H
+#define INCLUDE_DSPTYPES_H
 
-static int runQtApplication(int argc, char* argv[])
-{
-	QApplication a(argc, argv);
+#include <complex>
+#include <vector>
+#include <QtGlobal>
 
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+typedef float Real;
+typedef std::complex<Real> Complex;
 
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
+typedef qint16 FixReal;
 
-	QApplication::setStyle(new QWindowsStyle);
+#pragma pack(push, 1)
+struct Sample {
+	Sample() {}
+	Sample(FixReal real) : m_real(real), m_imag(0) {}
+	Sample(FixReal real, FixReal imag) : m_real(real), m_imag(imag) {}
+	Sample(const Sample& other) : m_real(other.m_real), m_imag(other.m_imag) {}
+	Sample& operator=(const Sample& other) { m_real = other.m_real; m_imag = other.m_imag; return *this; }
 
-	MainWindow w;
-	w.show();
+	Sample& operator+=(const Sample& other) { m_real += other.m_real; m_imag += other.m_imag; return *this; }
+	Sample& operator-=(const Sample& other) { m_real -= other.m_real; m_imag -= other.m_imag; return *this; }
 
-	return a.exec();
-}
+	void setReal(FixReal v) { m_real = v; }
+	void setImag(FixReal v) { m_imag = v; }
 
-int main(int argc, char* argv[])
-{
-	return runQtApplication(argc, argv);
-}
+	FixReal real() const { return m_real; }
+	FixReal imag() const { return m_imag; }
+
+	FixReal m_real;
+	FixReal m_imag;
+};
+#pragma pack(pop)
+
+typedef std::vector<Sample> SampleVector;
+
+#endif // INCLUDE_DSPTYPES_H

@@ -15,30 +15,15 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QWindowsStyle>
-#include "mainwindow.h"
+#include "gui/presetitem.h"
 
-static int runQtApplication(int argc, char* argv[])
+PresetItem::PresetItem(QTreeWidgetItem* parent, const QStringList& strings, quint64 frequency, int type) :
+	QTreeWidgetItem(parent, strings, type),
+	m_frequency(frequency)
 {
-	QApplication a(argc, argv);
-
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
-
-	QApplication::setStyle(new QWindowsStyle);
-
-	MainWindow w;
-	w.show();
-
-	return a.exec();
 }
 
-int main(int argc, char* argv[])
+bool PresetItem::operator<(const QTreeWidgetItem& other) const
 {
-	return runQtApplication(argc, argv);
+	return m_frequency < ((const PresetItem&)other).m_frequency;
 }

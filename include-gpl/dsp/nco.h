@@ -15,30 +15,30 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
-#include <QApplication>
-#include <QTextCodec>
-#include <QWindowsStyle>
-#include "mainwindow.h"
+#ifndef INCLUDE_NCO_H
+#define INCLUDE_NCO_H
 
-static int runQtApplication(int argc, char* argv[])
-{
-	QApplication a(argc, argv);
+#include "dsp/dsptypes.h"
 
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+class NCO {
+private:
+	enum {
+		TableSize = (1 << 12),
+	};
+	static Real m_table[TableSize];
+	static bool m_tableInitialized;
 
-	QCoreApplication::setOrganizationName("osmocom");
-	QCoreApplication::setApplicationName("SDRangelove");
+	static void initTable();
 
-	QApplication::setStyle(new QWindowsStyle);
+	int m_phaseIncrement;
+	int m_phase;
 
-	MainWindow w;
-	w.show();
+public:
+	NCO();
 
-	return a.exec();
-}
+	void setFreq(Real freq, Real sampleRate);
+	Real next();
+	Complex nextIQ();
+};
 
-int main(int argc, char* argv[])
-{
-	return runQtApplication(argc, argv);
-}
+#endif // INCLUDE_NCO_H
