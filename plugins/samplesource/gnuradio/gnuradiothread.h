@@ -23,8 +23,8 @@
 #include <QMutex>
 #include <QWaitCondition>
 
-#include <gr_top_block.h>
-#include <osmosdr_source_c.h>
+#include <gnuradio/gr_top_block.h>
+#include <osmosdr/osmosdr_source_c.h>
 
 class SampleFifo;
 

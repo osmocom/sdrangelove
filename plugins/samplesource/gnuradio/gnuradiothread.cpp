@@ -21,8 +21,8 @@
 #include "gnuradiothread.h"
 #include "dsp/samplefifo.h"
 
-#include <gr_sync_block.h>
-#include <gr_io_signature.h>
+#include <gnuradio/gr_sync_block.h>
+#include <gnuradio/gr_io_signature.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 class gr_adaptor;
