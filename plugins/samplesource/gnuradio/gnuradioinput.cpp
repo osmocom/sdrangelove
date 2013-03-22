@@ -125,7 +125,12 @@ bool GNURadioInput::startInput(int device)
 
 		m_sampRates = radio->get_sample_rates().values();
 		m_rfGains = radio->get_gain_range().values();
-		m_ifGains = radio->get_gain_range("IF").values();
+
+		/* we check that the gain stage is available, otherwise this will
+		   cause unexpected behavior when using ettus uhd based devices. */
+		std::vector< std::string > gain_names = radio->get_gain_names();
+		if ( std::find( gain_names.begin(), gain_names.end(), "IF" ) != gain_names.end() )
+			m_ifGains = radio->get_gain_range("IF").values();
 
 		m_antennas.clear();
 		BOOST_FOREACH( std::string antenna, radio->get_antennas() )
@@ -188,6 +193,8 @@ bool GNURadioInput::applySettings(const GeneralSettings& generalSettings, const 
 
 	m_settings.m_args = settings.m_args;
 
+	try {
+
 	if((m_settings.m_freqCorr != settings.m_freqCorr) || force) {
 		m_settings.m_freqCorr = settings.m_freqCorr;
 		if(m_GnuradioThread != NULL) {
@@ -212,7 +219,11 @@ bool GNURadioInput::applySettings(const GeneralSettings& generalSettings, const 
 	if((m_settings.m_ifGain != settings.m_ifGain) || force) {
 		m_settings.m_ifGain = settings.m_ifGain;
 		if(m_GnuradioThread != NULL) {
-			m_GnuradioThread->radio()->set_gain( m_settings.m_ifGain, "IF" );
+			/* we check that the gain stage is available, otherwise this will
+			   cause unexpected behavior when using ettus uhd based devices. */
+			std::vector< std::string > gain_names = m_GnuradioThread->radio()->get_gain_names();
+			if ( std::find( gain_names.begin(), gain_names.end(), "IF" ) != gain_names.end() )
+				m_GnuradioThread->radio()->set_gain( m_settings.m_ifGain, "IF" );
 		}
 	}
 
@@ -228,6 +239,11 @@ bool GNURadioInput::applySettings(const GeneralSettings& generalSettings, const 
 		if(m_GnuradioThread != NULL) {
 			m_GnuradioThread->radio()->set_antenna( m_settings.m_antenna.toStdString() );
 		}
+	}
+
+	} catch ( std::exception &ex ) {
+		qDebug(ex.what());
+		return false;
 	}
 
 	return true;
