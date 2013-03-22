@@ -33,7 +33,8 @@ GNURadioInput::Settings::Settings() :
 	m_freqCorr(0),
 	m_rfGain(10),
 	m_ifGain(15),
-	m_antenna("")
+	m_antenna(""),
+	m_iqbal("Off")
 {
 }
 
@@ -45,6 +46,7 @@ void GNURadioInput::Settings::resetToDefaults()
 	m_rfGain = 10;
 	m_ifGain = 15;
 	m_antenna = "";
+	m_iqbal = "Off";
 }
 
 QByteArray GNURadioInput::Settings::serialize() const
@@ -56,6 +58,7 @@ QByteArray GNURadioInput::Settings::serialize() const
 	s.writeDouble(4, m_rfGain);
 	s.writeDouble(5, m_ifGain);
 	s.writeString(6, m_antenna);
+	s.writeString(7, m_iqbal);
 	return s.final();
 }
 
@@ -75,6 +78,7 @@ bool GNURadioInput::Settings::deserialize(const QByteArray& data)
 		d.readDouble(4, &m_rfGain, 10);
 		d.readDouble(5, &m_ifGain, 15);
 		d.readString(6, &m_antenna, "");
+		d.readString(7, &m_iqbal, "Off");
 		return true;
 	} else {
 		resetToDefaults();
@@ -135,10 +139,15 @@ bool GNURadioInput::startInput(int device)
 		m_antennas.clear();
 		BOOST_FOREACH( std::string antenna, radio->get_antennas() )
 			m_antennas.push_back( QString( antenna.c_str() ) );
+
+		m_iqbals.clear();
+		m_iqbals.push_back( "Off" );
+		m_iqbals.push_back( "Keep" );
+		m_iqbals.push_back( "Auto" );
 	}
 
 	qDebug("GnuradioInput: start");
-	MsgReportGNURadio::create(m_rfGains, m_ifGains, m_sampRates, m_antennas)->submit(m_guiMessageQueue);
+	MsgReportGNURadio::create(m_rfGains, m_ifGains, m_sampRates, m_antennas, m_iqbals)->submit(m_guiMessageQueue);
 
 	return true;
 
@@ -238,6 +247,23 @@ bool GNURadioInput::applySettings(const GeneralSettings& generalSettings, const 
 		m_settings.m_antenna = settings.m_antenna;
 		if(m_GnuradioThread != NULL) {
 			m_GnuradioThread->radio()->set_antenna( m_settings.m_antenna.toStdString() );
+		}
+	}
+
+	if((m_settings.m_iqbal != settings.m_iqbal) || force) {
+		m_settings.m_iqbal = settings.m_iqbal;
+		if(m_GnuradioThread != NULL) {
+			int index = 0;
+			BOOST_FOREACH( QString iqbal, m_iqbals )
+			{
+				if ( iqbal == m_settings.m_iqbal )
+				{
+					m_GnuradioThread->radio()->set_iq_balance_mode( index );
+					break;
+				}
+
+				index++;
+			}
 		}
 	}
 

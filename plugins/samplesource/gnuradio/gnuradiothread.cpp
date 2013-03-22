@@ -82,7 +82,7 @@ gr_adaptor::work (int noutput_items,
 
 	// we must push at least 4 bytes into the fifo
 	m_sampleFifo->write((const quint8*)buffer.data(),
-						(it - buffer.begin()) * sizeof(qint16));
+			    (it - buffer.begin()) * sizeof(qint16));
 
 	// Tell runtime system how many input items we consumed on
 	// each input stream.

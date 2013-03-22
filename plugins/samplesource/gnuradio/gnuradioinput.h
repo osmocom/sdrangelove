@@ -33,6 +33,7 @@ public:
 		double m_rfGain;
 		double m_ifGain;
 		QString m_antenna;
+		QString m_iqbal;
 
 		Settings();
 		void resetToDefaults();
@@ -71,13 +72,15 @@ public:
 		const std::vector<double>& getIfGains() const { return m_ifGains; }
 		const std::vector<double>& getSampRates() const { return m_sampRates; }
 		const std::vector<QString>& getAntennas() const { return m_antennas; }
+		const std::vector<QString>& getIQBals() const { return m_iqbals; }
 
 		static MsgReportGNURadio* create(const std::vector<double>& rfGains,
-										 const std::vector<double>& ifGains,
-										 const std::vector<double>& sampRates,
-										 const std::vector<QString>& antennas)
+						 const std::vector<double>& ifGains,
+						 const std::vector<double>& sampRates,
+						 const std::vector<QString>& antennas,
+						 const std::vector<QString>& iqbals)
 		{
-			return new MsgReportGNURadio(rfGains, ifGains, sampRates, antennas);
+			return new MsgReportGNURadio(rfGains, ifGains, sampRates, antennas, iqbals);
 		}
 
 	protected:
@@ -85,16 +88,19 @@ public:
 		std::vector<double> m_ifGains;
 		std::vector<double> m_sampRates;
 		std::vector<QString> m_antennas;
+		std::vector<QString> m_iqbals;
 
 		MsgReportGNURadio(const std::vector<double>& rfGains,
-						  const std::vector<double>& ifGains,
-						  const std::vector<double>& sampRates,
-						  const std::vector<QString>& antennas) :
+				  const std::vector<double>& ifGains,
+				  const std::vector<double>& sampRates,
+				  const std::vector<QString>& antennas,
+				  const std::vector<QString>& iqbals) :
 			Message(ID()),
 			m_rfGains(rfGains),
 			m_ifGains(ifGains),
 			m_sampRates(sampRates),
-			m_antennas(antennas)
+			m_antennas(antennas),
+			m_iqbals(iqbals)
 		{ }
 	};
 
@@ -119,6 +125,7 @@ private:
 	std::vector<double> m_ifGains;
 	std::vector<double> m_sampRates;
 	std::vector<QString> m_antennas;
+	std::vector<QString> m_iqbals;
 
 	bool applySettings(const GeneralSettings& generalSettings, const Settings& settings, bool force);
 };

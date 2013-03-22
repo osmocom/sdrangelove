@@ -105,6 +105,7 @@ bool GNURadioGui::handleMessage(Message* message)
 		m_ifGains = rep->getIfGains();
 		m_sampRates = rep->getSampRates();
 		m_antennas = rep->getAntennas();
+		m_iqbals = rep->getIQBals();
 		displaySettings();
 		return true;
 	} else {
@@ -185,6 +186,22 @@ void GNURadioGui::displaySettings()
 	} else {
 		ui->cboAntennas->setEnabled(false);
 	}
+
+	oldIndex = ui->cboIQBalance->currentIndex();
+	ui->cboIQBalance->clear();
+
+	if ( m_iqbals.size() ) {
+		for ( int i = 0; i < m_iqbals.size(); i++ )
+		ui->cboIQBalance->addItem(QString("%1").arg( m_iqbals[i] ));
+
+		if ( ui->cboIQBalance->count() && oldIndex >= 0 )
+		ui->cboIQBalance->setCurrentIndex(oldIndex);
+
+		ui->cboIQBalance->setEnabled(true);
+	} else {
+		ui->cboIQBalance->setEnabled(false);
+	}
+
 }
 
 void GNURadioGui::sendSettings()
@@ -261,6 +278,11 @@ void GNURadioGui::on_deviceArguments_textChanged(const QString &arg1)
 void GNURadioGui::on_cboAntennas_currentIndexChanged(const QString &arg1)
 {
 	m_settings.m_antenna = arg1;
-	std::cout << arg1.toStdString() << std::endl;
+	sendSettings();
+}
+
+void GNURadioGui::on_cboIQBalance_currentIndexChanged(const QString &arg1)
+{
+	m_settings.m_iqbal = arg1;
 	sendSettings();
 }

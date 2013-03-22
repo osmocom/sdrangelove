@@ -52,11 +52,11 @@ private:
 	QWaitCondition m_startWaiter;
 	bool m_running;
 
-    QString m_args;
+	QString m_args;
 	SampleFifo* m_sampleFifo;
 
-    gr_top_block_sptr m_top;
-    osmosdr_source_c_sptr m_src;
+	gr_top_block_sptr m_top;
+	osmosdr_source_c_sptr m_src;
 
 	void run();
 };
