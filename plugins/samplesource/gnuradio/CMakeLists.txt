@@ -1,5 +1,11 @@
 project(gnuradio)
 
+find_package(Gruel)
+find_package(GnuradioCore)
+find_package(GnuradioOsmosdr)
+
+if(GRUEL_FOUND AND GNURADIO_CORE_FOUND AND GNURADIO_OSMOSDR_FOUND)
+
 set(gnuradio_SOURCES
 	gnuradiogui.cpp
 	gnuradioinput.cpp
@@ -51,3 +57,5 @@ target_link_libraries(inputgnuradio
 	${GNURADIO_CORE_LIBRARIES}
 	${GNURADIO_OSMOSDR_LIBRARIES}
 )
+
+endif(GRUEL_FOUND AND GNURADIO_CORE_FOUND AND GNURADIO_OSMOSDR_FOUND)
