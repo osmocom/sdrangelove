@@ -120,6 +120,8 @@ void GNURadioGui::displaySettings()
 	oldIndex = ui->gnuradioDevices->currentIndex();
 	ui->gnuradioDevices->clear();
 
+	QString oldArgs = ui->deviceArguments->text();
+
 	BOOST_FOREACH(osmosdr::device_t dev, osmosdr::device::find())
 	{
 		QString label;
@@ -138,8 +140,13 @@ void GNURadioGui::displaySettings()
 	if ( ui->gnuradioDevices->count() && oldIndex >= 0 )
 	{
 		ui->gnuradioDevices->setCurrentIndex(oldIndex);
-		ui->deviceArguments->setText(m_devs[oldIndex].second);
+
+		if ( oldArgs.length() == 0 )
+			ui->deviceArguments->setText(m_devs[oldIndex].second);
 	}
+
+	if ( oldArgs.length() )
+		ui->deviceArguments->setText(oldArgs);
 
 	ui->centerFrequency->setValue(m_generalSettings.m_centerFrequency / 1000);
 
