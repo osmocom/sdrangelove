@@ -129,6 +129,7 @@ set(sdrbase_HEADERS
 	include-gpl/settings/preset.h
 	include-gpl/settings/settings.h
 
+	include/util/export.h
 	include/util/message.h
 	include/util/messagequeue.h
 	include/util/miniz.h
@@ -195,7 +196,7 @@ qt4_wrap_ui(sdrbase_FORMS_HEADERS ${sdrbase_FORMS})
 qt4_add_resources(sdrbase_RESOURCES_RCC ${sdrbase_RESOURCES})
 
 if(WIN32)
-	SET(sdrbase_SOURCES ${sdrbase_SOURCES} resources/sdrbase.rc)
+	SET(sdrbase_SOURCES ${sdrbase_SOURCES} sdrbase/resources/sdrangelove.rc)
 endif(WIN32)
 
 add_library(sdrbase SHARED
@@ -216,6 +217,8 @@ if(FFTW3F_FOUND)
 	target_link_libraries(sdrbase ${FFTW3F_LIBRARIES})
 endif(FFTW3F_FOUND)
 
+set_target_properties(sdrbase PROPERTIES DEFINE_SYMBOL "sdrangelove_EXPORTS")
+
 ##############################################################################
 
 set(sdrangelove_SOURCES
@@ -223,7 +226,7 @@ set(sdrangelove_SOURCES
 )
 
 if(WIN32)
-	SET(sdrangelove_SOURCES ${sdrangelove_SOURCES} resources/sdrangelove.rc)
+	SET(sdrangelove_SOURCES ${sdrangelove_SOURCES} sdrbase/resources/sdrangelove.rc)
 endif(WIN32)
 
 add_executable(sdrangelove

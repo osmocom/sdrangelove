@@ -27,12 +27,13 @@
 #include "dsp/samplefifo.h"
 #include "audio/audiooutput.h"
 #include "util/messagequeue.h"
+#include "util/export.h"
 
 class SampleSource;
 class SampleSink;
 class AudioFifo;
 
-class DSPEngine : public QThread {
+class SDRANGELOVE_API DSPEngine : public QThread {
 	Q_OBJECT
 
 public:

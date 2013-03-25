@@ -2,6 +2,7 @@
 #define INCLUDE_PLUGINAPI_H
 
 #include <QObject>
+#include "util/export.h"
 
 class QDockWidget;
 class QAction;
@@ -17,7 +18,7 @@ class MainWindow;
 class ChannelMarker;
 class PluginGUI;
 
-class PluginAPI : public QObject {
+class SDRANGELOVE_API PluginAPI : public QObject {
 	Q_OBJECT
 
 public:

@@ -20,8 +20,9 @@
 
 #include <QMutex>
 #include <QWaitCondition>
+#include "util/export.h"
 
-class AudioFifo {
+class SDRANGELOVE_API AudioFifo {
 public:
 	AudioFifo();
 	AudioFifo(uint sampleSize, uint numSamples);

@@ -19,8 +19,9 @@
 #define INCLUDE_INDICATOR_H
 
 #include <QWidget>
+#include "util/export.h"
 
-class Indicator : public QWidget {
+class SDRANGELOVE_API Indicator : public QWidget {
 private:
 	Q_OBJECT;
 

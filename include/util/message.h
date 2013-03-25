@@ -3,12 +3,13 @@
 
 #include <QAtomicInt>
 #include <QStringList>
+#include "util/export.h"
 
 class MessageQueue;
 class QWaitCondition;
 class QMutex;
 
-class MessageRegistrator {
+class SDRANGELOVE_API MessageRegistrator {
 public:
 	MessageRegistrator(const char* name);
 	int operator()() const { return m_registeredID; }
@@ -19,7 +20,7 @@ private:
 	int m_registeredID;
 };
 
-class Message {
+class SDRANGELOVE_API Message {
 public:
 	virtual ~Message();
 

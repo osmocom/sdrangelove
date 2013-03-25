@@ -7,12 +7,12 @@
 #include "osmosdrgui.h"
 
 const PluginDescriptor OsmoSDRPlugin::m_pluginDescriptor = {
-	displayedName: QString("OsmoSDR Input"),
-	version: QString("---"),
-	copyright: QString("(c) Christian Daniel"),
-	website: QString("http://sdr.osmocom.org/trac/wiki/osmo-sdr"),
-	licenseIsGPL: true,
-	sourceCodeURL: QString("http://cgit.osmocom.org/cgit/osmo-sdr")
+	QString("OsmoSDR Input"),
+	QString("---"),
+	QString("(c) Christian Daniel"),
+	QString("http://sdr.osmocom.org/trac/wiki/osmo-sdr"),
+	true,
+	QString("http://cgit.osmocom.org/cgit/osmo-sdr")
 };
 
 OsmoSDRPlugin::OsmoSDRPlugin(QObject* parent) :

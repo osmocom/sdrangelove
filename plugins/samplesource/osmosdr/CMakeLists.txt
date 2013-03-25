@@ -44,4 +44,5 @@ target_link_libraries(inputosmosdr
 	${QT_LIBRARIES}
 	${LIBOSMOSDR_LIBRARIES}
 	${LIBUSB_LIBRARIES}
+	sdrbase
 )

@@ -19,8 +19,9 @@
 #define INCLUDE_NCO_H
 
 #include "dsp/dsptypes.h"
+#include "util/export.h"
 
-class NCO {
+class SDRANGELOVE_API NCO {
 private:
 	enum {
 		TableSize = (1 << 12),

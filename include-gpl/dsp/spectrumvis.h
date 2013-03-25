@@ -4,11 +4,12 @@
 #include "dsp/samplesink.h"
 #include "dsp/fftengine.h"
 #include "fftwindow.h"
+#include "util/export.h"
 
 class GLSpectrum;
 class MessageQueue;
 
-class SpectrumVis : public SampleSink {
+class SDRANGELOVE_API SpectrumVis : public SampleSink {
 public:
 	SpectrumVis(GLSpectrum* glSpectrum = NULL);
 	~SpectrumVis();

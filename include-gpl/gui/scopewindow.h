@@ -20,6 +20,7 @@
 
 #include <QWidget>
 #include "dsp/dsptypes.h"
+#include "util/export.h"
 
 class DSPEngine;
 
@@ -27,7 +28,7 @@ namespace Ui {
 	class ScopeWindow;
 }
 
-class ScopeWindow : public QWidget {
+class SDRANGELOVE_API ScopeWindow : public QWidget {
 	Q_OBJECT
 
 public:

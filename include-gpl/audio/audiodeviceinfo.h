@@ -19,8 +19,9 @@
 #define INCLUDE_AUDIODEVICEINFO_H
 
 #include <QStringList>
+#include "util/export.h"
 
-class AudioDeviceInfo {
+class SDRANGELOVE_API AudioDeviceInfo {
 public:
 	struct Device {
 		QString name;

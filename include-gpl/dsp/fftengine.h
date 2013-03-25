@@ -2,8 +2,9 @@
 #define INCLUDE_FFTENGINE_H
 
 #include "dsp/dsptypes.h"
+#include "util/export.h"
 
-class FFTEngine {
+class SDRANGELOVE_API FFTEngine {
 public:
 	virtual ~FFTEngine();
 

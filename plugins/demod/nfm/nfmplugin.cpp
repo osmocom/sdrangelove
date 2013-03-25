@@ -5,12 +5,12 @@
 #include "nfmdemodgui.h"
 
 const PluginDescriptor NFMPlugin::m_pluginDescriptor = {
-	displayedName: QString("NFM Demodulator"),
-	version: QString("---"),
-	copyright: QString("(c) maintech GmbH (written by Christian Daniel)"),
-	website: QString("http://www.maintech.de"),
-	licenseIsGPL: true,
-	sourceCodeURL: QString("http://www.maintech.de")
+	QString("NFM Demodulator"),
+	QString("---"),
+	QString("(c) maintech GmbH (written by Christian Daniel)"),
+	QString("http://www.maintech.de"),
+	true,
+	QString("http://www.maintech.de")
 };
 
 NFMPlugin::NFMPlugin(QObject* parent) :

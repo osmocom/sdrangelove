@@ -5,11 +5,12 @@
 #include "samplesink.h"
 #include "dsp/samplefifo.h"
 #include "util/messagequeue.h"
+#include "util/export.h"
 
 class QThread;
 class SampleSink;
 
-class ThreadedSampleSink : public QObject, public SampleSink {
+class SDRANGELOVE_API ThreadedSampleSink : public QObject, public SampleSink {
 	Q_OBJECT
 
 public:

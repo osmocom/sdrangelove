@@ -3,11 +3,12 @@
 
 #include <list>
 #include "dsp/samplesink.h"
+#include "util/export.h"
 
 class MessageQueue;
 class IntHalfbandFilter;
 
-class Channelizer : public SampleSink {
+class SDRANGELOVE_API Channelizer : public SampleSink {
 public:
 	Channelizer(SampleSink* sampleSink);
 	~Channelizer();

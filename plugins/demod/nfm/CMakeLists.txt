@@ -41,4 +41,5 @@ add_library(demodnfm SHARED
 target_link_libraries(demodnfm
 	${QT_LIBRARIES}
 	${OPENGL_LIBRARIES}
+	sdrbase
 )

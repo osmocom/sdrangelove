@@ -5,12 +5,12 @@
 #include "tetrademodgui.h"
 
 const PluginDescriptor TetraPlugin::m_pluginDescriptor = {
-	displayedName: QString("Tetra Demodulator"),
-	version: QString("---"),
-	copyright: QString("(c) maintech GmbH (written by Christian Daniel)"),
-	website: QString("http://www.maintech.de"),
-	licenseIsGPL: true,
-	sourceCodeURL: QString("http://www.maintech.de")
+	QString("Tetra Demodulator"),
+	QString("---"),
+	QString("(c) maintech GmbH (written by Christian Daniel)"),
+	QString("http://www.maintech.de"),
+	true,
+	QString("http://www.maintech.de")
 };
 
 TetraPlugin::TetraPlugin(QObject* parent) :

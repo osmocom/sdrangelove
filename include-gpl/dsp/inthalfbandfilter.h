@@ -3,6 +3,7 @@
 
 #include <QtGlobal>
 #include "dsp/dsptypes.h"
+#include "util/export.h"
 
 // uses Q1.14 format internally, input and output are S16
 
@@ -12,7 +13,7 @@
 #define HB_FILTERORDER 48
 #define HB_SHIFT 14
 
-class IntHalfbandFilter {
+class SDRANGELOVE_API IntHalfbandFilter {
 public:
 	IntHalfbandFilter();
 

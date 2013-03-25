@@ -44,4 +44,5 @@ target_link_libraries(inputrtlsdr
 	${QT_LIBRARIES}
 	${LIBRTLSDR_LIBRARIES}
 	${LIBUSB_LIBRARIES}
+	sdrbase
 )

@@ -21,13 +21,14 @@
 #include <QtGlobal>
 #include "dsp/samplefifo.h"
 #include "util/message.h"
+#include "util/export.h"
 
 class PluginGUI;
 class MessageQueue;
 
-class SampleSource {
+class SDRANGELOVE_API SampleSource {
 public:
-	struct GeneralSettings {
+	struct SDRANGELOVE_API GeneralSettings {
 		quint64 m_centerFrequency;
 
 		GeneralSettings();

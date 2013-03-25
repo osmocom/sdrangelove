@@ -22,8 +22,9 @@
 #include <QString>
 #include <QList>
 #include "physicalunit.h"
+#include "util/export.h"
 
-class ScaleEngine {
+class SDRANGELOVE_API ScaleEngine {
 public:
 	struct Tick {
 		float pos;

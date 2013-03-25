@@ -4,40 +4,41 @@
 #include <QString>
 #include "util/message.h"
 #include "fftwindow.h"
+#include "util/export.h"
 
 class SampleSource;
 class SampleSink;
 class AudioFifo;
 
-class DSPPing : public Message {
+class SDRANGELOVE_API DSPPing : public Message {
 public:
 	static MessageRegistrator ID;
 
 	DSPPing() : Message(ID()) { }
 };
 
-class DSPExit : public Message {
+class SDRANGELOVE_API DSPExit : public Message {
 public:
 	static MessageRegistrator ID;
 
 	DSPExit() : Message(ID()) { }
 };
 
-class DSPAcquisitionStart : public Message {
+class SDRANGELOVE_API DSPAcquisitionStart : public Message {
 public:
 	static MessageRegistrator ID;
 
 	DSPAcquisitionStart() : Message(ID()) { }
 };
 
-class DSPAcquisitionStop : public Message {
+class SDRANGELOVE_API DSPAcquisitionStop : public Message {
 public:
 	static MessageRegistrator ID;
 
 	DSPAcquisitionStop() : Message(ID()) { }
 };
 
-class DSPGetDeviceDescription : public Message {
+class SDRANGELOVE_API DSPGetDeviceDescription : public Message {
 public:
 	static MessageRegistrator ID;
 
@@ -50,7 +51,7 @@ private:
 	QString m_deviceDescription;
 };
 
-class DSPGetErrorMessage : public Message {
+class SDRANGELOVE_API DSPGetErrorMessage : public Message {
 public:
 	static MessageRegistrator ID;
 
@@ -63,7 +64,7 @@ private:
 	QString m_errorMessage;
 };
 
-class DSPSetSource : public Message {
+class SDRANGELOVE_API DSPSetSource : public Message {
 public:
 	static MessageRegistrator ID;
 
@@ -75,7 +76,7 @@ private:
 	SampleSource* m_sampleSource;
 };
 
-class DSPAddSink : public Message {
+class SDRANGELOVE_API DSPAddSink : public Message {
 public:
 	static MessageRegistrator ID;
 
@@ -87,7 +88,7 @@ private:
 	SampleSink* m_sampleSink;
 };
 
-class DSPRemoveSink : public Message {
+class SDRANGELOVE_API DSPRemoveSink : public Message {
 public:
 	static MessageRegistrator ID;
 
@@ -99,7 +100,7 @@ private:
 	SampleSink* m_sampleSink;
 };
 
-class DSPAddAudioSource : public Message {
+class SDRANGELOVE_API DSPAddAudioSource : public Message {
 public:
 	static MessageRegistrator ID;
 
@@ -111,7 +112,7 @@ private:
 	AudioFifo* m_audioFifo;
 };
 
-class DSPRemoveAudioSource : public Message {
+class SDRANGELOVE_API DSPRemoveAudioSource : public Message {
 public:
 	static MessageRegistrator ID;
 
@@ -123,7 +124,7 @@ private:
 	AudioFifo* m_audioFifo;
 };
 
-class DSPConfigureSpectrumVis : public Message {
+class SDRANGELOVE_API DSPConfigureSpectrumVis : public Message {
 public:
 	static MessageRegistrator ID;
 
@@ -149,7 +150,7 @@ private:
 	{ }
 };
 
-class DSPConfigureCorrection : public Message {
+class SDRANGELOVE_API DSPConfigureCorrection : public Message {
 public:
 	static MessageRegistrator ID;
 
@@ -172,7 +173,7 @@ private:
 	{ }
 };
 
-class DSPEngineReport : public Message {
+class SDRANGELOVE_API DSPEngineReport : public Message {
 public:
 	static MessageRegistrator ID;
 
@@ -195,7 +196,7 @@ private:
 	{ }
 };
 
-class DSPConfigureScopeVis : public Message {
+class SDRANGELOVE_API DSPConfigureScopeVis : public Message {
 public:
 	static MessageRegistrator ID;
 
@@ -221,7 +222,7 @@ private:
 	{ }
 };
 
-class DSPSignalNotification : public Message {
+class SDRANGELOVE_API DSPSignalNotification : public Message {
 public:
 	static MessageRegistrator ID;
 
@@ -244,7 +245,7 @@ private:
 	{ }
 };
 
-class DSPConfigureChannelizer : public Message {
+class SDRANGELOVE_API DSPConfigureChannelizer : public Message {
 public:
 	static MessageRegistrator ID;
 

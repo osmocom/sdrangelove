@@ -1,6 +1,8 @@
 #ifndef INCLUDE_LOWPASS_H
 #define INCLUDE_LOWPASS_H
 
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include "dsp/dsptypes.h"
 
 template <class Type> class Lowpass {

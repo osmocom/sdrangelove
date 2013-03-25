@@ -7,12 +7,12 @@
 #include "rtlsdrgui.h"
 
 const PluginDescriptor RTLSDRPlugin::m_pluginDescriptor = {
-	displayedName: QString("RTL-SDR Input"),
-	version: QString("---"),
-	copyright: QString("(c) librtlsdr Authors (see source URL)"),
-	website: QString("http://sdr.osmocom.org/trac/wiki/rtl-sdr"),
-	licenseIsGPL: true,
-	sourceCodeURL: QString("http://cgit.osmocom.org/cgit/rtl-sdr")
+	QString("RTL-SDR Input"),
+	QString("---"),
+	QString("(c) librtlsdr Authors (see source URL)"),
+	QString("http://sdr.osmocom.org/trac/wiki/rtl-sdr"),
+	true,
+	QString("http://cgit.osmocom.org/cgit/rtl-sdr")
 };
 
 RTLSDRPlugin::RTLSDRPlugin(QObject* parent) :

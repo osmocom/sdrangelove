@@ -22,8 +22,9 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "dsp/dsptypes.h"
+#include "util/export.h"
 
-class FFTWindow {
+class SDRANGELOVE_API FFTWindow {
 public:
 	enum Function {
 		Bartlett,

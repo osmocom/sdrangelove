@@ -2,10 +2,11 @@
 #define INCLUDE_PLUGINGUI_H
 
 #include <QWidget>
+#include "util/export.h"
 
 class Message;
 
-class PluginGUI : public QWidget {
+class SDRANGELOVE_API PluginGUI : public QWidget {
 	Q_OBJECT
 
 public:

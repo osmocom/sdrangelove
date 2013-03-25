@@ -41,4 +41,5 @@ add_library(demodtetra SHARED
 target_link_libraries(demodtetra
 	${QT_LIBRARIES}
 	${OPENGL_LIBRARIES}
+	sdrbase
 )

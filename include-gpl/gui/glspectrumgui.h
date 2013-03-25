@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "dsp/dsptypes.h"
+#include "util/export.h"
 
 namespace Ui {
 	class GLSpectrumGUI;
@@ -12,7 +13,7 @@ class MessageQueue;
 class SpectrumVis;
 class GLSpectrum;
 
-class GLSpectrumGUI : public QWidget {
+class SDRANGELOVE_API GLSpectrumGUI : public QWidget {
 	Q_OBJECT
 
 public:

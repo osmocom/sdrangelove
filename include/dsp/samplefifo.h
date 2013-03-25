@@ -22,8 +22,9 @@
 #include <QMutex>
 #include <QTime>
 #include "dsp/dsptypes.h"
+#include "util/export.h"
 
-class SampleFifo : public QObject {
+class SDRANGELOVE_API SampleFifo : public QObject {
 	Q_OBJECT
 
 private:
@@ -44,9 +45,6 @@ public:
 	SampleFifo(QObject* parent = NULL);
 	SampleFifo(int size, QObject* parent = NULL);
 	~SampleFifo();
-
-	SampleFifo(const SampleFifo&);
-	SampleFifo& operator=(const SampleFifo&);
 
 	bool setSize(int size);
 	inline uint fill() const { return m_fill; }

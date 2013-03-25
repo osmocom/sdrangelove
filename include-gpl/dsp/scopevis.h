@@ -2,11 +2,12 @@
 #define INCLUDE_SCOPEVIS_H
 
 #include "dsp/samplesink.h"
+#include "util/export.h"
 
 class GLScope;
 class MessageQueue;
 
-class ScopeVis : public SampleSink {
+class SDRANGELOVE_API ScopeVis : public SampleSink {
 public:
 	enum TriggerChannel {
 		TriggerFreeRun,

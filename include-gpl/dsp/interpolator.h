@@ -2,8 +2,9 @@
 #define INCLUDE_INTERPOLATOR_H
 
 #include "dsp/dsptypes.h"
+#include "util/export.h"
 
-class Interpolator {
+class SDRANGELOVE_API Interpolator {
 public:
 	Interpolator();
 

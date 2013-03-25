@@ -22,6 +22,7 @@
 #include <QTimer>
 #include "audio/portaudioholder.h"
 #include "settings/settings.h"
+#include "util/export.h"
 
 class QLabel;
 class QTreeWidgetItem;
@@ -44,7 +45,7 @@ namespace Ui {
 	class MainWindow;
 }
 
-class MainWindow : public QMainWindow {
+class SDRANGELOVE_API MainWindow : public QMainWindow {
 	Q_OBJECT
 
 public:

@@ -4,10 +4,11 @@
 #include <QObject>
 #include <QQueue>
 #include "spinlock.h"
+#include "util/export.h"
 
 class Message;
 
-class MessageQueue : public QObject {
+class SDRANGELOVE_API MessageQueue : public QObject {
 	Q_OBJECT
 
 public:

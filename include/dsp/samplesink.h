@@ -2,10 +2,11 @@
 #define INCLUDE_SAMPLESINK_H
 
 #include "dsptypes.h"
+#include "util/export.h"
 
 class Message;
 
-class SampleSink {
+class SDRANGELOVE_API SampleSink {
 public:
 	SampleSink();
 	virtual ~SampleSink();

@@ -22,10 +22,11 @@
 #include <list>
 #include <vector>
 #include "portaudio.h"
+#include "util/export.h"
 
 class AudioFifo;
 
-class AudioOutput {
+class SDRANGELOVE_API AudioOutput {
 public:
 	AudioOutput();
 	~AudioOutput();

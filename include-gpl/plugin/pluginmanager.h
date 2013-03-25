@@ -5,23 +5,27 @@
 #include <QDir>
 #include "plugin/plugininterface.h"
 #include "plugin/pluginapi.h"
+#include "util/export.h"
 
 class QAction;
 class QComboBox;
+class QPluginLoader;
 class Preset;
 class MainWindow;
 class SampleSource;
 class Message;
 
-class PluginManager : public QObject {
+class SDRANGELOVE_API PluginManager : public QObject {
 	Q_OBJECT
 
 public:
 	struct Plugin {
 		QString filename;
+		QPluginLoader* loader;
 		PluginInterface* plugin;
-		Plugin(const QString& _filename, PluginInterface* _plugin) :
+		Plugin(const QString& _filename, QPluginLoader* pluginLoader, PluginInterface* _plugin) :
 			filename(_filename),
+			loader(pluginLoader),
 			plugin(_plugin)
 		{ }
 	};

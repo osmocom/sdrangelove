@@ -26,7 +26,6 @@ PluginManager::~PluginManager()
 void PluginManager::loadPlugins()
 {
 	QDir pluginsDir = QDir(QApplication::instance()->applicationDirPath());
-	pluginsDir.cd("plugins");
 
 	loadPlugins(pluginsDir);
 
@@ -222,13 +221,16 @@ void PluginManager::loadPlugins(const QDir& dir)
 {
 	QDir pluginsDir(dir);
 	foreach(QString fileName, pluginsDir.entryList(QDir::Files)) {
-		QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
-		PluginInterface* plugin = qobject_cast<PluginInterface*>(loader.instance());
-		if(loader.isLoaded())
+		QPluginLoader* loader = new QPluginLoader(pluginsDir.absoluteFilePath(fileName));
+		PluginInterface* plugin = qobject_cast<PluginInterface*>(loader->instance());
+		if(loader->isLoaded())
 			qDebug("loaded plugin %s", qPrintable(fileName));
-		if(plugin != NULL)
-			m_plugins.append(Plugin(fileName, plugin));
-		else loader.unload();
+		if(plugin != NULL) {
+			m_plugins.append(Plugin(fileName, loader, plugin));
+		} else {
+			loader->unload();
+			delete loader;
+		}
 	}
 	foreach(QString dirName, pluginsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot))
 		loadPlugins(pluginsDir.absoluteFilePath(dirName));

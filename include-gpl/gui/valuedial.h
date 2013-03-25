@@ -17,8 +17,9 @@
 
 #include <QWidget>
 #include <QTimer>
+#include "util/export.h"
 
-class ValueDial : public QWidget {
+class SDRANGELOVE_API ValueDial : public QWidget {
 	Q_OBJECT
 
 public:

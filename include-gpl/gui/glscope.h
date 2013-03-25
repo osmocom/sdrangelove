@@ -24,11 +24,12 @@
 #include <QMutex>
 #include "dsp/dsptypes.h"
 #include "dsp/scopevis.h"
+#include "util/export.h"
 
 class DSPEngine;
 class ScopeVis;
 
-class GLScope: public QGLWidget {
+class SDRANGELOVE_API GLScope: public QGLWidget {
 	Q_OBJECT
 
 public:

@@ -4,7 +4,7 @@
 #include "dsp/dspengine.h"
 
 #ifdef _WIN32
-double log2f(double n)
+static double log2f(double n)
 {
 	return log(n) / log(2.0);
 }
