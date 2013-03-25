@@ -6,12 +6,12 @@
 
 struct PluginDescriptor {
 	// general plugin description
-	const QString& displayedName;
-	const QString& version;
-	const QString& copyright;
-	const QString& website;
+	const QString displayedName;
+	const QString version;
+	const QString copyright;
+	const QString website;
 	bool licenseIsGPL;
-	const QString& sourceCodeURL;
+	const QString sourceCodeURL;
 };
 
 class PluginAPI;
