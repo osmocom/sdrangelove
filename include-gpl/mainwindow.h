@@ -131,6 +131,7 @@ private slots:
 	void on_action_Loaded_Plugins_triggered();
 	void on_action_Preferences_triggered();
 	void on_sampleSource_currentIndexChanged(int index);
+	void on_action_About_triggered();
 };
 
 #endif // INCLUDE_MAINWINDOW_H

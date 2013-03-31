@@ -28,6 +28,7 @@
 #include "gui/addpresetdialog.h"
 #include "gui/pluginsdialog.h"
 #include "gui/preferencesdialog.h"
+#include "gui/aboutdialog.h"
 #include "dsp/dspengine.h"
 #include "dsp/spectrumvis.h"
 #include "dsp/dspcommands.h"
@@ -503,4 +504,10 @@ void MainWindow::on_action_Preferences_triggered()
 void MainWindow::on_sampleSource_currentIndexChanged(int index)
 {
 	m_pluginManager->selectSampleSource(ui->sampleSource->currentIndex());
+}
+
+void MainWindow::on_action_About_triggered()
+{
+	AboutDialog dlg(this);
+	dlg.exec();
 }

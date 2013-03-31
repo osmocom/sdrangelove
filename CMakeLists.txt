@@ -47,6 +47,7 @@ set(sdrbase_SOURCES
 	sdrbase/dsp/spectrumvis.cpp
 	sdrbase/dsp/threadedsamplesink.cpp
 
+	sdrbase/gui/aboutdialog.cpp
 	sdrbase/gui/addpresetdialog.cpp
 	sdrbase/gui/glscope.cpp
 	sdrbase/gui/glspectrum.cpp
@@ -104,6 +105,7 @@ set(sdrbase_HEADERS
 	include-gpl/dsp/spectrumvis.h
 	include/dsp/threadedsamplesink.h
 
+	include-gpl/gui/aboutdialog.h
 	include-gpl/gui/addpresetdialog.h
 	include-gpl/gui/glscope.h
 	include-gpl/gui/glspectrum.h
@@ -145,6 +147,7 @@ set(sdrbase_SOURCES
 set(sdrbase_FORMS
 	sdrbase/mainwindow.ui
 
+	sdrbase/gui/aboutdialog.ui
 	sdrbase/gui/addpresetdialog.ui
 	sdrbase/gui/glspectrumgui.ui
 	sdrbase/gui/pluginsdialog.ui
