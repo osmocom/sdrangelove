@@ -39,6 +39,7 @@ set(sdrbase_SOURCES
 	sdrbase/dsp/interpolator.cpp
 	sdrbase/dsp/inthalfbandfilter.cpp
 	sdrbase/dsp/lowpass.cpp
+	sdrbase/dsp/movingaverage.cpp
 	sdrbase/dsp/nco.cpp
 	sdrbase/dsp/pidcontroller.cpp
 	sdrbase/dsp/samplefifo.cpp
@@ -97,6 +98,7 @@ set(sdrbase_HEADERS
 	include-gpl/dsp/interpolator.h
 	include-gpl/dsp/inthalfbandfilter.h
 	include-gpl/dsp/lowpass.h
+	include-gpl/dsp/movingaverage.h
 	include-gpl/dsp/nco.h
 	sdrbase/dsp/pidcontroller.h
 	include/dsp/samplefifo.h

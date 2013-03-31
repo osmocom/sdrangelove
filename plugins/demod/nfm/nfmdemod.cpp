@@ -42,6 +42,8 @@ NFMDemod::NFMDemod(AudioFifo* audioFifo, SampleSink* sampleSink) :
 
 	m_audioBuffer.resize(256);
 	m_audioBufferFill = 0;
+
+	m_movingAverage.resize(16, 0);
 }
 
 NFMDemod::~NFMDemod()
@@ -69,7 +71,9 @@ void NFMDemod::feed(SampleVector::const_iterator begin, SampleVector::const_iter
 		if(m_interpolator.interpolate(&m_sampleDistanceRemain, c, &consumed, &ci)) {
 			m_sampleBuffer.push_back(Sample(ci.real() * 32768.0, ci.imag() * 32768.0));
 
-			if((ci.real() * ci.real() + ci.imag() * ci.imag()) >= m_squelchLevel)
+			m_movingAverage.feed(ci.real() * ci.real() + ci.imag() * ci.imag());
+
+			if(m_movingAverage.average() >= m_squelchLevel)
 				m_squelchState = m_sampleRate / 100;
 
 			if(m_squelchState > 0) {

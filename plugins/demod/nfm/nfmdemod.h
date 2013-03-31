@@ -23,6 +23,7 @@
 #include "dsp/nco.h"
 #include "dsp/interpolator.h"
 #include "dsp/lowpass.h"
+#include "dsp/movingaverage.h"
 #include "audio/audiofifo.h"
 #include "util/message.h"
 
@@ -90,6 +91,7 @@ private:
 	int m_squelchState;
 
 	Complex m_lastSample;
+	MovingAverage m_movingAverage;
 
 	AudioVector m_audioBuffer;
 	uint m_audioBufferFill;
