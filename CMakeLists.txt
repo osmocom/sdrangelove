@@ -12,7 +12,6 @@ find_package(OpenGL REQUIRED)
 find_package(PkgConfig)
 
 find_package(Portaudio REQUIRED)
-find_package(LibUSB REQUIRED)
 find_package(FFTW3F)
 
 ##############################################################################
