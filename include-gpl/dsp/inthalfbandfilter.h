@@ -54,6 +54,47 @@ public:
 		}
 	}
 
+	// downsample by 2, return edges of spectrum rotated into center
+	bool workDecimateFullRotate(Sample* sample)
+	{
+		switch(m_state) {
+			case 0:
+				// insert sample into ring-buffer
+				m_samples[m_ptr][0] = sample->real();
+				m_samples[m_ptr][1] = sample->imag();
+
+				// advance write-pointer
+				m_ptr = (m_ptr + HB_FILTERORDER);
+				if(m_ptr >= (HB_FILTERORDER + 1))
+					m_ptr -= (HB_FILTERORDER + 1);
+
+				// next state
+				m_state = 1;
+
+				// tell caller we don't have a new sample
+				return false;
+
+			default:
+				// insert sample into ring-buffer
+				m_samples[m_ptr][0] = -sample->real();
+				m_samples[m_ptr][1] = sample->imag();
+
+				// save result
+				doFIR(sample);
+
+				// advance write-pointer
+				m_ptr = (m_ptr + HB_FILTERORDER);
+				if(m_ptr >= (HB_FILTERORDER + 1))
+					m_ptr -= (HB_FILTERORDER + 1);
+
+				// next state
+				m_state = 0;
+
+				// tell caller we have a new sample
+				return true;
+		}
+	}
+
 	// downsample by 2, return lower half of original spectrum
 	bool workDecimateLowerHalf(Sample* sample)
 	{
