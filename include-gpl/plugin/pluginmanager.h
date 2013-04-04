@@ -52,6 +52,7 @@ public:
 	void updateSampleSourceDevices();
 	void fillSampleSourceSelector(QComboBox* comboBox);
 	int selectSampleSource(int index);
+	int selectSampleSource(const QString& source);
 
 private slots:
 	void demodInstanceDestroyed(QObject* object);

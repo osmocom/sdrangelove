@@ -113,6 +113,8 @@ void PluginManager::saveSettings(Preset* preset) const
 	if(m_sampleSourceInstance != NULL) {
 		preset->setSourceConfig(m_sampleSource, m_sampleSourceInstance->serializeGeneral(), m_sampleSourceInstance->serialize());
 		preset->setCenterFrequency(m_sampleSourceInstance->getCenterFrequency());
+	} else {
+		preset->setSourceConfig(QString::null, QByteArray(), QByteArray());
 	}
 	for(int i = 0; i < m_demodInstanceRegistrations.size(); i++)
 		preset->addDemod(m_demodInstanceRegistrations[i].m_demodName, m_demodInstanceRegistrations[i].m_gui->serialize());
@@ -196,6 +198,41 @@ int PluginManager::selectSampleSource(int index)
 			if(m_sampleSourceDevices.count() > 0)
 				index = 0;
 		}
+	}
+	if(index == -1)
+		return -1;
+
+	m_sampleSource = m_sampleSourceDevices[index].m_sourceName;
+	m_sampleSourceInstance = m_sampleSourceDevices[index].m_plugin->createSampleSource(m_sampleSource, m_sampleSourceDevices[index].m_address);
+	m_mainWindow->setInputGUI(m_sampleSourceInstance);
+	return index;
+}
+
+int PluginManager::selectSampleSource(const QString& source)
+{
+	int index = -1;
+
+	m_dspEngine->stopAcquistion();
+
+	if(m_sampleSourceInstance != NULL) {
+		m_dspEngine->stopAcquistion();
+		m_dspEngine->setSource(NULL);
+		m_sampleSourceInstance->destroy();
+		m_sampleSourceInstance = NULL;
+		m_sampleSource.clear();
+	}
+
+	qDebug("finding sample source [%s]", qPrintable(source));
+	for(int i = 0; i < m_sampleSourceDevices.count(); i++) {
+		qDebug("*** %s vs %s", qPrintable(m_sampleSourceDevices[i].m_sourceName), qPrintable(source));
+		if(m_sampleSourceDevices[i].m_sourceName == source) {
+			index = i;
+			break;
+		}
+	}
+	if(index == -1) {
+		if(m_sampleSourceDevices.count() > 0)
+			index = 0;
 	}
 	if(index == -1)
 		return -1;

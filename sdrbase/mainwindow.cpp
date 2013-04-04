@@ -91,14 +91,16 @@ MainWindow::MainWindow(QWidget* parent) :
 
 	ui->glSpectrumGUI->setBuddies(m_dspEngine->getMessageQueue(), m_spectrumVis, ui->glSpectrum);
 
-	int sampleSourceIndex = m_pluginManager->selectSampleSource(-1); // select SampleSource from settings
+	loadSettings();
+
+	int sampleSourceIndex = m_pluginManager->selectSampleSource(m_settings.getCurrent()->getSource()); // select SampleSource from settings
 	if(sampleSourceIndex >= 0) {
 		bool sampleSourceSignalsBlocked = ui->sampleSource->blockSignals(true);
 		ui->sampleSource->setCurrentIndex(sampleSourceIndex);
 		ui->sampleSource->blockSignals(sampleSourceSignalsBlocked);
 	}
 
-	loadSettings();
+	loadSettings(m_settings.getCurrent());
 
 	applySettings();
 	updatePresets();
