@@ -21,6 +21,7 @@
 
 #include "dsp/samplesource/samplesource.h"
 #include <QString>
+#include <QPair>
 
 class GnuradioThread;
 
@@ -28,10 +29,11 @@ class GNURadioInput : public SampleSource {
 public:
 	struct Settings {
 		QString m_args;
-		double m_sampleRate;
+		double m_freqMin;
+		double m_freqMax;
 		double m_freqCorr;
-		double m_rfGain;
-		double m_ifGain;
+		QList< QPair< QString, double > > m_namedGains;
+		double m_sampRate;
 		QString m_antenna;
 		QString m_iqbal;
 
@@ -68,36 +70,46 @@ public:
 	public:
 		static MessageRegistrator ID;
 
-		const std::vector<double>& getRfGains() const { return m_rfGains; }
-		const std::vector<double>& getIfGains() const { return m_ifGains; }
+		const std::vector< std::pair< QString, std::vector<double> > >& getNamedGains() const { return m_namedGains; }
+		const double getFreqMin() const { return m_freqMin; }
+		const double getFreqMax() const { return m_freqMax; }
+		const double getFreqCorr() const { return m_freqCorr; }
 		const std::vector<double>& getSampRates() const { return m_sampRates; }
 		const std::vector<QString>& getAntennas() const { return m_antennas; }
 		const std::vector<QString>& getIQBals() const { return m_iqbals; }
 
-		static MsgReportGNURadio* create(const std::vector<double>& rfGains,
-						 const std::vector<double>& ifGains,
+		static MsgReportGNURadio* create(const double freqMin,
+						 const double freqMax,
+						 const double freqCorr,
+						 const std::vector< std::pair< QString, std::vector<double> > >& namedGains,
 						 const std::vector<double>& sampRates,
 						 const std::vector<QString>& antennas,
 						 const std::vector<QString>& iqbals)
 		{
-			return new MsgReportGNURadio(rfGains, ifGains, sampRates, antennas, iqbals);
+			return new MsgReportGNURadio(freqMin, freqMax, freqCorr, namedGains, sampRates, antennas, iqbals);
 		}
 
 	protected:
-		std::vector<double> m_rfGains;
-		std::vector<double> m_ifGains;
+		double m_freqMin;
+		double m_freqMax;
+		double m_freqCorr;
+		std::vector< std::pair< QString, std::vector<double> > > m_namedGains;
 		std::vector<double> m_sampRates;
 		std::vector<QString> m_antennas;
 		std::vector<QString> m_iqbals;
 
-		MsgReportGNURadio(const std::vector<double>& rfGains,
-				  const std::vector<double>& ifGains,
+		MsgReportGNURadio(const double freqMin,
+				  const double freqMax,
+				  const double freqCorr,
+				  const std::vector< std::pair< QString, std::vector<double> > >& namedGains,
 				  const std::vector<double>& sampRates,
 				  const std::vector<QString>& antennas,
 				  const std::vector<QString>& iqbals) :
 			Message(ID()),
-			m_rfGains(rfGains),
-			m_ifGains(ifGains),
+			m_freqMin(freqMin),
+			m_freqMax(freqMax),
+			m_freqCorr(freqCorr),
+			m_namedGains(namedGains),
 			m_sampRates(sampRates),
 			m_antennas(antennas),
 			m_iqbals(iqbals)
@@ -121,71 +133,11 @@ private:
 	Settings m_settings;
 	GnuradioThread* m_GnuradioThread;
 	QString m_deviceDescription;
-	std::vector<double> m_rfGains;
-	std::vector<double> m_ifGains;
-	std::vector<double> m_sampRates;
-	std::vector<QString> m_antennas;
-	std::vector<QString> m_iqbals;
+	std::vector< QString > m_iqbals;
 
-	bool applySettings(const GeneralSettings& generalSettings, const Settings& settings, bool force);
+	bool applySettings(const GeneralSettings& generalSettings,
+			   const Settings& settings,
+			   bool force);
 };
-#if 0
-class DSPCmdConfigureSourceGnuradio : public DSPCmdGUIToSource {
-public:
-	enum {
-		SourceType = 3
-	};
 
-	int sourceType() const;
-	const GnuradioInput::Settings& getSettings() const { return m_settings; }
-
-	static DSPCmdConfigureSourceGnuradio* create(const GnuradioInput::Settings& settings)
-	{
-		return new DSPCmdConfigureSourceGnuradio(settings);
-	}
-
-protected:
-	GnuradioInput::Settings m_settings;
-
-	DSPCmdConfigureSourceGnuradio(const GnuradioInput::Settings& settings) : m_settings(settings) { }
-};
-#endif
-#if 0
-class DSPCmdGUIInfoGnuradio : public DSPCmdSourceToGUI {
-public:
-	enum {
-		SourceType = 3
-	};
-
-	int sourceType() const;
-	const std::vector<double>& getRfGains() const { return m_rfGains; }
-	const std::vector<double>& getIfGains() const { return m_ifGains; }
-	const std::vector<double>& getSampRates() const { return m_sampRates; }
-	const std::vector<QString>& getAntennas() const { return m_antennas; }
-
-	static DSPCmdGUIInfoGnuradio* create(const std::vector<double>& rfGains,
-										 const std::vector<double>& ifGains,
-										 const std::vector<double>& sampRates,
-										 const std::vector<QString>& antennas)
-	{
-		return new DSPCmdGUIInfoGnuradio(rfGains, ifGains, sampRates, antennas);
-	}
-
-protected:
-	std::vector<double> m_rfGains;
-	std::vector<double> m_ifGains;
-	std::vector<double> m_sampRates;
-	std::vector<QString> m_antennas;
-
-	DSPCmdGUIInfoGnuradio(const std::vector<double>& rfGains,
-						  const std::vector<double>& ifGains,
-						  const std::vector<double>& sampRates,
-						  const std::vector<QString>& antennas) :
-		m_rfGains(rfGains),
-		m_ifGains(ifGains),
-		m_sampRates(sampRates),
-		m_antennas(antennas)
-	{ }
-};
-#endif
 #endif // INCLUDE_GNURADIOINPUT_H

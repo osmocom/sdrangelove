@@ -20,9 +20,12 @@
 #include "ui_gnuradiogui.h"
 
 #include <osmosdr/osmosdr_device.h>
-#include <boost/foreach.hpp>
 #include <iostream>
 #include <plugin/pluginapi.h>
+
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QSlider>
 
 GNURadioGui::GNURadioGui(PluginAPI* pluginAPI, QWidget* parent) :
 	PluginGUI(parent),
@@ -32,7 +35,6 @@ GNURadioGui::GNURadioGui(PluginAPI* pluginAPI, QWidget* parent) :
 	m_sampleSource(NULL)
 {
 	ui->setupUi(this);
-	ui->centerFrequency->setValueRange(7, 20000U, 2200000U);
 	connect(&m_updateTimer, SIGNAL(timeout()), this, SLOT(updateHardware()));
 	displaySettings();
 
@@ -101,8 +103,10 @@ bool GNURadioGui::handleMessage(Message* message)
 {
 	if(message->id() == GNURadioInput::MsgReportGNURadio::ID()) {
 		GNURadioInput::MsgReportGNURadio* rep = (GNURadioInput::MsgReportGNURadio*)message;
-		m_rfGains = rep->getRfGains();
-		m_ifGains = rep->getIfGains();
+		m_namedGains = rep->getNamedGains();
+		m_freqMin = rep->getFreqMin();
+		m_freqMax = rep->getFreqMax();
+		m_freqCorr = rep->getFreqCorr();
 		m_sampRates = rep->getSampRates();
 		m_antennas = rep->getAntennas();
 		m_iqbals = rep->getIQBals();
@@ -117,16 +121,21 @@ void GNURadioGui::displaySettings()
 {
 	int oldIndex = 0;
 
-	oldIndex = ui->gnuradioDevices->currentIndex();
-	ui->gnuradioDevices->clear();
+	oldIndex = ui->cboDevices->currentIndex();
+	ui->cboDevices->clear();
 
-	QString oldArgs = ui->deviceArguments->text();
+	QString oldArgs = ui->txtDeviceArgs->text();
 
-	BOOST_FOREACH(osmosdr::device_t dev, osmosdr::device::find())
+	osmosdr::devices_t devices = osmosdr::device::find();
+
+	for ( int i = 0; i < devices.size(); i++ )
 	{
+		osmosdr::device_t dev = devices[i];
+
 		QString label;
 
-		if ( dev.count( "label" ) ) {
+		if ( dev.count( "label" ) )
+		{
 			label = QString(dev[ "label" ].c_str());
 			dev.erase("label");
 		}
@@ -134,57 +143,114 @@ void GNURadioGui::displaySettings()
 		QPair< QString, QString > pair(label, dev.to_string().c_str());
 		m_devs.append(pair);
 
-		ui->gnuradioDevices->addItem(label);
+		ui->cboDevices->addItem(label);
 	}
 
-	if ( ui->gnuradioDevices->count() && oldIndex >= 0 )
+	if ( ui->cboDevices->count() && oldIndex >= 0 )
 	{
-		ui->gnuradioDevices->setCurrentIndex(oldIndex);
+		if ( oldIndex > ui->cboDevices->count() - 1 )
+			oldIndex = 0;
+
+		ui->cboDevices->setCurrentIndex(oldIndex);
 
 		if ( oldArgs.length() == 0 )
-			ui->deviceArguments->setText(m_devs[oldIndex].second);
+			ui->txtDeviceArgs->setText( m_devs[oldIndex].second );
 	}
 
 	if ( oldArgs.length() )
-		ui->deviceArguments->setText(oldArgs);
+		ui->txtDeviceArgs->setText( oldArgs );
+
+	ui->centerFrequency->setValueRange(7,
+					   unsigned(m_freqMin / 1000.0),
+					   unsigned(m_freqMax / 1000.0));
 
 	ui->centerFrequency->setValue(m_generalSettings.m_centerFrequency / 1000);
 
-	if ( m_rfGains.size() ) {
-		oldIndex = ui->sldRfGain->value();
-		ui->sldRfGain->setMinimum(0);
-		ui->sldRfGain->setMaximum(m_rfGains.size() - 1);
-		ui->sldRfGain->setValue(oldIndex == 0 ? m_rfGains.size() / 2 : oldIndex);
-		ui->sldRfGain->setEnabled(true);
-	} else {
-		ui->sldRfGain->setEnabled(false);
+	ui->sldFreqCorr->setRange(-100, +100);
+	ui->sldFreqCorr->setValue( m_freqCorr );
+	ui->lblFreqCorr->setText(tr("%1").arg(ui->sldFreqCorr->value()));
+
+	m_gainControls.clear();
+	QVBoxLayout *layoutGains = ui->verticalLayoutGains;
+	QLayoutItem *layoutItem;
+
+	while ( ( layoutItem = layoutGains->takeAt( 0 ) ) != NULL )
+	{
+		QLayout *layout = layoutItem->layout();
+
+		if ( !layout )
+			continue;
+
+		while ( ( layoutItem = layout->takeAt( 0 ) ) != NULL )
+		{
+			delete layoutItem->widget();
+			delete layoutItem;
+		}
+
+		delete layout;
 	}
 
-	if ( m_ifGains.size() ) {
-		oldIndex = ui->sldIfGain->value();
-		ui->sldIfGain->setMinimum(0);
-		ui->sldIfGain->setMaximum(m_ifGains.size() - 1);
-		ui->sldIfGain->setValue(oldIndex == 0 ? m_ifGains.size() / 2 : oldIndex);
-		ui->sldIfGain->setEnabled(true);
-	} else {
-		ui->sldIfGain->setEnabled(false);
+	for ( int i = 0; i < m_namedGains.size(); i++ )
+	{
+		std::pair< QString, std::vector<double> > pair = m_namedGains[i];
+
+		QHBoxLayout *layout = new QHBoxLayout();
+		QLabel *gainName = new QLabel( pair.first + " Gain" );
+		QSlider *gainSlider = new QSlider(Qt::Horizontal);
+		QLabel *gainLabel = new QLabel("0");
+		gainLabel->setMinimumWidth(30);
+		gainLabel->setAlignment(Qt::AlignHCenter | Qt::AlignHCenter);
+
+		QPair< QSlider*, QLabel* > pair2( gainSlider, gainLabel );
+		m_gainControls.push_back( pair2 );
+
+		connect(gainSlider, SIGNAL(valueChanged(int)),
+			this, SLOT(on_sldGain_valueChanged(int)));
+
+		layout->addWidget(gainName);
+		layout->addWidget(gainSlider);
+		layout->addWidget(gainLabel);
+
+		layoutGains->addLayout(layout);
+
+		std::vector<double> gain_values = pair.second;
+
+		if ( gain_values.size() ) {
+			gainSlider->setRange(0, gain_values.size() - 1);
+			gainSlider->setValue(gain_values.size() / 4);
+			gainSlider->setEnabled(true);
+		} else {
+			gainSlider->setEnabled(false);
+		}
 	}
 
 	oldIndex = ui->cboSampleRate->currentIndex();
 	ui->cboSampleRate->clear();
 
 	for ( int i = 0; i < m_sampRates.size(); i++ )
-		ui->cboSampleRate->addItem(QString("%1").arg( m_sampRates[i] ));
+		ui->cboSampleRate->addItem( QString::number(m_sampRates[i] / 1e3, '.', 3) );
+
+	if ( oldIndex > ui->cboSampleRate->count() - 1 )
+		oldIndex = 0;
 
 	if ( ui->cboSampleRate->count() && oldIndex >= 0 )
 		ui->cboSampleRate->setCurrentIndex(oldIndex);
+
+	if ( ui->cboSampleRate->count() ) {
+		ui->cboSampleRate->setEnabled(true);
+	} else {
+		ui->cboSampleRate->setEnabled(false);
+	}
 
 	oldIndex = ui->cboAntennas->currentIndex();
 	ui->cboAntennas->clear();
 
 	if ( m_antennas.size() ) {
 		for ( int i = 0; i < m_antennas.size(); i++ )
-			ui->cboAntennas->addItem(QString("%1").arg( m_antennas[i] ));
+			ui->cboAntennas->addItem( m_antennas[i] );
+
+		if ( oldIndex > ui->cboAntennas->count() - 1 )
+			oldIndex = 0;
 
 		if ( ui->cboAntennas->count() && oldIndex >= 0 )
 			ui->cboAntennas->setCurrentIndex(oldIndex);
@@ -199,16 +265,15 @@ void GNURadioGui::displaySettings()
 
 	if ( m_iqbals.size() ) {
 		for ( int i = 0; i < m_iqbals.size(); i++ )
-		ui->cboIQBalance->addItem(QString("%1").arg( m_iqbals[i] ));
+			ui->cboIQBalance->addItem( m_iqbals[i] );
 
 		if ( ui->cboIQBalance->count() && oldIndex >= 0 )
-		ui->cboIQBalance->setCurrentIndex(oldIndex);
+			ui->cboIQBalance->setCurrentIndex(oldIndex);
 
 		ui->cboIQBalance->setEnabled(true);
 	} else {
 		ui->cboIQBalance->setEnabled(false);
 	}
-
 }
 
 void GNURadioGui::sendSettings()
@@ -224,12 +289,18 @@ void GNURadioGui::updateHardware()
 	msg->submit(m_pluginAPI->getDSPEngineMessageQueue());
 }
 
-void GNURadioGui::on_gnuradioDevices_currentIndexChanged(int index)
+void GNURadioGui::on_cboDevices_currentIndexChanged(int index)
 {
 	if ( index < 0 || index >= m_devs.count() )
 		return;
 
-	ui->deviceArguments->setText(m_devs[index].second);
+	ui->txtDeviceArgs->setText( m_devs[index].second );
+}
+
+void GNURadioGui::on_txtDeviceArgs_textChanged(const QString &arg1)
+{
+	m_settings.m_args = arg1;
+	sendSettings();
 }
 
 void GNURadioGui::on_centerFrequency_changed(quint64 value)
@@ -240,30 +311,32 @@ void GNURadioGui::on_centerFrequency_changed(quint64 value)
 
 void GNURadioGui::on_sldFreqCorr_valueChanged(int value)
 {
-	ui->lblFreqCorrValue->setText(tr("%1").arg(value));
+	ui->lblFreqCorr->setText(tr("%1").arg(value));
 	m_settings.m_freqCorr = value;
 	sendSettings();
 }
 
-void GNURadioGui::on_sldRfGain_valueChanged(int value)
+void GNURadioGui::on_sldGain_valueChanged(int value)
 {
-	if ( value >= m_rfGains.size() )
-		return;
+	m_settings.m_namedGains.clear();
 
-	double gain = m_rfGains[value];
-	ui->lblRfGainValue->setText(tr("%1").arg(gain));
-	m_settings.m_rfGain = gain;
-	sendSettings();
-}
+	for ( int i = 0; i < m_gainControls.size(); i++ )
+	{
+		QPair< QSlider*, QLabel* > controls = m_gainControls[i];
 
-void GNURadioGui::on_sldIfGain_valueChanged(int value)
-{
-	if ( value >= m_ifGains.size() )
-		return;
+		QSlider *slider = controls.first;
+		QLabel *label = controls.second;
 
-	double gain = m_ifGains[value];
-	ui->lblIfGainValue->setText(tr("%1").arg(gain));
-	m_settings.m_ifGain = gain;
+		std::pair< QString, std::vector<double> > named_gain = m_namedGains[ i ];
+
+		int index = slider->value();
+		double gain = named_gain.second[index];
+		label->setText(tr("%1").arg(gain));
+
+		QPair< QString, double > named_gain2( named_gain.first, gain );
+		m_settings.m_namedGains.push_back( named_gain2 );
+	}
+
 	sendSettings();
 }
 
@@ -272,13 +345,7 @@ void GNURadioGui::on_cboSampleRate_currentIndexChanged(int index)
 	if ( index < 0 || index >= m_sampRates.size() )
 		return;
 
-	m_settings.m_sampleRate = m_sampRates[index];
-	sendSettings();
-}
-
-void GNURadioGui::on_deviceArguments_textChanged(const QString &arg1)
-{
-	m_settings.m_args = arg1;
+	m_settings.m_sampRate = m_sampRates[index];
 	sendSettings();
 }
 

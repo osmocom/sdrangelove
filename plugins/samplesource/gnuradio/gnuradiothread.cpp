@@ -27,35 +27,35 @@
 ////////////////////////////////////////////////////////////////////////////////
 class gr_adaptor;
 
-typedef boost::shared_ptr<gr_adaptor> gr_adaptor_sptr;
+typedef boost::shared_ptr< gr_adaptor > gr_adaptor_sptr;
 
 gr_adaptor_sptr make_gr_adaptor (SampleFifo* sampleFifo);
 
 class gr_adaptor : public gr_sync_block
 {
 public:
-  gr_adaptor (SampleFifo* sampleFifo);
-  ~gr_adaptor ();
+	gr_adaptor (SampleFifo* sampleFifo);
+	~gr_adaptor ();
 
-  int work (int noutput_items,
-		gr_vector_const_void_star &input_items,
-		gr_vector_void_star &output_items);
+	int work (int noutput_items,
+		  gr_vector_const_void_star &input_items,
+		  gr_vector_void_star &output_items);
 
 private:
-  SampleFifo *m_sampleFifo;
+	SampleFifo *m_sampleFifo;
 };
 
 gr_adaptor_sptr
 make_gr_adaptor (SampleFifo *sampleFifo)
 {
-  return gr_adaptor_sptr (new gr_adaptor (sampleFifo));
+	return gr_adaptor_sptr (new gr_adaptor (sampleFifo));
 }
 
 gr_adaptor::gr_adaptor (SampleFifo *sampleFifo)
-  : gr_sync_block ("gr_adaptor",
-				   gr_make_io_signature (1, 1, sizeof (gr_complex)),
-				   gr_make_io_signature (0, 0, 0)),
-	m_sampleFifo(sampleFifo)
+	: gr_sync_block ("gr_adaptor",
+			 gr_make_io_signature (1, 1, sizeof (gr_complex)),
+			 gr_make_io_signature (0, 0, 0)),
+	  m_sampleFifo(sampleFifo)
 {
 }
 
@@ -65,11 +65,10 @@ gr_adaptor::~gr_adaptor ()
 
 int
 gr_adaptor::work (int noutput_items,
-			gr_vector_const_void_star &input_items,
-			gr_vector_void_star &output_items)
+		  gr_vector_const_void_star &input_items,
+		  gr_vector_void_star &output_items)
 {
 	const gr_complex *in = (const gr_complex *) input_items[0];
-	unsigned char *out = (unsigned char *) output_items[0];
 
 	std::vector<qint16> buffer(noutput_items * 2, 0);
 	std::vector<qint16>::iterator it = buffer.begin();

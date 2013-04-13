@@ -23,11 +23,13 @@
 #include <QPair>
 #include <QList>
 #include <QString>
+#include <QSlider>
+#include <QLabel>
 #include "plugin/plugingui.h"
 #include "gnuradioinput.h"
 
 namespace Ui {
-	class GNURadioGui;
+class GNURadioGui;
 }
 
 class PluginAPI;
@@ -53,11 +55,18 @@ private:
 	PluginAPI* m_pluginAPI;
 	SampleSource* m_sampleSource;
 	QList< QPair<QString, QString> > m_devs;
-	std::vector<double> m_rfGains;
-	std::vector<double> m_ifGains;
+	std::vector< std::pair< QString, std::vector<double> > > m_namedGains;
+	double m_freqMin;
+	double m_freqMax;
+	double m_freqCorr;
 	std::vector<double> m_sampRates;
 	std::vector<QString> m_antennas;
 	std::vector<QString> m_iqbals;
+
+	std::vector< QSlider* > m_gainSliders;
+	std::vector< QLabel* > m_gainLabels;
+
+	QList< QPair< QSlider*, QLabel* > > m_gainControls;
 
 	SampleSource::GeneralSettings m_generalSettings;
 	GNURadioInput::Settings m_settings;
@@ -69,13 +78,14 @@ private:
 private slots:
 	void updateHardware();
 
-	void on_gnuradioDevices_currentIndexChanged(int index);
+	void on_cboDevices_currentIndexChanged(int index);
+	void on_txtDeviceArgs_textChanged(const QString &arg1);
 	void on_centerFrequency_changed(quint64 value);
 	void on_sldFreqCorr_valueChanged(int value);
-	void on_sldRfGain_valueChanged(int value);
-	void on_sldIfGain_valueChanged(int value);
+
+	void on_sldGain_valueChanged(int value);
+
 	void on_cboSampleRate_currentIndexChanged(int index);
-	void on_deviceArguments_textChanged(const QString &arg1);
 	void on_cboAntennas_currentIndexChanged(const QString &arg1);
 	void on_cboIQBalance_currentIndexChanged(const QString &arg1);
 };

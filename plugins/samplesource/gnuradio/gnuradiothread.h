@@ -32,13 +32,13 @@ class GnuradioThread : public QThread {
 	Q_OBJECT
 
 public:
-    GnuradioThread(QString args, SampleFifo* sampleFifo, QObject* parent = NULL);
-    ~GnuradioThread();
+	GnuradioThread(QString args, SampleFifo* sampleFifo, QObject* parent = NULL);
+	~GnuradioThread();
 
 	void startWork();
 	void stopWork();
 
-    osmosdr_source_c_sptr radio() { return m_src; }
+	osmosdr_source_c_sptr radio() { return m_src; }
 
 private:
 #pragma pack(push, 1)

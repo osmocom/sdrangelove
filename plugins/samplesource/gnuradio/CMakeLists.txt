@@ -1,10 +1,11 @@
 project(gnuradio)
 
+find_package(Boost)
 find_package(Gruel)
 find_package(GnuradioCore)
 find_package(GnuradioOsmosdr)
 
-if(GRUEL_FOUND AND GNURADIO_CORE_FOUND AND GNURADIO_OSMOSDR_FOUND)
+if(Boost_FOUND AND GRUEL_FOUND AND GNURADIO_CORE_FOUND AND GNURADIO_OSMOSDR_FOUND)
 
 set(gnuradio_SOURCES
 	gnuradiogui.cpp
@@ -51,11 +52,10 @@ add_library(inputgnuradio SHARED
 
 target_link_libraries(inputgnuradio
 	${QT_LIBRARIES}
-	${LIBUSB_LIBRARIES}
 	${Boost_LIBRARIES}
 	${GRUEL_LIBRARIES}
 	${GNURADIO_CORE_LIBRARIES}
 	${GNURADIO_OSMOSDR_LIBRARIES}
 )
 
-endif(GRUEL_FOUND AND GNURADIO_CORE_FOUND AND GNURADIO_OSMOSDR_FOUND)
+endif(Boost_FOUND AND GRUEL_FOUND AND GNURADIO_CORE_FOUND AND GNURADIO_OSMOSDR_FOUND)

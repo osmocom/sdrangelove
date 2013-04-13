@@ -18,7 +18,6 @@
 
 #include <string.h>
 #include <errno.h>
-#include <boost/foreach.hpp>
 #include "util/simpleserializer.h"
 #include "gnuradioinput.h"
 #include "gnuradiothread.h"
@@ -29,36 +28,30 @@ MessageRegistrator GNURadioInput::MsgReportGNURadio::ID("MsgReportGNURadio");
 
 GNURadioInput::Settings::Settings() :
 	m_args(""),
-	m_sampleRate(2e6),
 	m_freqCorr(0),
-	m_rfGain(10),
-	m_ifGain(15),
+	m_sampRate(0),
 	m_antenna(""),
-	m_iqbal("Off")
+	m_iqbal("")
 {
 }
 
 void GNURadioInput::Settings::resetToDefaults()
 {
 	m_args = "";
-	m_sampleRate = 2e6;
+	m_sampRate = 0;
 	m_freqCorr = 0;
-	m_rfGain = 10;
-	m_ifGain = 15;
 	m_antenna = "";
-	m_iqbal = "Off";
+	m_iqbal = "";
 }
 
 QByteArray GNURadioInput::Settings::serialize() const
 {
 	SimpleSerializer s(1);
-	s.writeString(1, m_args);
-	s.writeDouble(2, m_sampleRate);
-	s.writeDouble(3, m_freqCorr);
-	s.writeDouble(4, m_rfGain);
-	s.writeDouble(5, m_ifGain);
-	s.writeString(6, m_antenna);
-	s.writeString(7, m_iqbal);
+//	s.writeString(1, m_args);
+//	s.writeDouble(2, m_freqCorr);
+//	s.writeDouble(3, m_sampRate);
+//	s.writeString(4, m_antenna);
+//	s.writeString(5, m_iqbal);
 	return s.final();
 }
 
@@ -72,13 +65,11 @@ bool GNURadioInput::Settings::deserialize(const QByteArray& data)
 	}
 
 	if(d.getVersion() == 1) {
-		d.readString(1, &m_args, "");
-		d.readDouble(2, &m_sampleRate, 2e6);
-		d.readDouble(3, &m_freqCorr, 0);
-		d.readDouble(4, &m_rfGain, 10);
-		d.readDouble(5, &m_ifGain, 15);
-		d.readString(6, &m_antenna, "");
-		d.readString(7, &m_iqbal, "Off");
+//		d.readString(1, &m_args, "");
+//		d.readDouble(2, &m_freqCorr, 0);
+//		d.readDouble(3, &m_sampRate, 0);
+//		d.readString(4, &m_antenna, "");
+//		d.readString(5, &m_iqbal, "");
 		return true;
 	} else {
 		resetToDefaults();
@@ -101,12 +92,17 @@ GNURadioInput::~GNURadioInput()
 
 bool GNURadioInput::startInput(int device)
 {
+	double freqMin = 0, freqMax = 0, freqCorr = 0;
+	std::vector< std::pair< QString, std::vector<double> > > namedGains;
+	std::vector< double > sampRates;
+	std::vector< QString > antennas;
+
 	QMutexLocker mutexLocker(&m_mutex);
 
 	if(m_GnuradioThread != NULL)
 		stopInput();
 
-	if(!m_sampleFifo.setSize(524288)) {
+	if(!m_sampleFifo.setSize( 2 * 1024 * 1024 )) {
 		qCritical("Could not allocate SampleFifo");
 		return false;
 	}
@@ -127,18 +123,38 @@ bool GNURadioInput::startInput(int device)
 	if(m_GnuradioThread != NULL) {
 		osmosdr_source_c_sptr radio = m_GnuradioThread->radio();
 
-		m_sampRates = radio->get_sample_rates().values();
-		m_rfGains = radio->get_gain_range().values();
+		osmosdr::freq_range_t freq_rage = radio->get_freq_range();
+		freqMin = freq_rage.start();
+		freqMax = freq_rage.stop();
 
-		/* we check that the gain stage is available, otherwise this will
-		   cause unexpected behavior when using ettus uhd based devices. */
+		freqCorr = radio->get_freq_corr();
+
+		namedGains.clear();
+		m_settings.m_namedGains.clear();
 		std::vector< std::string > gain_names = radio->get_gain_names();
-		if ( std::find( gain_names.begin(), gain_names.end(), "IF" ) != gain_names.end() )
-			m_ifGains = radio->get_gain_range("IF").values();
+		for ( int i = 0; i < gain_names.size(); i++ )
+		{
+			std::string gain_name = gain_names[i];
 
-		m_antennas.clear();
-		BOOST_FOREACH( std::string antenna, radio->get_antennas() )
-			m_antennas.push_back( QString( antenna.c_str() ) );
+			std::vector< double > gain_values = \
+					radio->get_gain_range( gain_name ).values();
+
+			std::pair< QString, std::vector<double> > pair( gain_name.c_str(),
+									gain_values );
+
+			namedGains.push_back( pair );
+
+			QPair< QString, double > pair2( gain_name.c_str(), 0 );
+
+			m_settings.m_namedGains.push_back( pair2 );
+		}
+
+		sampRates = radio->get_sample_rates().values();
+
+		antennas.clear();
+		std::vector< std::string > ant = radio->get_antennas();
+		for ( int i = 0; i < ant.size(); i++ )
+			antennas.push_back( QString( ant[i].c_str() ) );
 
 		m_iqbals.clear();
 		m_iqbals.push_back( "Off" );
@@ -147,7 +163,9 @@ bool GNURadioInput::startInput(int device)
 	}
 
 	qDebug("GnuradioInput: start");
-	MsgReportGNURadio::create(m_rfGains, m_ifGains, m_sampRates, m_antennas, m_iqbals)->submit(m_guiMessageQueue);
+	MsgReportGNURadio::create(freqMin, freqMax, freqCorr, namedGains,
+				  sampRates, antennas, m_iqbals)
+			->submit(m_guiMessageQueue);
 
 	return true;
 
@@ -176,7 +194,7 @@ const QString& GNURadioInput::getDeviceDescription() const
 
 int GNURadioInput::getSampleRate() const
 {
-	return m_settings.m_sampleRate;
+	return m_settings.m_sampRate;
 }
 
 quint64 GNURadioInput::getCenterFrequency() const
@@ -196,76 +214,62 @@ bool GNURadioInput::handleMessage(Message* message)
 	}
 }
 
-bool GNURadioInput::applySettings(const GeneralSettings& generalSettings, const Settings& settings, bool force)
+bool GNURadioInput::applySettings(const GeneralSettings& generalSettings,
+				  const Settings& settings,
+				  bool force)
 {
 	QMutexLocker mutexLocker(&m_mutex);
 
 	m_settings.m_args = settings.m_args;
 
+	if ( NULL == m_GnuradioThread )
+		return true;
+
+	osmosdr_source_c_sptr radio = m_GnuradioThread->radio();
+
 	try {
 
-	if((m_settings.m_freqCorr != settings.m_freqCorr) || force) {
-		m_settings.m_freqCorr = settings.m_freqCorr;
-		if(m_GnuradioThread != NULL) {
-			m_GnuradioThread->radio()->set_freq_corr( m_settings.m_freqCorr );
+		if((m_settings.m_freqCorr != settings.m_freqCorr) || force) {
+			m_settings.m_freqCorr = settings.m_freqCorr;
+			radio->set_freq_corr( m_settings.m_freqCorr );
 		}
-	}
 
-	if((m_generalSettings.m_centerFrequency != generalSettings.m_centerFrequency) || force) {
-		m_generalSettings.m_centerFrequency = generalSettings.m_centerFrequency;
-		if(m_GnuradioThread != NULL) {
-			m_GnuradioThread->radio()->set_center_freq( m_generalSettings.m_centerFrequency );
+		if((m_generalSettings.m_centerFrequency != generalSettings.m_centerFrequency) || force) {
+			m_generalSettings.m_centerFrequency = generalSettings.m_centerFrequency;
+			radio->set_center_freq( m_generalSettings.m_centerFrequency );
 		}
-	}
 
-	if((m_settings.m_rfGain != settings.m_rfGain) || force) {
-		m_settings.m_rfGain = settings.m_rfGain;
-		if(m_GnuradioThread != NULL) {
-			m_GnuradioThread->radio()->set_gain( m_settings.m_rfGain );
-		}
-	}
-
-	if((m_settings.m_ifGain != settings.m_ifGain) || force) {
-		m_settings.m_ifGain = settings.m_ifGain;
-		if(m_GnuradioThread != NULL) {
-			/* we check that the gain stage is available, otherwise this will
-			   cause unexpected behavior when using ettus uhd based devices. */
-			std::vector< std::string > gain_names = m_GnuradioThread->radio()->get_gain_names();
-			if ( std::find( gain_names.begin(), gain_names.end(), "IF" ) != gain_names.end() )
-				m_GnuradioThread->radio()->set_gain( m_settings.m_ifGain, "IF" );
-		}
-	}
-
-	if((m_settings.m_sampleRate != settings.m_sampleRate) || force) {
-		m_settings.m_sampleRate = settings.m_sampleRate;
-		if(m_GnuradioThread != NULL) {
-			m_GnuradioThread->radio()->set_sample_rate( m_settings.m_sampleRate );
-		}
-	}
-
-	if((m_settings.m_antenna != settings.m_antenna) || force) {
-		m_settings.m_antenna = settings.m_antenna;
-		if(m_GnuradioThread != NULL) {
-			m_GnuradioThread->radio()->set_antenna( m_settings.m_antenna.toStdString() );
-		}
-	}
-
-	if((m_settings.m_iqbal != settings.m_iqbal) || force) {
-		m_settings.m_iqbal = settings.m_iqbal;
-		if(m_GnuradioThread != NULL) {
-			int index = 0;
-			BOOST_FOREACH( QString iqbal, m_iqbals )
-			{
-				if ( iqbal == m_settings.m_iqbal )
-				{
-					m_GnuradioThread->radio()->set_iq_balance_mode( index );
-					break;
-				}
-
-				index++;
+		for ( int i = 0; i < settings.m_namedGains.size(); i++ )
+		{
+			if((m_settings.m_namedGains[i].second != settings.m_namedGains[i].second) || force) {
+				m_settings.m_namedGains[i].second = settings.m_namedGains[i].second;
+				radio->set_gain( settings.m_namedGains[i].second,
+						 settings.m_namedGains[i].first.toStdString() );
 			}
 		}
-	}
+
+		if((m_settings.m_sampRate != settings.m_sampRate) || force) {
+			m_settings.m_sampRate = settings.m_sampRate;
+			radio->set_sample_rate( m_settings.m_sampRate );
+		}
+
+		if((m_settings.m_antenna != settings.m_antenna) || force) {
+			m_settings.m_antenna = settings.m_antenna;
+			radio->set_antenna( m_settings.m_antenna.toStdString() );
+		}
+
+		if((m_settings.m_iqbal != settings.m_iqbal) || force) {
+			m_settings.m_iqbal = settings.m_iqbal;
+
+			for ( int i = 0; i < m_iqbals.size(); i++ )
+			{
+				if ( m_iqbals[i] !=  m_settings.m_iqbal )
+					continue;
+
+				radio->set_iq_balance_mode( i );
+				break;
+			}
+		}
 
 	} catch ( std::exception &ex ) {
 		qDebug(ex.what());

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>186</width>
-    <height>268</height>
+    <height>203</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -43,7 +43,7 @@
         <number>2</number>
        </property>
        <item>
-        <widget class="QComboBox" name="gnuradioDevices">
+        <widget class="QComboBox" name="cboDevices">
          <property name="enabled">
           <bool>true</bool>
          </property>
@@ -62,7 +62,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="deviceArguments">
+        <widget class="QLineEdit" name="txtDeviceArgs">
          <property name="enabled">
           <bool>true</bool>
          </property>
@@ -173,10 +173,10 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="lblFreqCorrValue">
+      <widget class="QLabel" name="lblFreqCorr">
        <property name="minimumSize">
         <size>
-         <width>40</width>
+         <width>30</width>
          <height>0</height>
         </size>
        </property>
@@ -187,136 +187,14 @@
         <string/>
        </property>
        <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        <set>Qt::AlignCenter</set>
        </property>
       </widget>
      </item>
     </layout>
    </item>
    <item>
-    <widget class="Line" name="line_4">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <property name="spacing">
-      <number>3</number>
-     </property>
-     <item>
-      <widget class="QLabel" name="lblRfGainText">
-       <property name="text">
-        <string>RF Gain </string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSlider" name="sldRfGain">
-       <property name="toolTip">
-        <string/>
-       </property>
-       <property name="maximum">
-        <number>9</number>
-       </property>
-       <property name="pageStep">
-        <number>1</number>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="tickPosition">
-        <enum>QSlider::NoTicks</enum>
-       </property>
-       <property name="tickInterval">
-        <number>0</number>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="lblRfGainValue">
-       <property name="minimumSize">
-        <size>
-         <width>40</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="Line" name="line_3">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <property name="spacing">
-      <number>3</number>
-     </property>
-     <item>
-      <widget class="QLabel" name="lblIfGain">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>IF Gain  </string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSlider" name="sldIfGain">
-       <property name="toolTip">
-        <string/>
-       </property>
-       <property name="maximum">
-        <number>9</number>
-       </property>
-       <property name="pageStep">
-        <number>1</number>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="lblIfGainValue">
-       <property name="minimumSize">
-        <size>
-         <width>40</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="Line" name="line_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
+    <layout class="QVBoxLayout" name="verticalLayoutGains"/>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -326,7 +204,10 @@
      <item>
       <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>Sample Rate</string>
+        <string>Sample Rate (kHz)</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::AutoText</enum>
        </property>
       </widget>
      </item>
@@ -340,13 +221,6 @@
     </layout>
    </item>
    <item>
-    <widget class="Line" name="line_6">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_7">
      <property name="spacing">
       <number>3</number>
@@ -354,7 +228,7 @@
      <item>
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>Antenna</string>
+        <string>Selected Antenna</string>
        </property>
       </widget>
      </item>
@@ -364,13 +238,6 @@
     </layout>
    </item>
    <item>
-    <widget class="Line" name="line_7">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_8">
      <property name="spacing">
       <number>3</number>
@@ -378,7 +245,7 @@
      <item>
       <widget class="QLabel" name="label_4">
        <property name="text">
-        <string>IQ Balance Corr.</string>
+        <string>IQ Imbalance Corr.</string>
        </property>
       </widget>
      </item>
