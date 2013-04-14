@@ -6,12 +6,12 @@
 #include "gnuradiogui.h"
 
 const PluginDescriptor GNURadioPlugin::m_pluginDescriptor = {
-	displayedName: QString("GR-OsmoSDR Input"),
-	version: QString("---"),
-	copyright: QString("(c) Dimitri Stolnikov <horiz0n@gmx.net>"),
-	website: QString("http://sdr.osmocom.org/trac/wiki/gr-osmosdr"),
-	licenseIsGPL: true,
-	sourceCodeURL: QString("http://cgit.osmocom.org/cgit/gr-osmosdr")
+	QString("GR-OsmoSDR Input"),
+	QString("---"),
+	QString("(c) Dimitri Stolnikov <horiz0n@gmx.net>"),
+	QString("http://sdr.osmocom.org/trac/wiki/gr-osmosdr"),
+	true,
+	QString("http://cgit.osmocom.org/cgit/gr-osmosdr")
 };
 
 GNURadioPlugin::GNURadioPlugin(QObject* parent) :
