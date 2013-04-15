@@ -31,7 +31,8 @@ GNURadioInput::Settings::Settings() :
 	m_freqCorr(0),
 	m_sampRate(0),
 	m_antenna(""),
-	m_iqbal("")
+	m_iqbal(""),
+	m_bandwidth(0)
 {
 }
 
@@ -42,6 +43,7 @@ void GNURadioInput::Settings::resetToDefaults()
 	m_freqCorr = 0;
 	m_antenna = "";
 	m_iqbal = "";
+	m_bandwidth = 0;
 }
 
 QByteArray GNURadioInput::Settings::serialize() const
@@ -96,6 +98,7 @@ bool GNURadioInput::startInput(int device)
 	std::vector< std::pair< QString, std::vector<double> > > namedGains;
 	std::vector< double > sampRates;
 	std::vector< QString > antennas;
+	std::vector< double > bandwidths;
 
 	QMutexLocker mutexLocker(&m_mutex);
 
@@ -123,9 +126,13 @@ bool GNURadioInput::startInput(int device)
 	if(m_GnuradioThread != NULL) {
 		osmosdr_source_c_sptr radio = m_GnuradioThread->radio();
 
-		osmosdr::freq_range_t freq_rage = radio->get_freq_range();
-		freqMin = freq_rage.start();
-		freqMax = freq_rage.stop();
+		try {
+			osmosdr::freq_range_t freq_rage = radio->get_freq_range();
+			freqMin = freq_rage.start();
+			freqMax = freq_rage.stop();
+		} catch ( std::exception &ex ) {
+			qDebug(ex.what());
+		}
 
 		freqCorr = radio->get_freq_corr();
 
@@ -136,20 +143,28 @@ bool GNURadioInput::startInput(int device)
 		{
 			std::string gain_name = gain_names[i];
 
-			std::vector< double > gain_values = \
-					radio->get_gain_range( gain_name ).values();
+			try {
+				std::vector< double > gain_values = \
+						radio->get_gain_range( gain_name ).values();
 
-			std::pair< QString, std::vector<double> > pair( gain_name.c_str(),
-									gain_values );
+				std::pair< QString, std::vector<double> > pair( gain_name.c_str(),
+										gain_values );
 
-			namedGains.push_back( pair );
+				namedGains.push_back( pair );
 
-			QPair< QString, double > pair2( gain_name.c_str(), 0 );
+				QPair< QString, double > pair2( gain_name.c_str(), 0 );
 
-			m_settings.m_namedGains.push_back( pair2 );
+				m_settings.m_namedGains.push_back( pair2 );
+			} catch ( std::exception &ex ) {
+				qDebug(ex.what());
+			}
 		}
 
-		sampRates = radio->get_sample_rates().values();
+		try {
+			sampRates = radio->get_sample_rates().values();
+		} catch ( std::exception &ex ) {
+			qDebug(ex.what());
+		}
 
 		antennas.clear();
 		std::vector< std::string > ant = radio->get_antennas();
@@ -160,11 +175,17 @@ bool GNURadioInput::startInput(int device)
 		m_iqbals.push_back( "Off" );
 		m_iqbals.push_back( "Keep" );
 		m_iqbals.push_back( "Auto" );
+
+		try {
+			bandwidths = radio->get_bandwidth_range().values();
+		} catch ( std::exception &ex ) {
+			qDebug(ex.what());
+		}
 	}
 
 	qDebug("GnuradioInput: start");
 	MsgReportGNURadio::create(freqMin, freqMax, freqCorr, namedGains,
-				  sampRates, antennas, m_iqbals)
+				  sampRates, antennas, m_iqbals, bandwidths)
 			->submit(m_guiMessageQueue);
 
 	return true;
@@ -269,6 +290,11 @@ bool GNURadioInput::applySettings(const GeneralSettings& generalSettings,
 				radio->set_iq_balance_mode( i );
 				break;
 			}
+		}
+
+		if((m_settings.m_bandwidth != settings.m_bandwidth) || force) {
+			m_settings.m_bandwidth = settings.m_bandwidth;
+			radio->set_bandwidth( m_settings.m_bandwidth );
 		}
 
 	} catch ( std::exception &ex ) {

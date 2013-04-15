@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>186</width>
-    <height>203</height>
+    <height>232</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -251,6 +251,20 @@
      </item>
      <item>
       <widget class="QComboBox" name="cboIQBalance"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Bandwidth (kHz)</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cboBandwidth"/>
      </item>
     </layout>
    </item>

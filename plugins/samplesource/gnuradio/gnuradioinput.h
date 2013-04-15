@@ -36,6 +36,7 @@ public:
 		double m_sampRate;
 		QString m_antenna;
 		QString m_iqbal;
+		double m_bandwidth;
 
 		Settings();
 		void resetToDefaults();
@@ -77,6 +78,7 @@ public:
 		const std::vector<double>& getSampRates() const { return m_sampRates; }
 		const std::vector<QString>& getAntennas() const { return m_antennas; }
 		const std::vector<QString>& getIQBals() const { return m_iqbals; }
+		const std::vector<double>& getBandwidths() const { return m_bandwidths; }
 
 		static MsgReportGNURadio* create(const double freqMin,
 						 const double freqMax,
@@ -84,9 +86,10 @@ public:
 						 const std::vector< std::pair< QString, std::vector<double> > >& namedGains,
 						 const std::vector<double>& sampRates,
 						 const std::vector<QString>& antennas,
-						 const std::vector<QString>& iqbals)
+						 const std::vector<QString>& iqbals,
+						 const std::vector<double>& bandwidths)
 		{
-			return new MsgReportGNURadio(freqMin, freqMax, freqCorr, namedGains, sampRates, antennas, iqbals);
+			return new MsgReportGNURadio(freqMin, freqMax, freqCorr, namedGains, sampRates, antennas, iqbals, bandwidths);
 		}
 
 	protected:
@@ -97,6 +100,7 @@ public:
 		std::vector<double> m_sampRates;
 		std::vector<QString> m_antennas;
 		std::vector<QString> m_iqbals;
+		std::vector<double> m_bandwidths;
 
 		MsgReportGNURadio(const double freqMin,
 				  const double freqMax,
@@ -104,7 +108,8 @@ public:
 				  const std::vector< std::pair< QString, std::vector<double> > >& namedGains,
 				  const std::vector<double>& sampRates,
 				  const std::vector<QString>& antennas,
-				  const std::vector<QString>& iqbals) :
+				  const std::vector<QString>& iqbals,
+				  const std::vector<double>& bandwidths) :
 			Message(ID()),
 			m_freqMin(freqMin),
 			m_freqMax(freqMax),
@@ -112,7 +117,8 @@ public:
 			m_namedGains(namedGains),
 			m_sampRates(sampRates),
 			m_antennas(antennas),
-			m_iqbals(iqbals)
+			m_iqbals(iqbals),
+			m_bandwidths(bandwidths)
 		{ }
 	};
 

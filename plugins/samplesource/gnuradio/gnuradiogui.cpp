@@ -110,6 +110,9 @@ bool GNURadioGui::handleMessage(Message* message)
 		m_sampRates = rep->getSampRates();
 		m_antennas = rep->getAntennas();
 		m_iqbals = rep->getIQBals();
+		m_bandwidths = rep->getBandwidths();
+		/* insert 0 which will become "Auto" in the combo box */
+		m_bandwidths.insert(m_bandwidths.begin(), 0);
 		displaySettings();
 		return true;
 	} else {
@@ -274,6 +277,27 @@ void GNURadioGui::displaySettings()
 	} else {
 		ui->cboIQBalance->setEnabled(false);
 	}
+
+	oldIndex = ui->cboBandwidth->currentIndex();
+	ui->cboBandwidth->clear();
+
+	for ( int i = 0; i < m_bandwidths.size(); i++ )
+		if ( 0.0 == m_bandwidths[i] )
+			ui->cboBandwidth->addItem( "Auto" );
+		else
+			ui->cboBandwidth->addItem( QString::number(m_bandwidths[i] / 1e3, '.', 3) );
+
+	if ( oldIndex > ui->cboBandwidth->count() - 1 )
+		oldIndex = 0;
+
+	if ( ui->cboBandwidth->count() && oldIndex >= 0 )
+		ui->cboBandwidth->setCurrentIndex(oldIndex);
+
+	if ( ui->cboBandwidth->count() ) {
+		ui->cboBandwidth->setEnabled(true);
+	} else {
+		ui->cboBandwidth->setEnabled(false);
+	}
 }
 
 void GNURadioGui::sendSettings()
@@ -346,6 +370,7 @@ void GNURadioGui::on_cboSampleRate_currentIndexChanged(int index)
 		return;
 
 	m_settings.m_sampRate = m_sampRates[index];
+
 	sendSettings();
 }
 
@@ -358,5 +383,14 @@ void GNURadioGui::on_cboAntennas_currentIndexChanged(const QString &arg1)
 void GNURadioGui::on_cboIQBalance_currentIndexChanged(const QString &arg1)
 {
 	m_settings.m_iqbal = arg1;
+	sendSettings();
+}
+
+void GNURadioGui::on_cboBandwidth_currentIndexChanged(int index)
+{
+	if ( index < 0 || index >= m_bandwidths.size() )
+		return;
+
+	m_settings.m_bandwidth = m_bandwidths[index];
 	sendSettings();
 }
