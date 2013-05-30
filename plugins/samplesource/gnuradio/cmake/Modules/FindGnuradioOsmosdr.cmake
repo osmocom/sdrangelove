@@ -3,7 +3,7 @@ PKG_CHECK_MODULES(PC_GNURADIO_OSMOSDR gnuradio-osmosdr)
 
 FIND_PATH(
     GNURADIO_OSMOSDR_INCLUDE_DIRS
-    NAMES osmosdr/osmosdr_api.h
+    NAMES osmosdr/api.h
     HINTS $ENV{GNURADIO_OSMOSDR_DIR}/include
         ${PC_GNURADIO_OSMOSDR_INCLUDEDIR}
         ${CMAKE_INSTALL_PREFIX}/include

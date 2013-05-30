@@ -21,8 +21,8 @@
 #include "gnuradiothread.h"
 #include "dsp/samplefifo.h"
 
-#include <gnuradio/gr_sync_block.h>
-#include <gnuradio/gr_io_signature.h>
+#include <gnuradio/sync_block.h>
+#include <gnuradio/io_signature.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 class gr_adaptor;
@@ -31,7 +31,7 @@ typedef boost::shared_ptr< gr_adaptor > gr_adaptor_sptr;
 
 gr_adaptor_sptr make_gr_adaptor (SampleFifo* sampleFifo);
 
-class gr_adaptor : public gr_sync_block
+class gr_adaptor : public gr::sync_block
 {
 public:
 	gr_adaptor (SampleFifo* sampleFifo);
@@ -52,9 +52,9 @@ make_gr_adaptor (SampleFifo *sampleFifo)
 }
 
 gr_adaptor::gr_adaptor (SampleFifo *sampleFifo)
-	: gr_sync_block ("gr_adaptor",
-			 gr_make_io_signature (1, 1, sizeof (gr_complex)),
-			 gr_make_io_signature (0, 0, 0)),
+	: gr::sync_block("gr_adaptor",
+			 gr::io_signature::make(1, 1, sizeof (gr_complex)),
+			 gr::io_signature::make(0, 0, 0)),
 	  m_sampleFifo(sampleFifo)
 {
 }
@@ -127,8 +127,8 @@ void GnuradioThread::stopWork()
 
 void GnuradioThread::run()
 {
-	m_top = gr_make_top_block( "flowgraph" );
-	m_src = osmosdr_make_source_c( m_args.toStdString() );
+	m_top = gr::make_top_block( "flowgraph" );
+	m_src = osmosdr::source::make( m_args.toStdString() );
 
 	/* now since we've constructed our shared objects, we allow the calling
 	 * thread to continue it's work and send some radio settings to us. */

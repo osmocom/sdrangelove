@@ -23,8 +23,8 @@
 #include <QMutex>
 #include <QWaitCondition>
 
-#include <gnuradio/gr_top_block.h>
-#include <osmosdr/osmosdr_source_c.h>
+#include <gnuradio/top_block.h>
+#include <osmosdr/source.h>
 
 class SampleFifo;
 
@@ -38,7 +38,7 @@ public:
 	void startWork();
 	void stopWork();
 
-	osmosdr_source_c_sptr radio() { return m_src; }
+	osmosdr::source::sptr radio() { return m_src; }
 
 private:
 #pragma pack(push, 1)
@@ -55,8 +55,8 @@ private:
 	QString m_args;
 	SampleFifo* m_sampleFifo;
 
-	gr_top_block_sptr m_top;
-	osmosdr_source_c_sptr m_src;
+	gr::top_block_sptr m_top;
+	osmosdr::source::sptr m_src;
 
 	void run();
 };

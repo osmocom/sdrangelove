@@ -19,7 +19,7 @@
 #include "gnuradiogui.h"
 #include "ui_gnuradiogui.h"
 
-#include <osmosdr/osmosdr_device.h>
+#include <osmosdr/device.h>
 #include <iostream>
 #include <plugin/pluginapi.h>
 

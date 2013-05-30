@@ -124,7 +124,7 @@ bool GNURadioInput::startInput(int device)
 	applySettings(m_generalSettings, m_settings, true);
 
 	if(m_GnuradioThread != NULL) {
-		osmosdr_source_c_sptr radio = m_GnuradioThread->radio();
+		osmosdr::source::sptr radio = m_GnuradioThread->radio();
 
 		try {
 			osmosdr::freq_range_t freq_rage = radio->get_freq_range();
@@ -246,7 +246,7 @@ bool GNURadioInput::applySettings(const GeneralSettings& generalSettings,
 	if ( NULL == m_GnuradioThread )
 		return true;
 
-	osmosdr_source_c_sptr radio = m_GnuradioThread->radio();
+	osmosdr::source::sptr radio = m_GnuradioThread->radio();
 
 	try {
 
