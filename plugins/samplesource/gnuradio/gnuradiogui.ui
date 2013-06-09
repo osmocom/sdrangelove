@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>186</width>
-    <height>232</height>
+    <height>261</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -234,6 +234,20 @@
      </item>
      <item>
       <widget class="QComboBox" name="cboAntennas"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>DC Offset Corr.    </string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cboDCOffset"/>
      </item>
     </layout>
    </item>

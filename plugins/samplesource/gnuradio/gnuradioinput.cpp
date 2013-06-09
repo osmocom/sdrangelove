@@ -31,6 +31,7 @@ GNURadioInput::Settings::Settings() :
 	m_freqCorr(0),
 	m_sampRate(0),
 	m_antenna(""),
+	m_dcoff(""),
 	m_iqbal(""),
 	m_bandwidth(0)
 {
@@ -42,6 +43,7 @@ void GNURadioInput::Settings::resetToDefaults()
 	m_sampRate = 0;
 	m_freqCorr = 0;
 	m_antenna = "";
+	m_dcoff = "";
 	m_iqbal = "";
 	m_bandwidth = 0;
 }
@@ -53,6 +55,7 @@ QByteArray GNURadioInput::Settings::serialize() const
 //	s.writeDouble(2, m_freqCorr);
 //	s.writeDouble(3, m_sampRate);
 //	s.writeString(4, m_antenna);
+//	s.writeString(5, m_dcoff);
 //	s.writeString(5, m_iqbal);
 	return s.final();
 }
@@ -71,6 +74,7 @@ bool GNURadioInput::Settings::deserialize(const QByteArray& data)
 //		d.readDouble(2, &m_freqCorr, 0);
 //		d.readDouble(3, &m_sampRate, 0);
 //		d.readString(4, &m_antenna, "");
+//		d.readString(5, &m_dcoff, "");
 //		d.readString(5, &m_iqbal, "");
 		return true;
 	} else {
@@ -171,6 +175,11 @@ bool GNURadioInput::startInput(int device)
 		for ( int i = 0; i < ant.size(); i++ )
 			antennas.push_back( QString( ant[i].c_str() ) );
 
+		m_dcoffs.clear();
+		m_dcoffs.push_back( "Off" );
+		m_dcoffs.push_back( "Keep" );
+		m_dcoffs.push_back( "Auto" );
+
 		m_iqbals.clear();
 		m_iqbals.push_back( "Off" );
 		m_iqbals.push_back( "Keep" );
@@ -185,7 +194,8 @@ bool GNURadioInput::startInput(int device)
 
 	qDebug("GnuradioInput: start");
 	MsgReportGNURadio::create(freqMin, freqMax, freqCorr, namedGains,
-				  sampRates, antennas, m_iqbals, bandwidths)
+				  sampRates, antennas, m_dcoffs, m_iqbals,
+				  bandwidths)
 			->submit(m_guiMessageQueue);
 
 	return true;
@@ -277,6 +287,19 @@ bool GNURadioInput::applySettings(const GeneralSettings& generalSettings,
 		if((m_settings.m_antenna != settings.m_antenna) || force) {
 			m_settings.m_antenna = settings.m_antenna;
 			radio->set_antenna( m_settings.m_antenna.toStdString() );
+		}
+
+		if((m_settings.m_dcoff != settings.m_dcoff) || force) {
+			m_settings.m_dcoff = settings.m_dcoff;
+
+			for ( int i = 0; i < m_dcoffs.size(); i++ )
+			{
+				if ( m_dcoffs[i] !=  m_settings.m_dcoff )
+					continue;
+
+				radio->set_dc_offset_mode( i );
+				break;
+			}
 		}
 
 		if((m_settings.m_iqbal != settings.m_iqbal) || force) {

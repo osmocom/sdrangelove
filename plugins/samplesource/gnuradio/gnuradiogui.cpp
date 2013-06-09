@@ -109,6 +109,7 @@ bool GNURadioGui::handleMessage(Message* message)
 		m_freqCorr = rep->getFreqCorr();
 		m_sampRates = rep->getSampRates();
 		m_antennas = rep->getAntennas();
+		m_dcoffs = rep->getDCOffs();
 		m_iqbals = rep->getIQBals();
 		m_bandwidths = rep->getBandwidths();
 		/* insert 0 which will become "Auto" in the combo box */
@@ -263,6 +264,21 @@ void GNURadioGui::displaySettings()
 		ui->cboAntennas->setEnabled(false);
 	}
 
+	oldIndex = ui->cboDCOffset->currentIndex();
+	ui->cboDCOffset->clear();
+
+	if ( m_dcoffs.size() ) {
+		for ( int i = 0; i < m_dcoffs.size(); i++ )
+			ui->cboDCOffset->addItem( m_dcoffs[i] );
+
+		if ( ui->cboDCOffset->count() && oldIndex >= 0 )
+			ui->cboDCOffset->setCurrentIndex(oldIndex);
+
+		ui->cboDCOffset->setEnabled(true);
+	} else {
+		ui->cboDCOffset->setEnabled(false);
+	}
+
 	oldIndex = ui->cboIQBalance->currentIndex();
 	ui->cboIQBalance->clear();
 
@@ -377,6 +393,12 @@ void GNURadioGui::on_cboSampleRate_currentIndexChanged(int index)
 void GNURadioGui::on_cboAntennas_currentIndexChanged(const QString &arg1)
 {
 	m_settings.m_antenna = arg1;
+	sendSettings();
+}
+
+void GNURadioGui::on_cboDCOffset_currentIndexChanged(const QString &arg1)
+{
+	m_settings.m_dcoff = arg1;
 	sendSettings();
 }
 

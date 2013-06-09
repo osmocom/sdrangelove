@@ -61,6 +61,7 @@ private:
 	double m_freqCorr;
 	std::vector<double> m_sampRates;
 	std::vector<QString> m_antennas;
+	std::vector<QString> m_dcoffs;
 	std::vector<QString> m_iqbals;
 	std::vector<double> m_bandwidths;
 
@@ -88,6 +89,7 @@ private slots:
 
 	void on_cboSampleRate_currentIndexChanged(int index);
 	void on_cboAntennas_currentIndexChanged(const QString &arg1);
+	void on_cboDCOffset_currentIndexChanged(const QString &arg1);
 	void on_cboIQBalance_currentIndexChanged(const QString &arg1);
 	void on_cboBandwidth_currentIndexChanged(int index);
 };
