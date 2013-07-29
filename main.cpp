@@ -17,20 +17,20 @@
 
 #include <QApplication>
 #include <QTextCodec>
-#include <QWindowsStyle>
+#include <QProxyStyle>
 #include "mainwindow.h"
 
 static int runQtApplication(int argc, char* argv[])
 {
 	QApplication a(argc, argv);
 
-	QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
-	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+	/*QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
+	QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));*/
 
 	QCoreApplication::setOrganizationName("osmocom");
 	QCoreApplication::setApplicationName("SDRangelove");
 
-	QApplication::setStyle(new QWindowsStyle);
+	QApplication::setStyle(new QProxyStyle());
 
 	MainWindow w;
 	w.show();

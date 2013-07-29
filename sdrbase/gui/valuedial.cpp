@@ -117,11 +117,11 @@ QChar ValueDial::digitNeigh(QChar c, bool dir)
 	if(dir) {
 		if(c == QChar('0'))
 			return QChar('9');
-		else return QChar::fromAscii(c.toAscii() - 1);
+		else return QChar::fromLatin1(c.toLatin1() - 1);
 	} else {
 		if(c == QChar('9'))
 			return QChar('0');
-		else return QChar::fromAscii(c.toAscii() + 1);
+		else return QChar::fromLatin1(c.toLatin1() + 1);
 	}
 }
 
@@ -353,7 +353,7 @@ void ValueDial::keyPressEvent(QKeyEvent* value)
 	QChar c = value->text()[0];
 
 	if(c >= QChar('0') && (c <= QChar('9'))) {
-		int d = c.toAscii() - '0';
+		int d = c.toLatin1() - '0';
 		quint64 e = findExponent(m_cursor);
 		quint64 v = (m_value / e) % 10;
 		if(m_animationState != 0)

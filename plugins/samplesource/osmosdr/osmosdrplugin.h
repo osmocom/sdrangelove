@@ -7,6 +7,7 @@
 class OsmoSDRPlugin : public QObject, PluginInterface {
 	Q_OBJECT
 	Q_INTERFACES(PluginInterface)
+	Q_PLUGIN_METADATA(IID "org.osmocom.sdr.samplesource.osmo-sdr")
 
 public:
 	explicit OsmoSDRPlugin(QObject* parent = NULL);

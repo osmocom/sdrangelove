@@ -7,6 +7,7 @@
 class TetraPlugin : public QObject, PluginInterface {
 	Q_OBJECT
 	Q_INTERFACES(PluginInterface)
+	Q_PLUGIN_METADATA(IID "de.maintech.sdrangelove.demod.tetra")
 
 public:
 	explicit TetraPlugin(QObject* parent = NULL);

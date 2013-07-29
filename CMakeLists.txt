@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.9)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
 project(sdrangelove)
@@ -6,8 +6,12 @@ project(sdrangelove)
 set(CMAKE_BUILD_TYPE "Release")
 
 set(QT_USE_QTOPENGL TRUE)
+set(CMAKE_AUTOMOC ON)
 
-find_package(Qt4 REQUIRED)
+#find_package(Qt4 REQUIRED)
+find_package(Qt5Core 5.0 REQUIRED)
+find_package(Qt5Widgets 5.0 REQUIRED)
+#find_package(QT5OpenGL 5.0 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(PkgConfig)
 
@@ -16,7 +20,7 @@ find_package(FFTW3F)
 
 ##############################################################################
 
-include(${QT_USE_FILE})
+#include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
 ##############################################################################
@@ -160,14 +164,6 @@ set(sdrbase_RESOURCES
 	sdrbase/resources/res.qrc
 )
 
-include_directories(
-	${CMAKE_CURRENT_BINARY_DIR}
-	${CMAKE_SOURCE_DIR}/include
-	${CMAKE_SOURCE_DIR}/include-gpl
-	${OPENGL_INCLUDE_DIR}
-	${PORTAUDIO_INCLUDE_DIRS}
-)
-
 if(FFTW3F_FOUND)
 	set(sdrbase_SOURCES
 		${sdrbase_SOURCES}
@@ -192,12 +188,12 @@ else(FFTW3F_FOUND)
 	add_definitions(-DUSE_KISSFFT)
 endif(FFTW3F_FOUND)
 
-include(${QT_USE_FILE})
+#include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 
-qt4_wrap_cpp(sdrbase_HEADERS_MOC ${sdrbase_HEADERS})
-qt4_wrap_ui(sdrbase_FORMS_HEADERS ${sdrbase_FORMS})
-qt4_add_resources(sdrbase_RESOURCES_RCC ${sdrbase_RESOURCES})
+#qt5_wrap_cpp(sdrbase_HEADERS_MOC ${sdrbase_HEADERS})
+qt5_wrap_ui(sdrbase_FORMS_HEADERS ${sdrbase_FORMS})
+qt5_add_resources(sdrbase_RESOURCES_RCC ${sdrbase_RESOURCES})
 
 if(WIN32)
 	SET(sdrbase_SOURCES ${sdrbase_SOURCES} sdrbase/resources/sdrangelove.rc)
@@ -223,6 +219,15 @@ endif(FFTW3F_FOUND)
 
 set_target_properties(sdrbase PROPERTIES DEFINE_SYMBOL "sdrangelove_EXPORTS")
 
+qt5_use_modules(sdrbase Core Widgets OpenGL)
+
+include_directories(
+	${CMAKE_CURRENT_BINARY_DIR}
+	${CMAKE_SOURCE_DIR}/include
+	${CMAKE_SOURCE_DIR}/include-gpl
+	${OPENGL_INCLUDE_DIR}
+	${PORTAUDIO_INCLUDE_DIRS}
+)
 ##############################################################################
 
 set(sdrangelove_SOURCES
@@ -251,6 +256,8 @@ if(WIN32)
 	set_target_properties(sdrangelove PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 	set_target_properties(sdrangelove PROPERTIES LINK_FLAGS_MINSIZEREL "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 endif(WIN32)
+
+qt5_use_modules(sdrangelove Widgets)
 
 ##############################################################################
 

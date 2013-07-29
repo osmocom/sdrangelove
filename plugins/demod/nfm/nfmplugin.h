@@ -7,6 +7,7 @@
 class NFMPlugin : public QObject, PluginInterface {
 	Q_OBJECT
 	Q_INTERFACES(PluginInterface)
+	Q_PLUGIN_METADATA(IID "de.maintech.sdrangelove.demod.nfm")
 
 public:
 	explicit NFMPlugin(QObject* parent = NULL);

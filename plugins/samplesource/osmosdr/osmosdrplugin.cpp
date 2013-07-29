@@ -63,5 +63,3 @@ PluginGUI* OsmoSDRPlugin::createSampleSource(const QString& sourceName, const QB
 		return NULL;
 	}
 }
-
-Q_EXPORT_PLUGIN2(osmosdrPlugin, OsmoSDRPlugin);

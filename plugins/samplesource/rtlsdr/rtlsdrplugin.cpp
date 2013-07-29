@@ -63,5 +63,3 @@ PluginGUI* RTLSDRPlugin::createSampleSource(const QString& sourceName, const QBy
 		return NULL;
 	}
 }
-
-Q_EXPORT_PLUGIN2(rtlsdrPlugin, RTLSDRPlugin);

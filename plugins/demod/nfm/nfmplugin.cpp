@@ -49,4 +49,3 @@ void NFMPlugin::createInstanceNFM()
 	m_pluginAPI->registerDemodulatorInstance("de.maintech.sdrangelove.demod.nfm", NFMDemodGUI::create(m_pluginAPI));
 }
 
-Q_EXPORT_PLUGIN2(nfmPlugin, NFMPlugin);

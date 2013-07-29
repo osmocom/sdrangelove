@@ -48,5 +48,3 @@ void TetraPlugin::createInstanceTetra()
 {
 	m_pluginAPI->registerDemodulatorInstance("de.maintech.sdrangelove.demod.tetra", TetraDemodGUI::create(m_pluginAPI));
 }
-
-Q_EXPORT_PLUGIN2(tetraPlugin, TetraPlugin);

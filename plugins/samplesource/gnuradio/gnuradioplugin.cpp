@@ -48,5 +48,3 @@ PluginGUI* GNURadioPlugin::createSampleSource(const QString& sourceName, const Q
 		return NULL;
 	}
 }
-
-Q_EXPORT_PLUGIN2(gnuRadioPlugin, GNURadioPlugin);
