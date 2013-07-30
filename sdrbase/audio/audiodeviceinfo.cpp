@@ -16,39 +16,38 @@
 ///////////////////////////////////////////////////////////////////////////////////
 
 #include "audio/audiodeviceinfo.h"
-#include <portaudio.h>
 
 AudioDeviceInfo::AudioDeviceInfo()
 {
-	const PaDeviceInfo *deviceInfo;
-	const PaHostApiInfo *apiInfo;
-	PaError err;
-	int numDevices;
-	int i;
-
-	if((numDevices = Pa_GetDeviceCount()) < 0) {
-		err = numDevices;
-		goto failed;
-	}
-
-	m_devices.clear();
-
-	for(i = 0; i < numDevices; i++) {
-		deviceInfo = Pa_GetDeviceInfo(i);
-		if(deviceInfo->maxOutputChannels >= 2) {
-			apiInfo = Pa_GetHostApiInfo(deviceInfo->hostApi);
-			m_devices.append(Device(
-				QString::fromLatin1(deviceInfo->name),
-				QString::fromLatin1(apiInfo->name),
-				i));
-		}
-	}
-	qDebug("Audio initialisation: %d devices found", m_devices.count());
-	return;
-
-failed:
-	if(err != paNoError)
-		qCritical("Audio initialisation failed: %s (%d)", Pa_GetErrorText(err), err);
+//	const PaDeviceInfo *deviceInfo;
+//	const PaHostApiInfo *apiInfo;
+//	PaError err;
+//	int numDevices;
+//	int i;
+//
+//	if((numDevices = Pa_GetDeviceCount()) < 0) {
+//		err = numDevices;
+//		goto failed;
+//	}
+//
+//	m_devices.clear();
+//
+//	for(i = 0; i < numDevices; i++) {
+//		deviceInfo = Pa_GetDeviceInfo(i);
+//		if(deviceInfo->maxOutputChannels >= 2) {
+//			apiInfo = Pa_GetHostApiInfo(deviceInfo->hostApi);
+//			m_devices.append(Device(
+//				QString::fromLatin1(deviceInfo->name),
+//				QString::fromLatin1(apiInfo->name),
+//				i));
+//		}
+//	}
+//	qDebug("Audio initialisation: %d devices found", m_devices.count());
+//	return;
+//
+//failed:
+//	if(err != paNoError)
+//		qCritical("Audio initialisation failed: %s (%d)", Pa_GetErrorText(err), err);
 }
 
 int AudioDeviceInfo::match(const QString& api, const QString device) const

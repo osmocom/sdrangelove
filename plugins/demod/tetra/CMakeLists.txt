@@ -44,4 +44,4 @@ target_link_libraries(demodtetra
 	sdrbase
 )
 
-qt5_use_modules(demodtetra Core Widgets OpenGL)
+qt5_use_modules(demodtetra Core Widgets OpenGL Multimedia)

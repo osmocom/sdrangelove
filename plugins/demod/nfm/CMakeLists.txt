@@ -44,4 +44,4 @@ target_link_libraries(demodnfm
 	sdrbase
 )
 
-qt5_use_modules(demodnfm Core Widgets OpenGL)
+qt5_use_modules(demodnfm Core Widgets OpenGL Multimedia)

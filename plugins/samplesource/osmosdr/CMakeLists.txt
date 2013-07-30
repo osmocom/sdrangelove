@@ -47,4 +47,4 @@ target_link_libraries(inputosmosdr
 	sdrbase
 )
 
-qt5_use_modules(inputosmosdr Core Widgets OpenGL)
+qt5_use_modules(inputosmosdr Core Widgets OpenGL Multimedia)

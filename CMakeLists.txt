@@ -11,6 +11,7 @@ set(CMAKE_AUTOMOC ON)
 #find_package(Qt4 REQUIRED)
 find_package(Qt5Core 5.0 REQUIRED)
 find_package(Qt5Widgets 5.0 REQUIRED)
+find_package(Qt5Multimedia 5.0 REQUIRED)
 #find_package(QT5OpenGL 5.0 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(PkgConfig)
@@ -219,7 +220,7 @@ endif(FFTW3F_FOUND)
 
 set_target_properties(sdrbase PROPERTIES DEFINE_SYMBOL "sdrangelove_EXPORTS")
 
-qt5_use_modules(sdrbase Core Widgets OpenGL)
+qt5_use_modules(sdrbase Core Widgets OpenGL Multimedia)
 
 include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}
@@ -264,7 +265,7 @@ if(WIN32)
 	set_target_properties(sdrangelove PROPERTIES LINK_FLAGS_MINSIZEREL "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 endif(WIN32)
 
-qt5_use_modules(sdrangelove Widgets)
+qt5_use_modules(sdrangelove Widgets Multimedia)
 
 ##############################################################################
 

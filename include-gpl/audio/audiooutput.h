@@ -18,30 +18,58 @@
 #ifndef INCLUDE_AUDIOOUTPUT_H
 #define INCLUDE_AUDIOOUTPUT_H
 
+#include <QIODevice>
+#include <QThread>
 #include <QMutex>
+#include <QAudioOutput>
 #include <list>
 #include <vector>
-#include "portaudio.h"
 #include "util/export.h"
 
 class AudioFifo;
+class AudioOutput;
 
-class SDRANGELOVE_API AudioOutput {
+class SoundThread : public QThread
+{
+    Q_OBJECT
+public:
+    explicit SoundThread(AudioOutput* out, QObject *parent = 0);
+    ~SoundThread();
+    void run();
+ 
+signals:
+ 
+public slots:
+    void play();
+	void stop();
+	void kill();
+private:
+    void playInt();
+ 
+	AudioOutput*       m_generator;
+    QAudioOutput*    m_audioOutput;
+
+};
+
+class SDRANGELOVE_API AudioOutput : public QIODevice{
+	Q_OBJECT
 public:
 	AudioOutput();
 	~AudioOutput();
 
+	void start();
 	bool start(int device, int rate);
 	void stop();
 
 	void addFifo(AudioFifo* audioFifo);
 	void removeFifo(AudioFifo* audioFifo);
 
+	qint64 readData(char *data, qint64 maxlen);
+    qint64 writeData(const char *data, qint64 len);
 	//int bufferedSamples();
 
 private:
 	QMutex m_mutex;
-	PaStream* m_stream;
 	//AudioFifo* m_audioFifo;
 	typedef std::list<AudioFifo*> AudioFifos;
 	AudioFifos m_audioFifos;
@@ -50,20 +78,10 @@ private:
 	int m_sampleRate;
 	//PaTime m_streamStartTime;
 
-	static int callbackHelper(
-		const void* inputBuffer,
-		void* outputBuffer,
-		unsigned long framesPerBuffer,
-		const PaStreamCallbackTimeInfo* timeInfo,
-		PaStreamCallbackFlags statusFlags,
-		void* userData);
+	SoundThread _sfxThread;
 
-	int callback(
-		const void* inputBuffer,
-		void* outputBuffer,
-		unsigned long framesPerBuffer,
-		const PaStreamCallbackTimeInfo* timeInfo,
-		PaStreamCallbackFlags statusFlags);
+	int callback(void* outputBuffer,
+		unsigned long framesPerBuffer);
 };
 
 #endif // INCLUDE_AUDIOOUTPUT_H

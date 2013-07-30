@@ -47,4 +47,4 @@ target_link_libraries(inputrtlsdr
 	sdrbase
 )
 
-qt5_use_modules(inputrtlsdr Core Widgets OpenGL)
+qt5_use_modules(inputrtlsdr Core Widgets OpenGL Multimedia)
