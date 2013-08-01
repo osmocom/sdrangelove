@@ -26,7 +26,7 @@ include_directories(
 	${LIBOSMOSDR_INCLUDE_DIR}
 )
 
-include(${QT_USE_FILE})
+#include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_PLUGIN)
 add_definitions(-DQT_SHARED)
