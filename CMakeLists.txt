@@ -16,7 +16,6 @@ find_package(Qt5Multimedia 5.0 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(PkgConfig)
 
-find_package(Portaudio REQUIRED)
 find_package(FFTW3F)
 
 ##############################################################################
@@ -32,7 +31,6 @@ set(sdrbase_SOURCES
 	sdrbase/audio/audiodeviceinfo.cpp
 	sdrbase/audio/audiofifo.cpp
 	sdrbase/audio/audiooutput.cpp
-	sdrbase/audio/portaudioholder.cpp
 
 	sdrbase/dsp/channelizer.cpp
 	sdrbase/dsp/channelmarker.cpp
@@ -90,7 +88,6 @@ set(sdrbase_HEADERS
 	include-gpl/audio/audiodeviceinfo.h
 	include-gpl/audio/audiofifo.h
 	include-gpl/audio/audiooutput.h
-	include-gpl/audio/portaudioholder.h
 
 	include-gpl/dsp/channelizer.h
 	include/dsp/channelmarker.h
@@ -210,7 +207,6 @@ add_library(sdrbase SHARED
 target_link_libraries(sdrbase
 	${QT_LIBRARIES}
 	${OPENGL_LIBRARIES}
-	${PORTAUDIO_LIBRARIES}
 	${LIBUSB_LIBRARIES}
 )
 
@@ -227,11 +223,10 @@ include_directories(
 	${CMAKE_SOURCE_DIR}/include
 	${CMAKE_SOURCE_DIR}/include-gpl
 	${OPENGL_INCLUDE_DIR}
-	${PORTAUDIO_INCLUDE_DIRS}
 )
 
 if(MSVC)
-	set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Oi /GL /Ot /Ox" ) 
+	set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Oi /GL /Ot /Ox" )
 	set( CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /LTCG" )
 	add_definitions (/D "_CRT_SECURE_NO_WARNINGS")
 endif()

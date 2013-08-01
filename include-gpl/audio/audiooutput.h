@@ -18,70 +18,40 @@
 #ifndef INCLUDE_AUDIOOUTPUT_H
 #define INCLUDE_AUDIOOUTPUT_H
 
-#include <QIODevice>
-#include <QThread>
 #include <QMutex>
-#include <QAudioOutput>
+#include <QIODevice>
 #include <list>
 #include <vector>
 #include "util/export.h"
 
+class QAudioOutput;
 class AudioFifo;
-class AudioOutput;
+class AudioOutputPipe;
 
-class SoundThread : public QThread
-{
-    Q_OBJECT
-public:
-    explicit SoundThread(AudioOutput* out, QObject *parent = 0);
-    ~SoundThread();
-    void run();
- 
-signals:
- 
-public slots:
-    void play();
-	void stop();
-	void kill();
-private:
-    void playInt();
- 
-	AudioOutput*       m_generator;
-    QAudioOutput*    m_audioOutput;
-
-};
-
-class SDRANGELOVE_API AudioOutput : public QIODevice{
-	Q_OBJECT
+class SDRANGELOVE_API AudioOutput : QIODevice {
 public:
 	AudioOutput();
 	~AudioOutput();
 
-	void start();
 	bool start(int device, int rate);
 	void stop();
 
 	void addFifo(AudioFifo* audioFifo);
 	void removeFifo(AudioFifo* audioFifo);
 
-	qint64 readData(char *data, qint64 maxlen);
-    qint64 writeData(const char *data, qint64 len);
-	//int bufferedSamples();
-
 private:
 	QMutex m_mutex;
-	//AudioFifo* m_audioFifo;
+	QAudioOutput* m_audioOutput;
+
 	typedef std::list<AudioFifo*> AudioFifos;
 	AudioFifos m_audioFifos;
 	std::vector<qint32> m_mixBuffer;
 
-	int m_sampleRate;
-	//PaTime m_streamStartTime;
+	bool open(OpenMode mode);
+	qint64 readData(char* data, qint64 maxLen);
+	qint64 writeData(const char* data, qint64 len);
 
-	SoundThread _sfxThread;
-
-	int callback(void* outputBuffer,
-		unsigned long framesPerBuffer);
+	friend class AudioOutputPipe;
 };
 
 #endif // INCLUDE_AUDIOOUTPUT_H

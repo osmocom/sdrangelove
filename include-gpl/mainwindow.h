@@ -20,7 +20,6 @@
 
 #include <QMainWindow>
 #include <QTimer>
-#include "audio/portaudioholder.h"
 #include "settings/settings.h"
 #include "util/export.h"
 
@@ -70,7 +69,6 @@ private:
 
 	Ui::MainWindow *ui;
 
-	PortAudioHolder m_portAudioHolder;
 	AudioDeviceInfo* m_audioDeviceInfo;
 
 	MessageQueue* m_messageQueue;
