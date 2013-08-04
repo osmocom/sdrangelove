@@ -11,6 +11,26 @@ endif(UNIX AND NOT BOOST_ROOT AND EXISTS "/usr/lib64")
 
 find_package(Boost)
 
+if(NOT GNURADIO_OSMOSDR_FOUND)
+    message(FATAL_ERROR "gr-osmosdr required to build sample source plugin.")
+endif(NOT GNURADIO_OSMOSDR_FOUND)
+
+if(NOT GNURADIO_RUNTIME_FOUND)
+
+    message(STATUS "GNU Radio not found, assuming built-in gr-osmosdr runtime.")
+
+    set(GNURADIO_RUNTIME_FOUND TRUE)
+    set(GNURADIO_RUNTIME_INCLUDE_DIRS "")
+    set(GNURADIO_RUNTIME_LIBRARIES "")
+
+    FOREACH(inc ${GNURADIO_OSMOSDR_INCLUDE_DIRS})
+        LIST(APPEND GNURADIO_RUNTIME_INCLUDE_DIRS "${inc}/osmosdr/runtime")
+    ENDFOREACH(inc)
+
+    LIST(APPEND GNURADIO_RUNTIME_LIBRARIES ${GNURADIO_OSMOSDR_LIBRARIES})
+
+endif(NOT GNURADIO_RUNTIME_FOUND)
+
 if(Boost_FOUND AND GNURADIO_RUNTIME_FOUND AND GNURADIO_OSMOSDR_FOUND)
 
 set(gnuradio_SOURCES
@@ -32,7 +52,7 @@ set(gnuradio_FORMS
 )
 
 include_directories(
-	.
+        ${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_BINARY_DIR}
 	${CMAKE_SOURCE_DIR}/include
 	${CMAKE_SOURCE_DIR}/include-gpl
