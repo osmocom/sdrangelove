@@ -8,7 +8,7 @@ class SDRANGELOVE_API Interpolator {
 public:
 	Interpolator();
 
-	void create(int nTaps, int phaseSteps, double sampleRate, double cutoff);
+	void create(int phaseSteps, double sampleRate, double cutoff);
 
 	bool interpolate(Real* distance, const Complex& next, bool* consumed, Complex* result)
 	{
@@ -39,7 +39,7 @@ private:
 	{
 		m_ptr--;
 		if(m_ptr < 0)
-			m_ptr = m_nTaps;
+			m_ptr = m_nTaps - 1;
 		m_samples[m_ptr] = next;
 	}
 
@@ -53,9 +53,7 @@ private:
 		for(int i = 0; i < m_nTaps; i++) {
 			rAcc += *coeff * m_samples[sample].real();
 			iAcc += *coeff * m_samples[sample].imag();
-			sample++;
-			if(sample >= m_nTaps)
-				sample = 0;
+			sample = (sample + 1) % m_nTaps;
 			coeff++;
 		}
 		*result = Complex(rAcc, iAcc);

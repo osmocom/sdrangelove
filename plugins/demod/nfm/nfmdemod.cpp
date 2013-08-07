@@ -35,7 +35,7 @@ NFMDemod::NFMDemod(AudioFifo* audioFifo, SampleSink* sampleSink) :
 	m_squelchLevel *= m_squelchLevel;
 
 	m_nco.setFreq(m_frequency, m_sampleRate);
-	m_interpolator.create(1, 32, 32 * m_sampleRate, 12500);
+	m_interpolator.create(16, m_sampleRate, 12500);
 	m_sampleDistanceRemain = (Real)m_sampleRate / 44100.0;
 
 	m_lowpass.create(21, 44100, 3000);
@@ -123,7 +123,7 @@ bool NFMDemod::handleMessage(Message* cmd)
 		qDebug("%d samples/sec, %lld Hz offset", signal->getSampleRate(), signal->getFrequencyOffset());
 		m_sampleRate = signal->getSampleRate();
 		m_nco.setFreq(-signal->getFrequencyOffset(), m_sampleRate);
-		m_interpolator.create(25, 32, 32 * m_sampleRate, m_rfBandwidth / 2.0);
+		m_interpolator.create(16, m_sampleRate, m_rfBandwidth / 2.1);
 		m_sampleDistanceRemain = m_sampleRate / 44100.0;
 		m_squelchState = 0;
 		cmd->completed();
@@ -131,7 +131,7 @@ bool NFMDemod::handleMessage(Message* cmd)
 	} else if(cmd->id() == MsgConfigureNFMDemod::ID()) {
 		MsgConfigureNFMDemod* cfg = (MsgConfigureNFMDemod*)cmd;
 		m_rfBandwidth = cfg->getRFBandwidth();
-		m_interpolator.create(25, 32, 32 * m_sampleRate, m_rfBandwidth / 2.0);
+		m_interpolator.create(16, m_sampleRate, m_rfBandwidth / 2.1);
 		m_lowpass.create(21, 44100, cfg->getAFBandwidth());
 		m_squelchLevel = pow(10.0, cfg->getSquelch() / 20.0);
 		m_squelchLevel *= m_squelchLevel;

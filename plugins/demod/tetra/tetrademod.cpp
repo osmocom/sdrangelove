@@ -30,7 +30,7 @@ TetraDemod::TetraDemod(SampleSink* sampleSink) :
 	m_frequency = 0;
 
 	m_nco.setFreq(m_frequency, m_sampleRate);
-	m_interpolator.create(1, 32, 32 * m_sampleRate, 36000);
+	m_interpolator.create(32, 32 * m_sampleRate, 36000);
 	m_sampleDistanceRemain = (Real)m_sampleRate / 36000.0;
 }
 
@@ -87,7 +87,7 @@ bool TetraDemod::handleMessage(Message* cmd)
 		qDebug("%d samples/sec, %lld Hz offset", signal->getSampleRate(), signal->getFrequencyOffset());
 		m_sampleRate = signal->getSampleRate();
 		m_nco.setFreq(-signal->getFrequencyOffset(), m_sampleRate);
-		m_interpolator.create(51, 32, 32 * m_sampleRate, 25000 / 2);
+		m_interpolator.create(32, m_sampleRate, 25000 / 2);
 		m_sampleDistanceRemain = m_sampleRate / 36000.0;
 		cmd->completed();
 		return true;

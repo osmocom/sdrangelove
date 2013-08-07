@@ -10,7 +10,7 @@
 /*
  * supported filter orders: 64, 48, 32
  */
-#define HB_FILTERORDER 48
+#define HB_FILTERORDER 32
 #define HB_SHIFT 14
 
 class SDRANGELOVE_API IntHalfbandFilter {
