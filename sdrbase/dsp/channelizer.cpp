@@ -136,8 +136,10 @@ Real Channelizer::createFilterChain(Real sigStart, Real sigEnd, Real chanStart, 
 	Real safetyMargin = sigBw / 20;
 	Real rot = sigBw / 4;
 
-	//qDebug("Signal [%f, %f] (BW %f), Channel [%f, %f], Rot %f, Safety %f", sigStart, sigEnd, sigBw, chanStart, chanEnd, rot, safetyMargin);
+	safetyMargin = 0;
 
+	//qDebug("Signal [%f, %f] (BW %f), Channel [%f, %f], Rot %f, Safety %f", sigStart, sigEnd, sigBw, chanStart, chanEnd, rot, safetyMargin);
+#if 1
 	// check if it fits into the left half
 	if(signalContainsChannel(sigStart + safetyMargin, sigStart + sigBw / 2.0 - safetyMargin, chanStart, chanEnd)) {
 		//qDebug("-> take left half (rotate by +1/4 and decimate by 2)");
@@ -158,7 +160,7 @@ Real Channelizer::createFilterChain(Real sigStart, Real sigEnd, Real chanStart, 
 		m_filterStages.push_back(new FilterStage(FilterStage::ModeCenter));
 		return createFilterChain(sigStart + rot, sigStart + sigBw / 2.0f + rot, chanStart, chanEnd);
 	}
-
+#endif
 	Real ofs = ((chanEnd - chanStart) / 2.0 + chanStart) - ((sigEnd - sigStart) / 2.0 + sigStart);
 	qDebug("-> complete (final BW %f, frequency offset %f)", sigBw, ofs);
 	return ofs;
