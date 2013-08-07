@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.          //
 ///////////////////////////////////////////////////////////////////////////////////
 
+#include <immintrin.h>
 #include <QMouseEvent>
 #include "gui/glspectrum.h"
 
@@ -296,6 +297,8 @@ void GLSpectrum::updateHistogram(const std::vector<Real>& spectrum)
 		m_histogramHoldoffCount = m_histogramHoldoffBase;
 	}
 
+//#define NO_AVX
+#ifdef NO_AVX
 	for(int i = 0; i < m_fftSize; i++) {
 		int v = (int)((spectrum[i] - m_referenceLevel) * 100.0 / m_powerRange + 100.0);
 
@@ -307,6 +310,33 @@ void GLSpectrum::updateHistogram(const std::vector<Real>& spectrum)
 				*b += 1;
 		}
 	}
+#else
+	const __m128 refl = {m_referenceLevel,m_referenceLevel,m_referenceLevel,m_referenceLevel};
+	const __m128 power = {m_powerRange,m_powerRange,m_powerRange,m_powerRange};
+	const __m128 mul = {100.0f,100.0f,100.0f,100.0f};
+
+	for(int i = 0; i < m_fftSize; i+=4) {
+		__m128 abc = _mm_loadu_ps (&spectrum[i]);
+		abc = _mm_sub_ps(abc, refl);
+		abc = _mm_mul_ps(abc, mul);
+		abc = _mm_div_ps(abc, power);
+		abc =  _mm_add_ps(abc, mul);
+		__m128i result = _mm_cvtps_epi32(abc);
+
+		for(int j = 0; j < 4; j++) {
+
+		int v = ((int*)&result)[j];
+
+			if((v >= 0) && (v <= 99)) {
+				b = m_histogram + (i+j) * 100 + v;
+				if(*b < 220)
+					*b += 4;
+				else if(*b < 239)
+					*b += 1;
+			}
+		}
+	}
+#endif
 }
 
 void GLSpectrum::initializeGL()

@@ -27,9 +27,7 @@ public:
 		switch(m_state) {
 			case 0:
 				// advance write-pointer
-				m_ptr = (m_ptr + HB_FILTERORDER);
-				if(m_ptr >= (HB_FILTERORDER + 1))
-					m_ptr -= (HB_FILTERORDER + 1);
+				m_ptr = (m_ptr + HB_FILTERORDER) % (HB_FILTERORDER + 1);
 
 				// next state
 				m_state = 1;
@@ -42,9 +40,7 @@ public:
 				doFIR(sample);
 
 				// advance write-pointer
-				m_ptr = (m_ptr + HB_FILTERORDER);
-				if(m_ptr >= (HB_FILTERORDER + 1))
-					m_ptr -= (HB_FILTERORDER + 1);
+				m_ptr = (m_ptr + HB_FILTERORDER) % (HB_FILTERORDER + 1);
 
 				// next state
 				m_state = 0;
@@ -64,9 +60,7 @@ public:
 				m_samples[m_ptr][1] = sample->imag();
 
 				// advance write-pointer
-				m_ptr = (m_ptr + HB_FILTERORDER);
-				if(m_ptr >= (HB_FILTERORDER + 1))
-					m_ptr -= (HB_FILTERORDER + 1);
+				m_ptr = (m_ptr + HB_FILTERORDER) % (HB_FILTERORDER + 1);
 
 				// next state
 				m_state = 1;
@@ -83,9 +77,7 @@ public:
 				doFIR(sample);
 
 				// advance write-pointer
-				m_ptr = (m_ptr + HB_FILTERORDER);
-				if(m_ptr >= (HB_FILTERORDER + 1))
-					m_ptr -= (HB_FILTERORDER + 1);
+				m_ptr = (m_ptr + HB_FILTERORDER) % (HB_FILTERORDER + 1);
 
 				// next state
 				m_state = 0;
@@ -105,9 +97,7 @@ public:
 					m_samples[m_ptr][1] = sample->real();
 
 					// advance write-pointer
-					m_ptr = (m_ptr + HB_FILTERORDER);
-					if(m_ptr >= (HB_FILTERORDER + 1))
-						m_ptr -= (HB_FILTERORDER + 1);
+					m_ptr = (m_ptr + HB_FILTERORDER) % (HB_FILTERORDER + 1);
 
 					// next state
 					m_state = 1;
@@ -124,9 +114,7 @@ public:
 					doFIR(sample);
 
 					// advance write-pointer
-					m_ptr = (m_ptr + HB_FILTERORDER);
-					if(m_ptr >= (HB_FILTERORDER + 1))
-						m_ptr -= (HB_FILTERORDER + 1);
+					m_ptr = (m_ptr + HB_FILTERORDER) % (HB_FILTERORDER + 1);
 
 					// next state
 					m_state = 2;
@@ -140,9 +128,7 @@ public:
 					m_samples[m_ptr][1] = -sample->real();
 
 					// advance write-pointer
-					m_ptr = (m_ptr + HB_FILTERORDER);
-					if(m_ptr >= (HB_FILTERORDER + 1))
-						m_ptr -= (HB_FILTERORDER + 1);
+					m_ptr = (m_ptr + HB_FILTERORDER) % (HB_FILTERORDER + 1);
 
 					// next state
 					m_state = 3;
@@ -159,9 +145,7 @@ public:
 					doFIR(sample);
 
 					// advance write-pointer
-					m_ptr = (m_ptr + HB_FILTERORDER);
-					if(m_ptr >= (HB_FILTERORDER + 1))
-						m_ptr -= (HB_FILTERORDER + 1);
+					m_ptr = (m_ptr + HB_FILTERORDER) % (HB_FILTERORDER + 1);
 
 					// next state
 					m_state = 0;
@@ -181,9 +165,7 @@ public:
 					m_samples[m_ptr][1] = -sample->real();
 
 					// advance write-pointer
-					m_ptr = (m_ptr + HB_FILTERORDER);
-					if(m_ptr >= (HB_FILTERORDER + 1))
-						m_ptr -= (HB_FILTERORDER + 1);
+					m_ptr = (m_ptr + HB_FILTERORDER) % (HB_FILTERORDER + 1);
 
 					// next state
 					m_state = 1;
@@ -200,9 +182,7 @@ public:
 					doFIR(sample);
 
 					// advance write-pointer
-					m_ptr = (m_ptr + HB_FILTERORDER);
-					if(m_ptr >= (HB_FILTERORDER + 1))
-						m_ptr -= (HB_FILTERORDER + 1);
+					m_ptr = (m_ptr + HB_FILTERORDER) % (HB_FILTERORDER + 1);
 
 					// next state
 					m_state = 2;
@@ -216,9 +196,7 @@ public:
 					m_samples[m_ptr][1] = sample->real();
 
 					// advance write-pointer
-					m_ptr = (m_ptr + HB_FILTERORDER);
-					if(m_ptr >= (HB_FILTERORDER + 1))
-						m_ptr -= (HB_FILTERORDER + 1);
+					m_ptr = (m_ptr + HB_FILTERORDER) % (HB_FILTERORDER + 1);
 
 					// next state
 					m_state = 3;
@@ -235,9 +213,7 @@ public:
 					doFIR(sample);
 
 					// advance write-pointer
-					m_ptr = (m_ptr + HB_FILTERORDER);
-					if(m_ptr >= (HB_FILTERORDER + 1))
-						m_ptr -= (HB_FILTERORDER + 1);
+					m_ptr = (m_ptr + HB_FILTERORDER) % (HB_FILTERORDER + 1);
 
 					// next state
 					m_state = 0;
@@ -307,12 +283,8 @@ protected:
 
 
 		// init read-pointer
-		int a = (m_ptr + 1);
-		if(a >= (HB_FILTERORDER + 1))
-			a -= (HB_FILTERORDER + 1);
-		int b = (m_ptr + (HB_FILTERORDER - 1));
-		if(b >= (HB_FILTERORDER + 1))
-			b -= (HB_FILTERORDER + 1);
+		int a = (m_ptr + 1) % (HB_FILTERORDER + 1);
+		int b = (m_ptr + (HB_FILTERORDER - 1)) % (HB_FILTERORDER + 1);
 
 		// go through samples in buffer
 		qint32 iAcc = 0;
@@ -325,17 +297,11 @@ protected:
 			qAcc += qTmp * COEFF[i];
 
 			// update read-pointer
-			a = (a + 2);
-			if(a >= (HB_FILTERORDER + 1))
-				a -= (HB_FILTERORDER + 1);
-			b = b + (HB_FILTERORDER - 1);
-			if(b >= (HB_FILTERORDER + 1))
-				b -= (HB_FILTERORDER + 1);
+			a = (a + 2) % (HB_FILTERORDER + 1);
+			b = (b + (HB_FILTERORDER - 1)) % (HB_FILTERORDER + 1);
 		}
 
-		a = (a + HB_FILTERORDER);
-		if(a >= (HB_FILTERORDER + 1))
-			a -= (HB_FILTERORDER + 1);
+		a = (a + HB_FILTERORDER) % (HB_FILTERORDER + 1);
 		iAcc += m_samples[a][0] * (qint32)(0.5 * (1 << HB_SHIFT));
 		qAcc += m_samples[a][1] * (qint32)(0.5 * (1 << HB_SHIFT));
 
