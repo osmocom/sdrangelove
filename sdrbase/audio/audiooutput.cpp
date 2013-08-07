@@ -81,6 +81,7 @@ void AudioOutput::stop()
 	QMutexLocker mutexLocker(&m_mutex);
 
 	if(m_audioOutput != NULL) {
+		m_audioOutput->stop();
 		delete m_audioOutput;
 		m_audioOutput = NULL;
 	}
@@ -119,7 +120,7 @@ qint64 AudioOutput::readData(char* data, qint64 maxLen)
 		if(m_mixBuffer.size() != framesPerBuffer * 2)
 			return 0;
 	}
-	memset(m_mixBuffer.data(), 0x00, framesPerBuffer * sizeof(m_mixBuffer[0])); // start with silence
+	memset(&m_mixBuffer[0], 0x00, 2 * framesPerBuffer * sizeof(m_mixBuffer[0])); // start with silence
 
 	// sum up a block from all fifos
 	for(AudioFifos::iterator it = m_audioFifos.begin(); it != m_audioFifos.end(); ++it) {
@@ -141,7 +142,15 @@ qint64 AudioOutput::readData(char* data, qint64 maxLen)
 	std::vector<qint32>::const_iterator src = m_mixBuffer.begin();
 	qint16* dst = (qint16*)data;
 	for(int i = 0; i < framesPerBuffer; ++i) {
+		// left channel
 		qint32 s = *src++;
+		if(s < -32768)
+			s = -32768;
+		else if(s > 32767)
+			s = 32767;
+		*dst++ = s;
+		// right channel
+		s = *src++;
 		if(s < -32768)
 			s = -32768;
 		else if(s > 32767)
