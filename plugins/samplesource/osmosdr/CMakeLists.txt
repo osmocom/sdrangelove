@@ -31,6 +31,10 @@ add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_PLUGIN)
 add_definitions(-DQT_SHARED)
 
+if(MSVC)
+add_definitions(-DNOMINMAX)
+endif()
+
 #qt4_wrap_cpp(osmosdr_HEADERS_MOC ${osmosdr_HEADERS})
 qt5_wrap_ui(osmosdr_FORMS_HEADERS ${osmosdr_FORMS})
 
