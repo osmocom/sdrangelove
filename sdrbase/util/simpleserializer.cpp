@@ -299,7 +299,7 @@ SimpleDeserializer::SimpleDeserializer(const QByteArray& data) :
 
 	readOfs = it->ofs;
 	m_version = 0;
-	for(int i = 0; i < it->length; i++)
+	for(uint i = 0; i < it->length; i++)
 		m_version = (m_version << 8) | readByte(&readOfs);
 	return;
 
@@ -321,7 +321,7 @@ bool SimpleDeserializer::readS32(quint32 id, qint32* result, qint32 def) const
 
 	readOfs = it->ofs;
 	tmp = 0;
-	for(int i = 0; i < it->length; i++) {
+	for(uint i = 0; i < it->length; i++) {
 		quint8 byte = readByte(&readOfs);
 		if((i == 0) && (byte & 0x80))
 			tmp = -1;
@@ -349,7 +349,7 @@ bool SimpleDeserializer::readU32(quint32 id, quint32* result, quint32 def) const
 
 	readOfs = it->ofs;
 	tmp = 0;
-	for(int i = 0; i < it->length; i++)
+	for(uint i = 0; i < it->length; i++)
 		tmp = (tmp << 8) | readByte(&readOfs);
 	*result = tmp;
 	return true;
@@ -373,7 +373,7 @@ bool SimpleDeserializer::readS64(quint32 id, qint64* result, qint64 def) const
 
 	readOfs = it->ofs;
 	tmp = 0;
-	for(int i = 0; i < it->length; i++) {
+	for(uint i = 0; i < it->length; i++) {
 		quint8 byte = readByte(&readOfs);
 		if((i == 0) && (byte & 0x80))
 			tmp = -1;
@@ -401,7 +401,7 @@ bool SimpleDeserializer::readU64(quint32 id, quint64* result, quint64 def) const
 
 	readOfs = it->ofs;
 	tmp = 0;
-	for(int i = 0; i < it->length; i++)
+	for(uint i = 0; i < it->length; i++)
 		tmp = (tmp << 8) | readByte(&readOfs);
 	*result = tmp;
 	return true;
@@ -654,7 +654,7 @@ bool SimpleDeserializer::parseAll()
 	qDebug("==");
 	*/
 
-	while(readOfs < m_data.size()) {
+	while(readOfs < (uint)m_data.size()) {
 		if(!readTag(&readOfs, m_data.size(), &type, &id, &length))
 			return false;
 

@@ -115,7 +115,7 @@ qint64 AudioOutput::readData(char* data, qint64 maxLen)
 	maxLen -= maxLen % 4;
 	int framesPerBuffer = maxLen / 4;
 
-	if(m_mixBuffer.size() < framesPerBuffer * 2) {
+	if((int)m_mixBuffer.size() < framesPerBuffer * 2) {
 		m_mixBuffer.resize(framesPerBuffer * 2); // allocate 2 qint32 per frame (stereo)
 		if(m_mixBuffer.size() != framesPerBuffer * 2)
 			return 0;
@@ -128,7 +128,7 @@ qint64 AudioOutput::readData(char* data, qint64 maxLen)
 		uint samples = (*it)->read((quint8*)data, framesPerBuffer, 0);
 		const qint16* src = (const qint16*)data;
 		std::vector<qint32>::iterator dst = m_mixBuffer.begin();
-		for(int i = 0; i < samples; i++) {
+		for(uint i = 0; i < samples; i++) {
 			*dst += *src;
 			++src;
 			++dst;

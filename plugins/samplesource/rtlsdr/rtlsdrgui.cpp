@@ -126,7 +126,7 @@ void RTLSDRGui::on_centerFrequency_changed(quint64 value)
 
 void RTLSDRGui::on_gain_valueChanged(int value)
 {
-	if(value > m_gains.size())
+	if(value > (int)m_gains.size())
 		return;
 	int gain = m_gains[value];
 	ui->gainText->setText(tr("%1.%2").arg(gain / 10).arg(abs(gain % 10)));

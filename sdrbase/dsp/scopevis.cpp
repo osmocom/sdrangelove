@@ -36,7 +36,7 @@ void ScopeVis::feed(SampleVector::const_iterator begin, SampleVector::const_iter
 			}
 			if(m_triggerState == Triggered) {
 				int count = end - begin;
-				if(count > m_trace.size() - m_fill)
+				if(count > (int)(m_trace.size() - m_fill))
 					count = m_trace.size() - m_fill;
 				std::vector<Complex>::iterator it = m_trace.begin() + m_fill;
 				for(int i = 0; i < count; ++i) {
@@ -71,7 +71,7 @@ void ScopeVis::feed(SampleVector::const_iterator begin, SampleVector::const_iter
 			}
 			if(m_triggerState == Triggered) {
 				int count = end - begin;
-				if(count > m_trace.size() - m_fill)
+				if(count > (int)(m_trace.size() - m_fill))
 					count = m_trace.size() - m_fill;
 				std::vector<Complex>::iterator it = m_trace.begin() + m_fill;
 				for(int i = 0; i < count; ++i) {
@@ -96,7 +96,7 @@ void ScopeVis::feed(SampleVector::const_iterator begin, SampleVector::const_iter
 			}
 		} else {
 			int count = end - begin;
-			if(count > m_trace.size() - m_fill)
+			if(count > (int)(m_trace.size() - m_fill))
 				count = m_trace.size() - m_fill;
 			std::vector<Complex>::iterator it = m_trace.begin() + m_fill;
 			for(int i = 0; i < count; ++i) {

@@ -47,7 +47,7 @@ public:
 protected:
 	std::vector<Real> m_history;
 	Real m_sum;
-	int m_ptr;
+	uint m_ptr;
 };
 
 #endif // INCLUDE_MOVINGAVERAGE_H

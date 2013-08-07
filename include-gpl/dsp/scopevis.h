@@ -33,7 +33,7 @@ private:
 
 	GLScope* m_glScope;
 	std::vector<Complex> m_trace;
-	int m_fill;
+	uint m_fill;
 	TriggerState m_triggerState;
 	TriggerChannel m_triggerChannel;
 	FixReal m_triggerLevelHigh;
