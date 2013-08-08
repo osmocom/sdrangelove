@@ -1,5 +1,4 @@
 #define _USE_MATH_DEFINES
-#include <stdio.h>
 #include <math.h>
 #include <vector>
 #include "dsp/interpolator.h"
@@ -13,7 +12,7 @@ static std::vector<Real> createPolyphaseLowPass(
 	double oobAttenuationdB)
 {
 	int ntaps = (int)(oobAttenuationdB * sampleRateHz / (22.0 * transitionWidthHz));
-	if((ntaps % 2) == 0)
+	if((ntaps % 2) != 0)
 		ntaps++;
 	ntaps *= phaseSteps;
 
@@ -42,12 +41,21 @@ static std::vector<Real> createPolyphaseLowPass(
 	return taps;
 }
 
-Interpolator::Interpolator()
+Interpolator::Interpolator() :
+	m_taps(NULL),
+	m_alignedTaps(NULL)
 {
+}
+
+Interpolator::~Interpolator()
+{
+	free();
 }
 
 void Interpolator::create(int phaseSteps, double sampleRate, double cutoff)
 {
+	free();
+
 	std::vector<Real> taps = createPolyphaseLowPass(
 		phaseSteps, // number of polyphases
 		1.0, // gain
@@ -60,23 +68,53 @@ void Interpolator::create(int phaseSteps, double sampleRate, double cutoff)
 	m_ptr = 0;
 	m_nTaps = taps.size() / phaseSteps;
 	m_phaseSteps = phaseSteps;
-	m_taps.resize(taps.size());
-	m_samples.resize(m_nTaps);
-	for(int i = 0; i < m_nTaps; i++)
+	m_samples.resize(m_nTaps + 2);
+	for(int i = 0; i < m_nTaps + 2; i++)
 		m_samples[i] = 0;
 
-	// copy to filter taps
+	// reorder into polyphase
+	std::vector<Real> polyphase(taps.size());
 	for(int phase = 0; phase < phaseSteps; phase++) {
 		for(int i = 0; i < m_nTaps; i++)
-			m_taps[phase * m_nTaps + i] = taps[i * phaseSteps + phase];
+			polyphase[phase * m_nTaps + i] = taps[i * phaseSteps + phase];
 	}
 
 	// normalize phase filters
 	for(int phase = 0; phase < phaseSteps; phase++) {
 		Real sum = 0;
 		for(int i = phase * m_nTaps; i < phase * m_nTaps + m_nTaps; i++)
-			sum += m_taps[i];
+			sum += polyphase[i];
 		for(int i = phase * m_nTaps; i < phase * m_nTaps + m_nTaps; i++)
-			m_taps[i] /= sum;
+			polyphase[i] /= sum;
+	}
+
+	// move taps around to match sse storage requirements
+	m_taps = new float[2 * taps.size() + 8];
+	for(int i = 0; i < 2 * taps.size() + 8; ++i)
+		m_taps[i] = 0;
+	m_alignedTaps = (float*)((((quint64)m_taps) + 15) & ~15);
+	for(int i = 0; i < taps.size(); ++i) {
+		m_alignedTaps[2 * i + 0] = polyphase[i];
+		m_alignedTaps[2 * i + 1] = polyphase[i];
+	}
+	m_taps2 = new float[2 * taps.size() + 8];
+	for(int i = 0; i < 2 * taps.size() + 8; ++i)
+		m_taps2[i] = 0;
+	m_alignedTaps2 = (float*)((((quint64)m_taps2) + 15) & ~15);
+	for(int i = 1; i < taps.size(); ++i) {
+		m_alignedTaps2[2 * (i - 1) + 0] = polyphase[i];
+		m_alignedTaps2[2 * (i - 1) + 1] = polyphase[i];
+	}
+}
+
+void Interpolator::free()
+{
+	if(m_taps != NULL) {
+		delete[] m_taps;
+		m_taps = NULL;
+		m_alignedTaps = NULL;
+		delete[] m_taps2;
+		m_taps2 = NULL;
+		m_alignedTaps2 = NULL;
 	}
 }

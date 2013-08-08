@@ -110,6 +110,9 @@ bool AudioOutput::open(OpenMode mode)
 
 qint64 AudioOutput::readData(char* data, qint64 maxLen)
 {
+	if(maxLen == 0)
+		return 0;
+
 	QMutexLocker mutexLocker(&m_mutex);
 
 	maxLen -= maxLen % 4;
@@ -125,7 +128,7 @@ qint64 AudioOutput::readData(char* data, qint64 maxLen)
 	// sum up a block from all fifos
 	for(AudioFifos::iterator it = m_audioFifos.begin(); it != m_audioFifos.end(); ++it) {
 		// use outputBuffer as temp - yes, one memcpy could be saved
-		uint samples = (*it)->read((quint8*)data, framesPerBuffer, 0);
+		uint samples = (*it)->read((quint8*)data, framesPerBuffer, 1);
 		const qint16* src = (const qint16*)data;
 		std::vector<qint32>::iterator dst = m_mixBuffer.begin();
 		for(uint i = 0; i < samples; i++) {
@@ -158,7 +161,7 @@ qint64 AudioOutput::readData(char* data, qint64 maxLen)
 		*dst++ = s;
 	}
 
-	return maxLen;
+	return framesPerBuffer * 4;
 }
 
 qint64 AudioOutput::writeData(const char* data, qint64 len)
