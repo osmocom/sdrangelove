@@ -53,7 +53,8 @@ public:
 
 	MessageQueue* getMessageQueue() { return m_messageQueue; }
 
-	void addDemodCreateAction(QAction* action);
+	void addChannelCreateAction(QAction* action);
+	void addChannelRollup(QWidget* widget);
 	void addViewAction(QAction* action);
 
 	void addChannelMarker(ChannelMarker* channelMarker);
@@ -67,7 +68,7 @@ private:
 		PItem
 	};
 
-	Ui::MainWindow *ui;
+	Ui::MainWindow* ui;
 
 	AudioDeviceInfo* m_audioDeviceInfo;
 

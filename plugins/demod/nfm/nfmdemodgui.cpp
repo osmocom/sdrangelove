@@ -139,7 +139,7 @@ NFMDemodGUI::NFMDemodGUI(PluginAPI* pluginAPI, QDockWidget* dockWidget, QWidget*
 	ui->glSpectrum->setCenterFrequency(0);
 	ui->glSpectrum->setSampleRate(44100);
 	ui->glSpectrum->setDisplayWaterfall(true);
-	ui->glSpectrum->setDisplayLiveSpectrum(true);
+	ui->glSpectrum->setDisplayMaxHold(true);
 	m_spectrumVis->configure(m_threadedSampleSink->getMessageQueue(), 64, 10, FFTWindow::BlackmanHarris);
 
 	m_channelMarker = new ChannelMarker(this);

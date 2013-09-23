@@ -37,8 +37,10 @@ public:
 
 	const Plugins& getPlugins() const { return m_plugins; }
 
-	void registerDemodulator(const QString& demodName, PluginInterface* plugin, QAction* action);
-	void registerDemodulatorInstance(const QString& demodName, PluginGUI* pluginGUI);
+	void registerChannel(const QString& channelName, PluginInterface* plugin, QAction* action);
+	void registerChannelInstance(const QString& channelName, PluginGUI* pluginGUI);
+	void addChannelRollup(QWidget* pluginGUI);
+	void removeChannelInstance(PluginGUI* pluginGUI);
 
 	void registerSampleSource(const QString& sourceName, PluginInterface* plugin);
 
@@ -54,33 +56,30 @@ public:
 	int selectSampleSource(int index);
 	int selectSampleSource(const QString& source);
 
-private slots:
-	void demodInstanceDestroyed(QObject* object);
-
 private:
-	struct DemodRegistration {
-		QString m_demodName;
+	struct ChannelRegistration {
+		QString m_channelName;
 		PluginInterface* m_plugin;
-		DemodRegistration(const QString& demodName, PluginInterface* plugin) :
-			m_demodName(demodName),
+		ChannelRegistration(const QString& channelName, PluginInterface* plugin) :
+			m_channelName(channelName),
 			m_plugin(plugin)
 		{ }
 	};
-	typedef QList<DemodRegistration> DemodRegistrations;
+	typedef QList<ChannelRegistration> ChannelRegistrations;
 
-	struct DemodInstanceRegistration {
-		QString m_demodName;
+	struct ChannelInstanceRegistration {
+		QString m_channelName;
 		PluginGUI* m_gui;
-		DemodInstanceRegistration() :
-			m_demodName(),
+		ChannelInstanceRegistration() :
+			m_channelName(),
 			m_gui(NULL)
 		{ }
-		DemodInstanceRegistration(const QString& demodName, PluginGUI* pluginGUI) :
-			m_demodName(demodName),
+		ChannelInstanceRegistration(const QString& channelName, PluginGUI* pluginGUI) :
+			m_channelName(channelName),
 			m_gui(pluginGUI)
 		{ }
 	};
-	typedef QList<DemodInstanceRegistration> DemodInstanceRegistrations;
+	typedef QList<ChannelInstanceRegistration> ChannelInstanceRegistrations;
 
 	struct SampleSourceRegistration {
 		QString m_sourceName;
@@ -112,8 +111,8 @@ private:
 	DSPEngine* m_dspEngine;
 	Plugins m_plugins;
 
-	DemodRegistrations m_demodRegistrations;
-	DemodInstanceRegistrations m_demodInstanceRegistrations;
+	ChannelRegistrations m_channelRegistrations;
+	ChannelInstanceRegistrations m_channelInstanceRegistrations;
 	SampleSourceRegistrations m_sampleSourceRegistrations;
 	SampleSourceDevices m_sampleSourceDevices;
 
@@ -121,7 +120,7 @@ private:
 	PluginGUI* m_sampleSourceInstance;
 
 	void loadPlugins(const QDir& dir);
-	void renameDemodInstances();
+	void renameChannelInstances();
 };
 
 static inline bool operator<(const PluginManager::Plugin& a, const PluginManager::Plugin& b)

@@ -18,7 +18,7 @@ void Preset::resetToDefaults()
 	m_showScope = true;
 	m_layout.clear();
 	m_spectrumConfig.clear();
-	m_demodConfigs.clear();
+	m_channelConfigs.clear();
 	m_source.clear();
 	m_sourceConfig.clear();
 }
@@ -39,10 +39,10 @@ QByteArray Preset::serialize() const
 	s.writeBlob(11, m_sourceGeneralConfig);
 	s.writeBlob(12, m_sourceConfig);
 
-	s.writeS32(100, m_demodConfigs.size());
-	for(int i = 0; i < m_demodConfigs.size(); i++) {
-		s.writeString(101 + i * 2, m_demodConfigs[i].m_demod);
-		s.writeBlob(102 + i * 2, m_demodConfigs[i].m_config);
+	s.writeS32(100, m_channelConfigs.size());
+	for(int i = 0; i < m_channelConfigs.size(); i++) {
+		s.writeString(101 + i * 2, m_channelConfigs[i].m_channel);
+		s.writeBlob(102 + i * 2, m_channelConfigs[i].m_config);
 	}
 
 	return s.final();
@@ -71,14 +71,14 @@ bool Preset::deserialize(const QByteArray& data)
 		d.readBlob(11, &m_sourceGeneralConfig);
 		d.readBlob(12, &m_sourceConfig);
 
-		qint32 demodCount = 0;
-		d.readS32(100, &demodCount, 0);
-		for(int i = 0; i < demodCount; i++) {
-			QString demod;
+		qint32 channelCount = 0;
+		d.readS32(100, &channelCount, 0);
+		for(int i = 0; i < channelCount; i++) {
+			QString channel;
 			QByteArray config;
-			d.readString(101 + i * 2, &demod, "unknown-demod");
+			d.readString(101 + i * 2, &channel, "unknown-channel");
 			d.readBlob(102 + i * 2, &config);
-			m_demodConfigs.append(DemodConfig(demod, config));
+			m_channelConfigs.append(ChannelConfig(channel, config));
 		}
 		return true;
 	} else {

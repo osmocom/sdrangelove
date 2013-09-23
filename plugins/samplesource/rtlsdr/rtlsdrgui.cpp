@@ -3,7 +3,7 @@
 #include "plugin/pluginapi.h"
 
 RTLSDRGui::RTLSDRGui(PluginAPI* pluginAPI, QWidget* parent) :
-	PluginGUI(parent),
+	QWidget(parent),
 	ui(new Ui::RTLSDRGui),
 	m_pluginAPI(pluginAPI),
 	m_settings(),
@@ -26,6 +26,11 @@ RTLSDRGui::~RTLSDRGui()
 void RTLSDRGui::destroy()
 {
 	delete this;
+}
+
+void RTLSDRGui::setName(const QString& name)
+{
+	setObjectName(name);
 }
 
 void RTLSDRGui::resetToDefaults()

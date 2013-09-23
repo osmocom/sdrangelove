@@ -58,7 +58,9 @@ PluginInterface::SampleSourceDevices RTLSDRPlugin::enumSampleSources()
 PluginGUI* RTLSDRPlugin::createSampleSource(const QString& sourceName, const QByteArray& address)
 {
 	if(sourceName == "org.osmocom.sdr.samplesource.rtl-sdr") {
-		return new RTLSDRGui(m_pluginAPI);
+		RTLSDRGui* gui = new RTLSDRGui(m_pluginAPI);
+		m_pluginAPI->setInputGUI(gui);
+		return gui;
 	} else {
 		return NULL;
 	}

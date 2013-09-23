@@ -135,6 +135,10 @@ void ScopeWindow::on_displayMode_currentIndexChanged(int index)
 		case 3: // derived1+derived2
 			ui->scope->setMode(GLScope::ModeDerived12);
 			break;
+		case 4: // clostationary
+			ui->scope->setMode(GLScope::ModeCyclostationary);
+			break;
+
 		default:
 			break;
 	}

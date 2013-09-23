@@ -2,8 +2,8 @@
 #include "dsp/fftwindow.h"
 #include "dsp/spectrumvis.h"
 #include "gui/glspectrum.h"
-#include "ui_glspectrumgui.h"
 #include "util/simpleserializer.h"
+#include "ui_glspectrumgui.h"
 
 GLSpectrumGUI::GLSpectrumGUI(QWidget* parent) :
 	QWidget(parent),
@@ -18,7 +18,7 @@ GLSpectrumGUI::GLSpectrumGUI(QWidget* parent) :
 	m_powerRange(100),
 	m_displayWaterfall(true),
 	m_invertedWaterfall(false),
-	m_displayLiveSpectrum(false),
+	m_displayMaxHold(false),
 	m_displayHistogram(true)
 {
 	ui->setupUi(this);
@@ -46,7 +46,7 @@ void GLSpectrumGUI::resetToDefaults()
 	m_powerRange = 100;
 	m_displayWaterfall = true;
 	m_invertedWaterfall = false;
-	m_displayLiveSpectrum = false;
+	m_displayMaxHold = false;
 	m_displayHistogram = true;
 	applySettings();
 }
@@ -61,7 +61,7 @@ QByteArray GLSpectrumGUI::serialize() const
 	s.writeReal(5, m_powerRange);
 	s.writeBool(6, m_displayWaterfall);
 	s.writeBool(7, m_invertedWaterfall);
-	s.writeBool(8, m_displayLiveSpectrum);
+	s.writeBool(8, m_displayMaxHold);
 	s.writeBool(9, m_displayHistogram);
 	return s.final();
 }
@@ -83,7 +83,7 @@ bool GLSpectrumGUI::deserialize(const QByteArray& data)
 		d.readReal(5, &m_powerRange, 100);
 		d.readBool(6, &m_displayWaterfall, true);
 		d.readBool(7, &m_invertedWaterfall, false);
-		d.readBool(8, &m_displayLiveSpectrum, false);
+		d.readBool(8, &m_displayMaxHold, false);
 		d.readBool(9, &m_displayHistogram, true);
 		applySettings();
 		return true;
@@ -105,8 +105,8 @@ void GLSpectrumGUI::applySettings()
 	ui->waterfall->setChecked(m_displayWaterfall);
 	m_glSpectrum->setDisplayWaterfall(m_displayWaterfall);
 	m_glSpectrum->setInvertedWaterfall(m_invertedWaterfall);
-	ui->liveSpectrum->setChecked(m_displayLiveSpectrum);
-	m_glSpectrum->setDisplayLiveSpectrum(m_displayLiveSpectrum);
+	ui->maxHold->setChecked(m_displayMaxHold);
+	m_glSpectrum->setDisplayMaxHold(m_displayMaxHold);
 	ui->histogram->setChecked(m_displayHistogram);
 	m_glSpectrum->setDisplayHistogram(m_displayHistogram);
 	ui->refLevel->setValue((int)(m_refLevel / 10.0));
@@ -158,8 +158,8 @@ void GLSpectrumGUI::on_histogram_toggled(bool checked)
 	m_glSpectrum->setDisplayHistogram(m_displayHistogram);
 }
 
-void GLSpectrumGUI::on_liveSpectrum_toggled(bool checked)
+void GLSpectrumGUI::on_maxHold_toggled(bool checked)
 {
-	m_displayLiveSpectrum = checked;
-	m_glSpectrum->setDisplayLiveSpectrum(m_displayLiveSpectrum);
+	m_displayMaxHold = checked;
+	m_glSpectrum->setDisplayMaxHold(m_displayMaxHold);
 }

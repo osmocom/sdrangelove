@@ -7,16 +7,16 @@
 
 class Preset {
 public:
-	struct DemodConfig {
-		QString m_demod;
+	struct ChannelConfig {
+		QString m_channel;
 		QByteArray m_config;
 
-		DemodConfig(const QString& demod, const QByteArray& config) :
-			m_demod(demod),
+		ChannelConfig(const QString& channel, const QByteArray& config) :
+			m_channel(channel),
 			m_config(config)
 		{ }
 	};
-	typedef QList<DemodConfig> DemodConfigs;
+	typedef QList<ChannelConfig> ChannelConfigs;
 
 	Preset();
 
@@ -49,10 +49,10 @@ public:
 	void setScopeConfig(const QByteArray& data) { m_scopeConfig = data; }
 	const QByteArray& getScopeConfig() const { return m_scopeConfig; }
 
-	void clearDemods() { m_demodConfigs.clear(); }
-	void addDemod(const QString& demod, const QByteArray& config) { m_demodConfigs.append(DemodConfig(demod, config)); }
-	int getDemodCount() const { return m_demodConfigs.count(); }
-	const DemodConfig& getDemodConfig(int index) const { return m_demodConfigs.at(index); }
+	void clearChannels() { m_channelConfigs.clear(); }
+	void addChannel(const QString& channel, const QByteArray& config) { m_channelConfigs.append(ChannelConfig(channel, config)); }
+	int getChannelCount() const { return m_channelConfigs.count(); }
+	const ChannelConfig& getChannelConfig(int index) const { return m_channelConfigs.at(index); }
 
 	void setSourceConfig(const QString& source, const QByteArray& generalConfig, const QByteArray& config)
 	{
@@ -86,8 +86,8 @@ protected:
 	QByteArray m_sourceGeneralConfig;
 	QByteArray m_sourceConfig;
 
-	// demodulators and configurations
-	DemodConfigs m_demodConfigs;
+	// channels and configurations
+	ChannelConfigs m_channelConfigs;
 
 	// screen and dock layout
 	QByteArray m_layout;

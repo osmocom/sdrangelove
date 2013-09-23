@@ -42,6 +42,7 @@ Indicator::Indicator(const QString& text, QWidget* parent) :
 	setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
 	QFont f = font();
+	f.setBold(true);
 	f.setPixelSize(8);
 	setFont(f);
 }

@@ -48,17 +48,21 @@ PluginInterface::SampleSourceDevices OsmoSDRPlugin::enumSampleSources()
 		if(osmosdr_get_device_usb_strings(i, vendor, product, serial) != 0)
 			continue;
 		QString displayedName(QString("OsmoSDR #%1 (#%2)").arg(i + 1).arg(serial));
+		qDebug("found %s", qPrintable(displayedName));
 		SimpleSerializer s(1);
 		s.writeS32(1, i);
 		result.append(SampleSourceDevice(displayedName, "org.osmocom.sdr.samplesource.osmo-sdr", s.final()));
 	}
+
 	return result;
 }
 
 PluginGUI* OsmoSDRPlugin::createSampleSource(const QString& sourceName, const QByteArray& address)
 {
 	if(sourceName == "org.osmocom.sdr.samplesource.osmo-sdr") {
-		return new OsmoSDRGui(m_pluginAPI);
+		OsmoSDRGui* gui = new OsmoSDRGui(m_pluginAPI);
+		m_pluginAPI->setInputGUI(gui);
+		return gui;
 	} else {
 		return NULL;
 	}

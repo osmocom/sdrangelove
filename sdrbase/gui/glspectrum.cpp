@@ -29,8 +29,7 @@ GLSpectrum::GLSpectrum(QWidget* parent) :
 	m_sampleRate(500000),
 	m_fftSize(512),
 	m_invertedWaterfall(false),
-	m_displayLiveSpectrum(false),
-	m_liveSpectrumChanged(false),
+	m_displayMaxHold(false),
 	m_leftMarginTextureAllocated(false),
 	m_frequencyTextureAllocated(false),
 	m_waterfallBuffer(NULL),
@@ -51,7 +50,7 @@ GLSpectrum::GLSpectrum(QWidget* parent) :
 
 	setMinimumSize(200, 200);
 
-	m_waterfallShare = 0.5;
+	m_waterfallShare = 0.66;
 
 	for(int i = 0; i <= 239; i++) {
 		 QColor c;
@@ -182,9 +181,9 @@ void GLSpectrum::setInvertedWaterfall(bool inv)
 	update();
 }
 
-void GLSpectrum::setDisplayLiveSpectrum(bool display)
+void GLSpectrum::setDisplayMaxHold(bool display)
 {
-	m_displayLiveSpectrum = display;
+	m_displayMaxHold = display;
 	m_changesPending = true;
 	stopDrag();
 	update();
@@ -245,11 +244,6 @@ void GLSpectrum::newSpectrum(const std::vector<Real>& spectrum, int fftSize)
 
 	updateWaterfall(spectrum);
 	updateHistogram(spectrum);
-
-	if(!m_liveSpectrumChanged) {
-		std::copy(spectrum.begin(), spectrum.begin() + m_fftSize, m_liveSpectrum.begin());
-		m_liveSpectrumChanged = true;
-	}
 }
 
 void GLSpectrum::updateWaterfall(const std::vector<Real>& spectrum)
@@ -440,7 +434,7 @@ void GLSpectrum::paintGL()
 	}
 
 	// paint histogram
-	if(m_displayHistogram || m_displayLiveSpectrum) {
+	if(m_displayHistogram || m_displayMaxHold) {
 		glPushMatrix();
 		glTranslatef(m_glHistogramRect.x(), m_glHistogramRect.y(), 0);
 		glScalef(m_glHistogramRect.width(), m_glHistogramRect.height(), 1);
@@ -522,7 +516,7 @@ void GLSpectrum::paintGL()
 	}
 
 	// paint left scales (time and power)
-	if(m_displayWaterfall || m_displayLiveSpectrum || m_displayHistogram ) {
+	if(m_displayWaterfall || m_displayMaxHold || m_displayHistogram ) {
 		glBindTexture(GL_TEXTURE_2D, m_leftMarginTexture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -549,7 +543,7 @@ void GLSpectrum::paintGL()
 	}
 
 	// paint frequency scale
-	if(m_displayWaterfall || m_displayLiveSpectrum || m_displayHistogram ) {
+	if(m_displayWaterfall || m_displayMaxHold || m_displayHistogram ) {
 		glBindTexture(GL_TEXTURE_2D, m_frequencyTexture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -575,10 +569,48 @@ void GLSpectrum::paintGL()
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
 		glPopMatrix();
+
+		// paint channels
+		glPushMatrix();
+		glTranslatef(m_glWaterfallRect.x(), m_glFrequencyScaleRect.y(), 0);
+		glScalef(m_glWaterfallRect.width(), m_glFrequencyScaleRect.height(), 1);
+		for(int i = 0; i < m_channelMarkerStates.size(); ++i) {
+			ChannelMarkerState* dv = m_channelMarkerStates[i];
+			if(dv->m_channelMarker->getVisible()) {
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glColor4f(dv->m_channelMarker->getColor().redF(), dv->m_channelMarker->getColor().greenF(), dv->m_channelMarker->getColor().blueF(), 0.3f);
+				glPushMatrix();
+				glTranslatef(dv->m_glRect.x(), dv->m_glRect.y(), 0);
+				glScalef(dv->m_glRect.width(), dv->m_glRect.height(), 1);
+				glBegin(GL_QUADS);
+				glVertex2f(0, 0);
+				glVertex2f(1, 0);
+				glVertex2f(1, 1);
+				glVertex2f(0, 1);
+				glEnd();
+				glDisable(GL_BLEND);
+				glPopMatrix();
+			}
+		}
+		glPopMatrix();
 	}
 
-	// paint live spectrum lines on top of histogram
-	if(m_displayLiveSpectrum) {
+	// paint max hold lines on top of histogram
+	if(m_displayMaxHold) {
+		if(m_maxHold.size() < m_fftSize)
+			m_maxHold.resize(m_fftSize);
+		for(int i = 0; i < m_fftSize; i++) {
+			int j;
+			quint8* bs = m_histogram + i * 100;
+			for(j = 99; j > 0; j--) {
+				if(bs[j] > 0)
+					break;
+			}
+			j = j - 99;
+			m_maxHold[i] = (j * m_powerRange) / 99.0 + m_referenceLevel;
+		}
+
 		glPushMatrix();
 		glTranslatef(m_glHistogramRect.x(), m_glHistogramRect.y(), 0);
 		glScalef(m_glHistogramRect.width() / (float)(m_fftSize - 1), -m_glHistogramRect.height() / m_powerRange, 1);
@@ -586,11 +618,11 @@ void GLSpectrum::paintGL()
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_LINE_SMOOTH);
 		glLineWidth(1.0f);
-		glColor4f(1, 1, 1, 0.75f);
+		glColor3f(1, 0, 0);
 		Real bottom = -m_powerRange;
 		glBegin(GL_LINE_STRIP);
 		for(int i = 0; i < m_fftSize; i++) {
-			Real v = m_liveSpectrum[i] - m_referenceLevel;
+			Real v = m_maxHold[i] - m_referenceLevel;
 			if(v > 0)
 				v = 0;
 			else if(v < bottom)
@@ -601,7 +633,6 @@ void GLSpectrum::paintGL()
 		glDisable(GL_LINE_SMOOTH);
 		glPopMatrix();
 	}
-	m_liveSpectrumChanged = false;
 
 	// paint waterfall grid
 	if(m_displayWaterfall) {
@@ -649,7 +680,7 @@ void GLSpectrum::paintGL()
 	}
 
 	// paint histogram grid
-	if(m_displayHistogram || m_displayLiveSpectrum) {
+	if(m_displayHistogram || m_displayMaxHold) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glLineWidth(1.0f);
@@ -718,8 +749,6 @@ void GLSpectrum::applyChanges()
 	QFontMetrics fm(font());
 	int M = fm.width("-");
 
-	m_liveSpectrum.resize(m_fftSize);
-
 	int topMargin = fm.ascent() * 1.5;
 	int bottomMargin = fm.ascent() * 1.5;
 
@@ -732,7 +761,7 @@ void GLSpectrum::applyChanges()
 	int leftMargin;
 	int rightMargin = fm.width("000");
 
-	if(m_displayWaterfall && (m_displayHistogram | m_displayLiveSpectrum)) {
+	if(m_displayWaterfall && (m_displayHistogram | m_displayMaxHold)) {
 		waterfallHeight = height() * m_waterfallShare - 1;
 		if(waterfallHeight < 0)
 			waterfallHeight = 0;
@@ -848,7 +877,7 @@ void GLSpectrum::applyChanges()
 			(float)(leftMargin - 1) / (float)width(),
 			(float)1
 		);
-	} else if(m_displayHistogram || m_displayLiveSpectrum) {
+	} else if(m_displayHistogram || m_displayMaxHold) {
 		bottomMargin = frequencyScaleHeight;
 		frequencyScaleTop = height() - bottomMargin;
 		histogramTop = topMargin - 1;
@@ -902,7 +931,7 @@ void GLSpectrum::applyChanges()
 			0,
 			(dv->m_channelMarker->getBandwidth() / (float)m_sampleRate),
 			1);
-		if(m_displayHistogram || m_displayLiveSpectrum || m_displayWaterfall) {
+		if(m_displayHistogram || m_displayMaxHold || m_displayWaterfall) {
 			dv->m_rect.setRect(m_frequencyScale.getPosFromValue(m_centerFrequency + dv->m_channelMarker->getCenterFrequency()) + leftMargin - 1,
 			topMargin,
 			5,
@@ -929,7 +958,7 @@ void GLSpectrum::applyChanges()
 					}
 				}
 			}
-			if(m_displayHistogram || m_displayLiveSpectrum) {
+			if(m_displayHistogram || m_displayMaxHold) {
 				tickList = &m_powerScale.getTickList();
 				for(int i = 0; i < tickList->count(); i++) {
 					tick = &(*tickList)[i];
@@ -950,13 +979,14 @@ void GLSpectrum::applyChanges()
 		m_leftMarginTextureAllocated = true;
 	}
 	// prepare frequency scale
-	if(m_displayWaterfall || m_displayHistogram || m_displayLiveSpectrum){
+	if(m_displayWaterfall || m_displayHistogram || m_displayMaxHold){
 		m_frequencyPixmap = QPixmap(width(), frequencyScaleHeight);
 		m_frequencyPixmap.fill(Qt::transparent);
 		{
 			QPainter painter(&m_frequencyPixmap);
 			painter.setPen(Qt::NoPen);
 			painter.setBrush(Qt::black);
+			painter.setBrush(Qt::transparent);
 			painter.drawRect(leftMargin, 0, width() - leftMargin, frequencyScaleHeight);
 			painter.setPen(QColor(0xf0, 0xf0, 0xff));
 			const ScaleEngine::TickList* tickList = &m_frequencyScale.getTickList();
@@ -1056,7 +1086,7 @@ void GLSpectrum::applyChanges()
 
 void GLSpectrum::mouseMoveEvent(QMouseEvent* event)
 {
-	if(m_displayWaterfall && (m_displayWaterfall || m_displayHistogram || m_displayLiveSpectrum)) {
+	if(m_displayWaterfall && (m_displayWaterfall || m_displayHistogram || m_displayMaxHold)) {
 		if(m_frequencyScaleRect.contains(event->pos())) {
 			if(m_cursorState == CSNormal) {
 				setCursor(Qt::SizeVerCursor);
@@ -1090,7 +1120,7 @@ void GLSpectrum::mouseMoveEvent(QMouseEvent* event)
 		m_channelMarkerStates[m_cursorChannel]->m_channelMarker->setCenterFrequency(freq);
 	}
 
-	if(m_displayWaterfall || m_displayHistogram || m_displayLiveSpectrum) {
+	if(m_displayWaterfall || m_displayHistogram || m_displayMaxHold) {
 		for(int i = 0; i < m_channelMarkerStates.size(); ++i) {
 			if(m_channelMarkerStates[i]->m_rect.contains(event->pos())) {
 				if(m_cursorState == CSNormal) {

@@ -6,14 +6,12 @@
 
 class Message;
 
-class SDRANGELOVE_API PluginGUI : public QWidget {
-	Q_OBJECT
-
+class SDRANGELOVE_API PluginGUI {
 public:
-	PluginGUI(QWidget* parent = NULL);
+	PluginGUI() { };
 	virtual void destroy() = 0;
 
-	virtual void setWidgetName(const QString& name);
+	virtual void setName(const QString& name) = 0;
 
 	virtual void resetToDefaults() = 0;
 

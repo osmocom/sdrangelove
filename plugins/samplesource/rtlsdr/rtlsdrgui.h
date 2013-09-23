@@ -11,13 +11,15 @@ namespace Ui {
 	class RTLSDRGui;
 }
 
-class RTLSDRGui : public PluginGUI {
+class RTLSDRGui : public QWidget, public PluginGUI {
 	Q_OBJECT
 
 public:
 	explicit RTLSDRGui(PluginAPI* pluginAPI, QWidget* parent = NULL);
 	~RTLSDRGui();
 	void destroy();
+
+	void setName(const QString& name);
 
 	void resetToDefaults();
 	QByteArray serializeGeneral() const;

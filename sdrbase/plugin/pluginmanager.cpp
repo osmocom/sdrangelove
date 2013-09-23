@@ -37,17 +37,32 @@ void PluginManager::loadPlugins()
 	updateSampleSourceDevices();
 }
 
-void PluginManager::registerDemodulator(const QString& demodName, PluginInterface* plugin, QAction* action)
+void PluginManager::registerChannel(const QString& channelName, PluginInterface* plugin, QAction* action)
 {
-	m_demodRegistrations.append(DemodRegistration(demodName, plugin));
-	m_mainWindow->addDemodCreateAction(action);
+	m_channelRegistrations.append(ChannelRegistration(channelName, plugin));
+	m_mainWindow->addChannelCreateAction(action);
 }
 
-void PluginManager::registerDemodulatorInstance(const QString& demodName, PluginGUI* pluginGUI)
+void PluginManager::registerChannelInstance(const QString& channelName, PluginGUI* pluginGUI)
 {
-	connect(pluginGUI, SIGNAL(destroyed(QObject*)), this, SLOT(demodInstanceDestroyed(QObject*)));
-	m_demodInstanceRegistrations.append(DemodInstanceRegistration(demodName, pluginGUI));
-	renameDemodInstances();
+	m_channelInstanceRegistrations.append(ChannelInstanceRegistration(channelName, pluginGUI));
+	renameChannelInstances();
+}
+
+void PluginManager::addChannelRollup(QWidget* pluginGUI)
+{
+	m_mainWindow->addChannelRollup(pluginGUI);
+}
+
+void PluginManager::removeChannelInstance(PluginGUI* pluginGUI)
+{
+	for(ChannelInstanceRegistrations::iterator it = m_channelInstanceRegistrations.begin(); it != m_channelInstanceRegistrations.end(); ++it) {
+		if(it->m_gui == pluginGUI) {
+			m_channelInstanceRegistrations.erase(it);
+			break;
+		}
+	}
+	renameChannelInstances();
 }
 
 void PluginManager::registerSampleSource(const QString& sourceName, PluginInterface* plugin)
@@ -59,46 +74,44 @@ void PluginManager::loadSettings(const Preset* preset)
 {
 	qDebug("-------- [%s | %s] --------", qPrintable(preset->getGroup()), qPrintable(preset->getDescription()));
 
-	// copy currently open demods and clear list
-	DemodInstanceRegistrations availableDemods = m_demodInstanceRegistrations;
-	m_demodInstanceRegistrations.clear();
+	// copy currently open channels and clear list
+	ChannelInstanceRegistrations openChannels = m_channelInstanceRegistrations;
+	m_channelInstanceRegistrations.clear();
 
-	for(int i = 0; i < preset->getDemodCount(); i++) {
-		const Preset::DemodConfig& demodConfig = preset->getDemodConfig(i);
-		DemodInstanceRegistration reg;
+	for(int i = 0; i < preset->getChannelCount(); i++) {
+		const Preset::ChannelConfig& channelConfig = preset->getChannelConfig(i);
+		ChannelInstanceRegistration reg;
 		// if we have one instance available already, use it
-		for(int i = 0; i < availableDemods.count(); i++) {
-			qDebug("compare [%s] vs [%s]", qPrintable(availableDemods[i].m_demodName), qPrintable(demodConfig.m_demod));
-			if(availableDemods[i].m_demodName == demodConfig.m_demod) {
-				qDebug("demod [%s] found", qPrintable(availableDemods[i].m_demodName));
-				reg = availableDemods.takeAt(i);
-				m_demodInstanceRegistrations.append(reg);
+		for(int i = 0; i < openChannels.count(); i++) {
+			qDebug("compare [%s] vs [%s]", qPrintable(openChannels[i].m_channelName), qPrintable(channelConfig.m_channel));
+			if(openChannels[i].m_channelName == channelConfig.m_channel) {
+				qDebug("channel [%s] found", qPrintable(openChannels[i].m_channelName));
+				reg = openChannels.takeAt(i);
+				m_channelInstanceRegistrations.append(reg);
 				break;
 			}
 		}
 		// if we haven't one already, create one
 		if(reg.m_gui == NULL) {
-			for(int i = 0; i < m_demodRegistrations.count(); i++) {
-				if(m_demodRegistrations[i].m_demodName == demodConfig.m_demod) {
-					qDebug("creating new demod [%s]", qPrintable(demodConfig.m_demod));
-					reg = DemodInstanceRegistration(demodConfig.m_demod, m_demodRegistrations[i].m_plugin->createDemod(demodConfig.m_demod));
+			for(int i = 0; i < m_channelRegistrations.count(); i++) {
+				if(m_channelRegistrations[i].m_channelName == channelConfig.m_channel) {
+					qDebug("creating new channel [%s]", qPrintable(channelConfig.m_channel));
+					reg = ChannelInstanceRegistration(channelConfig.m_channel, m_channelRegistrations[i].m_plugin->createChannel(channelConfig.m_channel));
 					break;
 				}
 			}
 		}
-		if(reg.m_gui != NULL) {
-			reg.m_gui->deserialize(demodConfig.m_config);
-			reg.m_gui->raise();
-		}
+		if(reg.m_gui != NULL)
+			reg.m_gui->deserialize(channelConfig.m_config);
 	}
 
 	// everything, that is still "available" is not needed anymore
-	for(int i = 0; i < availableDemods.count(); i++) {
-		qDebug("destroying spare demod [%s]", qPrintable(availableDemods[i].m_demodName));
-		availableDemods[i].m_gui->destroy();
+	for(int i = 0; i < openChannels.count(); i++) {
+		qDebug("destroying spare channel [%s]", qPrintable(openChannels[i].m_channelName));
+		openChannels[i].m_gui->destroy();
 	}
 
-	renameDemodInstances();
+	renameChannelInstances();
 
 	if(m_sampleSourceInstance != NULL) {
 		m_sampleSourceInstance->deserializeGeneral(preset->getSourceGeneralConfig());
@@ -116,17 +129,16 @@ void PluginManager::saveSettings(Preset* preset) const
 	} else {
 		preset->setSourceConfig(QString::null, QByteArray(), QByteArray());
 	}
-	for(int i = 0; i < m_demodInstanceRegistrations.size(); i++)
-		preset->addDemod(m_demodInstanceRegistrations[i].m_demodName, m_demodInstanceRegistrations[i].m_gui->serialize());
+	for(int i = 0; i < m_channelInstanceRegistrations.count(); i++)
+		preset->addChannel(m_channelInstanceRegistrations[i].m_channelName, m_channelInstanceRegistrations[i].m_gui->serialize());
 }
 
 void PluginManager::freeAll()
 {
 	m_dspEngine->stopAcquistion();
 
-	while(!m_demodInstanceRegistrations.isEmpty()) {
-		DemodInstanceRegistration reg(m_demodInstanceRegistrations.takeLast());
-		reg.m_gui->disconnect(this);
+	while(!m_channelInstanceRegistrations.isEmpty()) {
+		ChannelInstanceRegistration reg(m_channelInstanceRegistrations.takeLast());
 		reg.m_gui->destroy();
 	}
 
@@ -147,7 +159,7 @@ bool PluginManager::handleMessage(Message* message)
 		}
 	}
 
-	for(DemodInstanceRegistrations::iterator it = m_demodInstanceRegistrations.begin(); it != m_demodInstanceRegistrations.end(); ++it) {
+	for(ChannelInstanceRegistrations::iterator it = m_channelInstanceRegistrations.begin(); it != m_channelInstanceRegistrations.end(); ++it) {
 		if((message->destination() == NULL) || (message->destination() == it->m_gui)) {
 			if(it->m_gui->handleMessage(message))
 				return true;
@@ -204,7 +216,6 @@ int PluginManager::selectSampleSource(int index)
 
 	m_sampleSource = m_sampleSourceDevices[index].m_sourceName;
 	m_sampleSourceInstance = m_sampleSourceDevices[index].m_plugin->createSampleSource(m_sampleSource, m_sampleSourceDevices[index].m_address);
-	m_mainWindow->setInputGUI(m_sampleSourceInstance);
 	return index;
 }
 
@@ -239,19 +250,7 @@ int PluginManager::selectSampleSource(const QString& source)
 
 	m_sampleSource = m_sampleSourceDevices[index].m_sourceName;
 	m_sampleSourceInstance = m_sampleSourceDevices[index].m_plugin->createSampleSource(m_sampleSource, m_sampleSourceDevices[index].m_address);
-	m_mainWindow->setInputGUI(m_sampleSourceInstance);
 	return index;
-}
-
-void PluginManager::demodInstanceDestroyed(QObject* object)
-{
-	for(DemodInstanceRegistrations::iterator it = m_demodInstanceRegistrations.begin(); it != m_demodInstanceRegistrations.end(); ++it) {
-		if(it->m_gui == object) {
-			m_demodInstanceRegistrations.erase(it);
-			break;
-		}
-	}
-	renameDemodInstances();
 }
 
 void PluginManager::loadPlugins(const QDir& dir)
@@ -273,9 +272,9 @@ void PluginManager::loadPlugins(const QDir& dir)
 		loadPlugins(pluginsDir.absoluteFilePath(dirName));
 }
 
-void PluginManager::renameDemodInstances()
+void PluginManager::renameChannelInstances()
 {
-	for(int i = 0; i < m_demodInstanceRegistrations.count(); i++) {
-		m_demodInstanceRegistrations[i].m_gui->setWidgetName(QString("%1:%2").arg(m_demodInstanceRegistrations[i].m_demodName).arg(i));
+	for(int i = 0; i < m_channelInstanceRegistrations.count(); i++) {
+		m_channelInstanceRegistrations[i].m_gui->setName(QString("%1:%2").arg(m_channelInstanceRegistrations[i].m_channelName).arg(i));
 	}
 }

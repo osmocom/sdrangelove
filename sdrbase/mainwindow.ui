@@ -22,16 +22,7 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
-    <property name="leftMargin">
-     <number>0</number>
-    </property>
-    <property name="topMargin">
-     <number>0</number>
-    </property>
-    <property name="rightMargin">
-     <number>0</number>
-    </property>
-    <property name="bottomMargin">
+    <property name="margin">
      <number>0</number>
     </property>
     <item>
@@ -52,7 +43,7 @@
      <x>0</x>
      <y>0</y>
      <width>1012</width>
-     <height>24</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -95,9 +86,9 @@
     <addaction name="separator"/>
     <addaction name="action_About"/>
    </widget>
-   <widget class="QMenu" name="menu_Demodulation">
+   <widget class="QMenu" name="menu_Channels">
     <property name="title">
-     <string>&amp;Demodulation</string>
+     <string>&amp;Channels</string>
     </property>
    </widget>
    <widget class="QMenu" name="menu_Window">
@@ -108,7 +99,7 @@
    <addaction name="menu_File"/>
    <addaction name="menu_View"/>
    <addaction name="menu_Acquisition"/>
-   <addaction name="menu_Demodulation"/>
+   <addaction name="menu_Channels"/>
    <addaction name="menu_Options"/>
    <addaction name="menu_Window"/>
    <addaction name="menu_Help"/>
@@ -131,16 +122,7 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QGridLayout" name="gridLayout_6">
-     <property name="leftMargin">
-      <number>2</number>
-     </property>
-     <property name="topMargin">
-      <number>2</number>
-     </property>
-     <property name="rightMargin">
-      <number>2</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>2</number>
      </property>
      <property name="spacing">
@@ -257,16 +239,7 @@
      <property name="spacing">
       <number>3</number>
      </property>
-     <property name="leftMargin">
-      <number>2</number>
-     </property>
-     <property name="topMargin">
-      <number>2</number>
-     </property>
-     <property name="rightMargin">
-      <number>2</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>2</number>
      </property>
      <item>
@@ -275,7 +248,7 @@
         <number>3</number>
        </property>
        <item>
-        <widget class="QToolButton" name="dcOffset">
+        <widget class="ButtonSwitch" name="dcOffset">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -288,13 +261,10 @@
          <property name="text">
           <string>DC Offset Corr</string>
          </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="iqImbalance">
+        <widget class="ButtonSwitch" name="iqImbalance">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -306,9 +276,6 @@
          </property>
          <property name="text">
           <string>I/Q Imbal. Corr</string>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -338,16 +305,7 @@
      <property name="spacing">
       <number>3</number>
      </property>
-     <property name="leftMargin">
-      <number>2</number>
-     </property>
-     <property name="topMargin">
-      <number>2</number>
-     </property>
-     <property name="rightMargin">
-      <number>2</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>2</number>
      </property>
      <item>
@@ -357,6 +315,24 @@
        </property>
       </widget>
      </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="channelDock">
+   <property name="windowTitle">
+    <string>Channels</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="ChannelWindow" name="channelWindow">
+    <layout class="QVBoxLayout" name="verticalLayout_4">
+     <property name="spacing">
+      <number>3</number>
+     </property>
+     <property name="margin">
+      <number>2</number>
+     </property>
     </layout>
    </widget>
   </widget>
@@ -447,6 +423,7 @@
    </property>
   </action>
   <zorder>presetDock</zorder>
+  <zorder>channelDock</zorder>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -460,6 +437,17 @@
    <class>GLSpectrumGUI</class>
    <extends>QWidget</extends>
    <header>gui/glspectrumgui.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ButtonSwitch</class>
+   <extends>QToolButton</extends>
+   <header>gui/buttonswitch.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ChannelWindow</class>
+   <extends>QWidget</extends>
+   <header>gui/channelwindow.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

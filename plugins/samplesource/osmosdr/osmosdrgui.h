@@ -11,13 +11,15 @@ namespace Ui {
 	class OsmoSDRGui;
 }
 
-class OsmoSDRGui : public PluginGUI {
+class OsmoSDRGui : public QWidget, public PluginGUI {
 	Q_OBJECT
 
 public:
 	explicit OsmoSDRGui(PluginAPI* pluginAPI, QWidget* parent = NULL);
 	~OsmoSDRGui();
 	void destroy();
+
+	void setName(const QString& name);
 
 	void resetToDefaults();
 	QByteArray serializeGeneral() const;
@@ -28,14 +30,6 @@ public:
 	bool handleMessage(Message* message);
 
 private:
-	/*
-	Ui::OsmoSDRGui* ui;
-
-	MessageQueue* m_msgQueue;
-	OsmoSDRInput::Settings m_settings;
-	QTimer m_updateTimer;
-	*/
-
 	Ui::OsmoSDRGui* ui;
 
 	PluginAPI* m_pluginAPI;

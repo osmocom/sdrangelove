@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>253</width>
-    <height>224</height>
+    <height>229</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -118,10 +118,7 @@
         <enum>Qt::Horizontal</enum>
        </property>
        <property name="tickPosition">
-        <enum>QSlider::TicksAbove</enum>
-       </property>
-       <property name="tickInterval">
-        <number>1</number>
+        <enum>QSlider::TicksBelow</enum>
        </property>
       </widget>
      </item>

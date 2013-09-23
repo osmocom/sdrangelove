@@ -37,7 +37,7 @@ public:
 	virtual const PluginDescriptor& getPluginDescriptor() const = 0;
 	virtual void initPlugin(PluginAPI* pluginAPI) = 0;
 
-	virtual PluginGUI* createDemod(const QString& demodName) { return NULL; }
+	virtual PluginGUI* createChannel(const QString& channelName) { return NULL; }
 
 	virtual SampleSourceDevices enumSampleSources() { return SampleSourceDevices(); }
 	virtual PluginGUI* createSampleSource(const QString& sourceName, const QByteArray& address) { return NULL; }

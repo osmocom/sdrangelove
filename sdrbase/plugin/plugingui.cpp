@@ -1,15 +1,5 @@
 #include "plugin/plugingui.h"
 
-PluginGUI::PluginGUI(QWidget* parent) :
-	QWidget(parent)
-{
-}
-
-void PluginGUI::setWidgetName(const QString& name)
-{
-	setObjectName(name);
-}
-
 QByteArray PluginGUI::serializeGeneral() const
 {
 	return QByteArray();

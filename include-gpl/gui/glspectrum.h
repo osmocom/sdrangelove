@@ -39,7 +39,7 @@ public:
 	void setPowerRange(Real powerRange);
 	void setDisplayWaterfall(bool display);
 	void setInvertedWaterfall(bool inv);
-	void setDisplayLiveSpectrum(bool display);
+	void setDisplayMaxHold(bool display);
 	void setDisplayHistogram(bool display);
 
 	void addChannelMarker(ChannelMarker* channelMarker);
@@ -84,9 +84,8 @@ private:
 
 	bool m_invertedWaterfall;
 
-	std::vector<Real> m_liveSpectrum;
-	bool m_displayLiveSpectrum;
-	bool m_liveSpectrumChanged;
+	std::vector<Real> m_maxHold;
+	bool m_displayMaxHold;
 
 	Real m_waterfallShare;
 

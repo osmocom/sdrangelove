@@ -19,14 +19,29 @@ MessageQueue* PluginAPI::getMainWindowMessageQueue()
 	return m_mainWindow->getMessageQueue();
 }
 
-void PluginAPI::registerDemodulator(const QString& demodName, PluginInterface* plugin, QAction* action)
+void PluginAPI::setInputGUI(QWidget* inputGUI)
 {
-	m_pluginManager->registerDemodulator(demodName, plugin, action);
+	m_mainWindow->setInputGUI(inputGUI);
 }
 
-void PluginAPI::registerDemodulatorInstance(const QString& demodName, PluginGUI* pluginGUI)
+void PluginAPI::registerChannel(const QString& channelName, PluginInterface* plugin, QAction* action)
 {
-	m_pluginManager->registerDemodulatorInstance(demodName, pluginGUI);
+	m_pluginManager->registerChannel(channelName, plugin, action);
+}
+
+void PluginAPI::registerChannelInstance(const QString& channelName, PluginGUI* pluginGUI)
+{
+	m_pluginManager->registerChannelInstance(channelName, pluginGUI);
+}
+
+void PluginAPI::addChannelRollup(QWidget* pluginGUI)
+{
+	m_pluginManager->addChannelRollup(pluginGUI);
+}
+
+void PluginAPI::removeChannelInstance(PluginGUI* pluginGUI)
+{
+	m_pluginManager->removeChannelInstance(pluginGUI);
 }
 
 void PluginAPI::addChannelMarker(ChannelMarker* channelMarker)

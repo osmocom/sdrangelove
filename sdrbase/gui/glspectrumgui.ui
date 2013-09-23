@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>203</width>
-    <height>136</height>
+    <height>137</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -48,7 +48,7 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="tickPosition">
-      <enum>QSlider::TicksAbove</enum>
+      <enum>QSlider::TicksBelow</enum>
      </property>
      <property name="tickInterval">
       <number>1</number>
@@ -85,7 +85,7 @@
     </widget>
    </item>
    <item row="1" column="4">
-    <widget class="QToolButton" name="waterfall">
+    <widget class="ButtonSwitch" name="waterfall">
      <property name="minimumSize">
       <size>
        <width>24</width>
@@ -144,7 +144,7 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="tickPosition">
-      <enum>QSlider::TicksAbove</enum>
+      <enum>QSlider::TicksBelow</enum>
      </property>
      <property name="tickInterval">
       <number>1</number>
@@ -174,7 +174,7 @@
     </widget>
    </item>
    <item row="2" column="4">
-    <widget class="QToolButton" name="histogram">
+    <widget class="ButtonSwitch" name="histogram">
      <property name="minimumSize">
       <size>
        <width>24</width>
@@ -233,7 +233,7 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="tickPosition">
-      <enum>QSlider::TicksAbove</enum>
+      <enum>QSlider::TicksBelow</enum>
      </property>
      <property name="tickInterval">
       <number>10</number>
@@ -263,7 +263,7 @@
     </widget>
    </item>
    <item row="3" column="4">
-    <widget class="QToolButton" name="liveSpectrum">
+    <widget class="ButtonSwitch" name="maxHold">
      <property name="minimumSize">
       <size>
        <width>24</width>
@@ -278,7 +278,7 @@
      </property>
      <property name="icon">
       <iconset resource="../resources/res.qrc">
-       <normaloff>:/livespectrum.png</normaloff>:/livespectrum.png</iconset>
+       <normaloff>:/maxhold.png</normaloff>:/maxhold.png</iconset>
      </property>
      <property name="iconSize">
       <size>
@@ -390,7 +390,7 @@
         <enum>Qt::Horizontal</enum>
        </property>
        <property name="tickPosition">
-        <enum>QSlider::TicksAbove</enum>
+        <enum>QSlider::TicksBelow</enum>
        </property>
        <property name="tickInterval">
         <number>1</number>
@@ -401,6 +401,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ButtonSwitch</class>
+   <extends>QToolButton</extends>
+   <header>gui/buttonswitch.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>fftSize</tabstop>
   <tabstop>fftWindow</tabstop>
@@ -409,7 +416,7 @@
   <tabstop>decay</tabstop>
   <tabstop>waterfall</tabstop>
   <tabstop>histogram</tabstop>
-  <tabstop>liveSpectrum</tabstop>
+  <tabstop>maxHold</tabstop>
  </tabstops>
  <resources>
   <include location="../resources/res.qrc"/>

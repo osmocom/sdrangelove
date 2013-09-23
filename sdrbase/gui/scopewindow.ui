@@ -82,6 +82,11 @@
          <string>Derived 1st + 2nd order</string>
         </property>
        </item>
+       <item>
+        <property name="text">
+         <string>Cyclostationary</string>
+        </property>
+       </item>
       </widget>
      </item>
      <item>

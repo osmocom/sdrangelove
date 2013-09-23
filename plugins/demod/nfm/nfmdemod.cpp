@@ -58,8 +58,6 @@ void NFMDemod::configure(MessageQueue* messageQueue, Real rfBandwidth, Real afBa
 
 void NFMDemod::feed(SampleVector::const_iterator begin, SampleVector::const_iterator end, bool firstOfBurst)
 {
-	size_t count = end - begin;
-
 	Complex ci;
 	bool consumed;
 
@@ -74,7 +72,7 @@ void NFMDemod::feed(SampleVector::const_iterator begin, SampleVector::const_iter
 			m_movingAverage.feed(ci.real() * ci.real() + ci.imag() * ci.imag());
 
 			if(m_movingAverage.average() >= m_squelchLevel)
-				m_squelchState = m_sampleRate / 100;
+				m_squelchState = m_sampleRate / 50;
 
 			if(m_squelchState > 0) {
 				m_squelchState--;
@@ -89,8 +87,11 @@ void NFMDemod::feed(SampleVector::const_iterator begin, SampleVector::const_iter
 				m_audioBuffer[m_audioBufferFill].r = sample;
 				++m_audioBufferFill;
 				if(m_audioBufferFill >= m_audioBuffer.size()) {
-					if(m_audioFifo->write((const quint8*)&m_audioBuffer[0], m_audioBufferFill, 0) != m_audioBufferFill)
-						;//qDebug("lost samples");
+					uint res = m_audioFifo->write((const quint8*)&m_audioBuffer[0], m_audioBufferFill, 1);
+					/*
+					if(res != m_audioBufferFill)
+						qDebug("lost %u samples", m_audioBufferFill - res);
+					*/
 					m_audioBufferFill = 0;
 				}
 			}

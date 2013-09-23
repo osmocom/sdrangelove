@@ -37,7 +37,8 @@ public:
 		ModeIQ,
 		ModeMagLinPha,
 		ModeMagdBPha,
-		ModeDerived12
+		ModeDerived12,
+		ModeCyclostationary
 	};
 
 	GLScope(QWidget* parent = NULL);

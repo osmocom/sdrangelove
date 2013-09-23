@@ -3,7 +3,7 @@
 #include "plugin/pluginapi.h"
 
 OsmoSDRGui::OsmoSDRGui(PluginAPI* pluginAPI, QWidget* parent) :
-	PluginGUI(parent),
+	QWidget(parent),
 	ui(new Ui::OsmoSDRGui),
 	m_pluginAPI(pluginAPI),
 	m_settings(),
@@ -26,6 +26,11 @@ OsmoSDRGui::~OsmoSDRGui()
 void OsmoSDRGui::destroy()
 {
 	delete this;
+}
+
+void OsmoSDRGui::setName(const QString& name)
+{
+	setObjectName(name);
 }
 
 void OsmoSDRGui::resetToDefaults()

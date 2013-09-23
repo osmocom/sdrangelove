@@ -40,7 +40,7 @@ private:
 	Real m_powerRange;
 	bool m_displayWaterfall;
 	bool m_invertedWaterfall;
-	bool m_displayLiveSpectrum;
+	bool m_displayMaxHold;
 	bool m_displayHistogram;
 
 	void applySettings();
@@ -53,7 +53,7 @@ private slots:
 	void on_decay_valueChanged(int value);
 	void on_waterfall_toggled(bool checked);
 	void on_histogram_toggled(bool checked);
-	void on_liveSpectrum_toggled(bool checked);
+	void on_maxHold_toggled(bool checked);
 };
 
 #endif // INCLUDE_GLSPECTRUMGUI_H

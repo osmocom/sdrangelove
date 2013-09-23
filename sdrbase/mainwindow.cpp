@@ -17,7 +17,6 @@
 
 #include <QInputDialog>
 #include <QMessageBox>
-#include <QDir>
 #include <QLabel>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -29,6 +28,7 @@
 #include "gui/pluginsdialog.h"
 #include "gui/preferencesdialog.h"
 #include "gui/aboutdialog.h"
+#include "gui/rollupwidget.h"
 #include "dsp/dspengine.h"
 #include "dsp/spectrumvis.h"
 #include "dsp/dspcommands.h"
@@ -59,20 +59,25 @@ MainWindow::MainWindow(QWidget* parent) :
 	setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
 	setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
 	setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+
 	// work around broken Qt dock widget ordering
 	removeDockWidget(ui->inputDock);
 	removeDockWidget(ui->processingDock);
 	removeDockWidget(ui->presetDock);
+	removeDockWidget(ui->channelDock);
 	addDockWidget(Qt::LeftDockWidgetArea, ui->inputDock);
 	addDockWidget(Qt::LeftDockWidgetArea, ui->processingDock);
 	addDockWidget(Qt::LeftDockWidgetArea, ui->presetDock);
+	addDockWidget(Qt::RightDockWidgetArea, ui->channelDock);
 	ui->inputDock->show();
 	ui->processingDock->show();
 	ui->presetDock->show();
+	ui->channelDock->show();
 
 	ui->menu_Window->addAction(ui->inputDock->toggleViewAction());
 	ui->menu_Window->addAction(ui->processingDock->toggleViewAction());
 	ui->menu_Window->addAction(ui->presetDock->toggleViewAction());
+	ui->menu_Window->addAction(ui->channelDock->toggleViewAction());
 
 	connect(m_messageQueue, SIGNAL(messageEnqueued()), this, SLOT(handleMessages()), Qt::QueuedConnection);
 
@@ -131,9 +136,14 @@ MainWindow::~MainWindow()
 	delete ui;
 }
 
-void MainWindow::addDemodCreateAction(QAction* action)
+void MainWindow::addChannelCreateAction(QAction* action)
 {
-	ui->menu_Demodulation->addAction(action);
+	ui->menu_Channels->addAction(action);
+}
+
+void MainWindow::addChannelRollup(QWidget* widget)
+{
+	((ChannelWindow*)ui->channelDock->widget())->addRollupWidget(widget);
 }
 
 void MainWindow::addViewAction(QAction* action)
@@ -201,7 +211,7 @@ void MainWindow::saveSettings(Preset* preset)
 		preset->setScopeConfig(m_scopeWindow->serialize());
 	else preset->setScopeConfig(QByteArray());
 
-	preset->clearDemods();
+	preset->clearChannels();
 	m_pluginManager->saveSettings(preset);
 
 	preset->setLayout(saveState());
@@ -501,7 +511,6 @@ void MainWindow::on_action_Preferences_triggered()
 
 	preferencesDialog.exec();
 }
-
 
 void MainWindow::on_sampleSource_currentIndexChanged(int index)
 {

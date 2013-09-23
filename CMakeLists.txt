@@ -3,7 +3,9 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
 project(sdrangelove)
 
-set(CMAKE_BUILD_TYPE "Release")
+#set(CMAKE_BUILD_TYPE "Release")
+#set(CMAKE_BUILD_TYPE "ReleaseWithDebInfo")
+set(CMAKE_BUILD_TYPE "Debug")
 
 set(QT_USE_QTOPENGL TRUE)
 set(CMAKE_AUTOMOC ON)
@@ -24,12 +26,12 @@ find_package(FFTW3F)
 add_definitions(${QT_DEFINITIONS})
 
 if(MSVC)
-foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
-string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/bin_${OUTPUTCONFIG})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/bin_${OUTPUTCONFIG})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/bin_${OUTPUTCONFIG})
-endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
+	foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+		string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
+		set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/bin_${OUTPUTCONFIG})
+		set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/bin_${OUTPUTCONFIG})
+		set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/bin_${OUTPUTCONFIG})
+	endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
 endif()
 
 ##############################################################################
@@ -61,6 +63,8 @@ set(sdrbase_SOURCES
 
 	sdrbase/gui/aboutdialog.cpp
 	sdrbase/gui/addpresetdialog.cpp
+	sdrbase/gui/buttonswitch.cpp
+	sdrbase/gui/channelwindow.cpp
 	sdrbase/gui/glscope.cpp
 	sdrbase/gui/glspectrum.cpp
 	sdrbase/gui/glspectrumgui.cpp
@@ -68,6 +72,7 @@ set(sdrbase_SOURCES
 	sdrbase/gui/pluginsdialog.cpp
 	sdrbase/gui/preferencesdialog.cpp
 	sdrbase/gui/presetitem.cpp
+	sdrbase/gui/rollupwidget.cpp
 	sdrbase/gui/scale.cpp
 	sdrbase/gui/scaleengine.cpp
 	sdrbase/gui/scopewindow.cpp
@@ -119,6 +124,8 @@ set(sdrbase_HEADERS
 
 	include-gpl/gui/aboutdialog.h
 	include-gpl/gui/addpresetdialog.h
+	include-gpl/gui/buttonswitch.h
+	include-gpl/gui/channelwindow.h
 	include-gpl/gui/glscope.h
 	include-gpl/gui/glspectrum.h
 	include-gpl/gui/glspectrumgui.h
@@ -127,6 +134,7 @@ set(sdrbase_HEADERS
 	include-gpl/gui/pluginsdialog.h
 	include-gpl/gui/preferencesdialog.h
 	include-gpl/gui/presetitem.h
+	include/gui/rollupwidget.h
 	include-gpl/gui/scale.h
 	include-gpl/gui/scaleengine.h
 	include-gpl/gui/scopewindow.h

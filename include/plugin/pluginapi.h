@@ -25,10 +25,13 @@ public:
 	// MainWindow access
 	QDockWidget* createMainWindowDock(Qt::DockWidgetArea dockWidgetArea, const QString& title);
 	MessageQueue* getMainWindowMessageQueue();
+	void setInputGUI(QWidget* inputGUI);
 
-	// Demodulator stuff
-	void registerDemodulator(const QString& demodName, PluginInterface* plugin, QAction* action);
-	void registerDemodulatorInstance(const QString& demodName, PluginGUI* pluginGUI);
+	// Channel stuff
+	void registerChannel(const QString& channelName, PluginInterface* plugin, QAction* action);
+	void registerChannelInstance(const QString& channelName, PluginGUI* pluginGUI);
+	void addChannelRollup(QWidget* pluginGUI);
+	void removeChannelInstance(PluginGUI* pluginGUI);
 
 	void addChannelMarker(ChannelMarker* channelMarker);
 	void removeChannelMarker(ChannelMarker* channelMarker);

@@ -419,6 +419,22 @@ void GLScope::handleMode()
 			}
 			break;
 		}
+
+		case ModeCyclostationary: {
+			if(m_rawTrace.size() > 2) {
+				m_mathTrace.resize(m_rawTrace.size() - 2);
+				std::vector<Complex>::iterator dst = m_mathTrace.begin();
+				for(uint i = 2; i < m_rawTrace.size() ; i++)
+					*dst++ = Complex(abs(m_rawTrace[i] - conj(m_rawTrace[i - 1])), 0);
+				m_displayTrace = &m_mathTrace;
+				m_amp1 = m_amp;
+				m_amp2 = m_amp;
+				m_ofs1 = -1.0 / m_amp1;
+				m_ofs2 = 0.0;
+			}
+			break;
+		}
+
 	}
 }
 

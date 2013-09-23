@@ -79,7 +79,7 @@ TetraDemodGUI::TetraDemodGUI(PluginAPI* pluginAPI, QDockWidget* dockWidget, QWid
 	ui->glSpectrum->setCenterFrequency(0);
 	ui->glSpectrum->setSampleRate(36000);
 	ui->glSpectrum->setDisplayWaterfall(true);
-	ui->glSpectrum->setDisplayLiveSpectrum(true);
+	ui->glSpectrum->setDisplayMaxHold(true);
 	m_spectrumVis->configure(m_threadedSampleSink->getMessageQueue(), 64, 10, FFTWindow::BlackmanHarris);
 
 	m_channelMarker = new ChannelMarker(this);
