@@ -1,9 +1,10 @@
-#ifndef INCLUDE_DEMODWIDGET_H
-#define INCLUDE_DEMODWIDGET_H
+#ifndef INCLUDE_ROLLUPWIDGET_H
+#define INCLUDE_ROLLUPWIDGET_H
 
 #include <QWidget>
+#include "util/export.h"
 
-class RollupWidget : public QWidget {
+class SDRANGELOVE_API RollupWidget : public QWidget {
 	Q_OBJECT
 
 public:
@@ -25,4 +26,4 @@ protected:
 	bool eventFilter(QObject* object, QEvent* event);
 };
 
-#endif // INCLUDE_DEMODWIDGET_H
+#endif // INCLUDE_ROLLUPWIDGET_H
