@@ -105,7 +105,9 @@ void TCPSrcGUI::applySettings()
 	ui->sampleRate->setText(QString("%1").arg(outputSampleRate, 0));
 	ui->rfBandwidth->setText(QString("%1").arg(rfBandwidth, 0));
 	ui->tcpPort->setText(QString("%1").arg(tcpPort));
-	m_channelMarker->setBandwidth(rfBandwidth);
+	m_channelMarker->disconnect(this, SLOT(channelMarkerChanged()));
+	m_channelMarker->setBandwidth((int)rfBandwidth);
+	connect(m_channelMarker, SIGNAL(changed()), this, SLOT(channelMarkerChanged()));
 	ui->glSpectrum->setSampleRate(outputSampleRate);
 
 	m_channelizer->configure(m_threadedSampleSink->getMessageQueue(),
