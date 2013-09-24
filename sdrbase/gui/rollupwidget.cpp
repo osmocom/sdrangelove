@@ -16,23 +16,15 @@ RollupWidget::RollupWidget(QWidget* parent) :
 	setAttribute(Qt::WA_OpaquePaintEvent, true);
 }
 
-void RollupWidget::addRollup(QWidget* rollup)
-{
-	rollup->setParent(this);
-	installEventFilter(rollup);
-	arrangeRollups();
-	repaint();
-}
-
 int RollupWidget::arrangeRollups()
 {
 	QFontMetrics fm(font());
 	int pos = fm.height() + 4;
 
 	for(int i = 0; i < children().count(); ++i) {
-		pos += fm.height() + 2;
 		QWidget* r = qobject_cast<QWidget*>(children()[i]);
 		if(r != NULL) {
+			pos += fm.height() + 2;
 			if(!r->isHidden()) {
 				r->move(2, pos + 3);
 				int h = 0;
@@ -112,10 +104,23 @@ void RollupWidget::paintEvent(QPaintEvent*)
 
 	// Rollups
 	int pos = fm.height() + 4;
-	for(int i = 0; i < children().count(); ++i) {
-		QWidget* r = qobject_cast<QWidget*>(children()[i]);
-		if(r != NULL)
-			pos += paintRollup(r, pos, &p, i == children().count() - 1, frame);
+
+	const QObjectList& c = children();
+	QObjectList::ConstIterator w = c.begin();
+	QObjectList::ConstIterator n = c.begin();
+
+	for(n = c.begin(); n != c.end(); ++n) {
+		if(qobject_cast<QWidget*>(*n) != NULL)
+			break;
+	}
+	for(w = n; w != c.end(); w = n) {
+		if(n != c.end())
+			++n;
+		for(; n != c.end(); ++n) {
+			if(qobject_cast<QWidget*>(*n) != NULL)
+				break;
+		}
+		pos += paintRollup(qobject_cast<QWidget*>(*w), pos, &p, n == c.end(), frame);
 	}
 }
 
@@ -223,8 +228,7 @@ bool RollupWidget::eventFilter(QObject* object, QEvent* event)
 		if(children().contains(object))
 			arrangeRollups();
 	} else if((event->type() == QEvent::ChildAdded) || (event->type() == QEvent::ChildRemoved)) {
-		if(children().contains(object))
-			arrangeRollups();
+		arrangeRollups();
 	}
 
 	return QWidget::eventFilter(object, event);

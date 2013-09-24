@@ -10,11 +10,7 @@ class SDRANGELOVE_API RollupWidget : public QWidget {
 public:
 	RollupWidget(QWidget* parent = NULL);
 
-	void addRollup(QWidget* rollup);
-
 protected:
-	//QWidgetList m_rollups;
-
 	int arrangeRollups();
 
 	void paintEvent(QPaintEvent*);
