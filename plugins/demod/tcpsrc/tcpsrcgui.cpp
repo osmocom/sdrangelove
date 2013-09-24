@@ -85,6 +85,12 @@ TCPSrcGUI::TCPSrcGUI(PluginAPI* pluginAPI, QWidget* parent) :
 TCPSrcGUI::~TCPSrcGUI()
 {
 	m_pluginAPI->removeChannelInstance(this);
+	m_pluginAPI->removeSampleSink(m_threadedSampleSink);
+	delete m_threadedSampleSink;
+	delete m_channelizer;
+	delete m_tcpSrc;
+	delete m_spectrumVis;
+	delete m_channelMarker;
 	delete ui;
 }
 
