@@ -28,25 +28,34 @@ void FFTWEngine::configure(int n, bool inverse)
 	m_currentPlan->out = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * n);
 	QTime t;
 	t.start();
+	m_globalPlanMutex.lock();
 	m_currentPlan->plan = fftwf_plan_dft_1d(n, m_currentPlan->in, m_currentPlan->out, inverse ? FFTW_BACKWARD : FFTW_FORWARD, FFTW_PATIENT);
+	m_globalPlanMutex.unlock();
 	qDebug("FFT: creating FFTW plan (n=%d,%s) took %dms", n, inverse ? "inverse" : "forward", t.elapsed());
 	m_plans.push_back(m_currentPlan);
 }
 
 void FFTWEngine::transform()
 {
-	fftwf_execute(m_currentPlan->plan);
+	if(m_currentPlan != NULL)
+		fftwf_execute(m_currentPlan->plan);
 }
 
 Complex* FFTWEngine::in()
 {
-	return reinterpret_cast<Complex*>(m_currentPlan->in);
+	if(m_currentPlan != NULL)
+		return reinterpret_cast<Complex*>(m_currentPlan->in);
+	else return NULL;
 }
 
 Complex* FFTWEngine::out()
 {
-	return reinterpret_cast<Complex*>(m_currentPlan->out);
+	if(m_currentPlan != NULL)
+		return reinterpret_cast<Complex*>(m_currentPlan->out);
+	else return NULL;
 }
+
+QMutex FFTWEngine::m_globalPlanMutex;
 
 void FFTWEngine::freeAll()
 {

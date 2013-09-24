@@ -1,6 +1,7 @@
 #ifndef INCLUDE_FFTWENGINE_H
 #define INCLUDE_FFTWENGINE_H
 
+#include <QMutex>
 #include <fftw3.h>
 #include <list>
 #include "dsp/fftengine.h"
@@ -17,6 +18,8 @@ public:
 	Complex* out();
 
 protected:
+	static QMutex m_globalPlanMutex;
+
 	struct Plan {
 		int n;
 		bool inverse;

@@ -109,9 +109,12 @@ set(sdrbase_HEADERS
 	include-gpl/dsp/dspengine.h
 	include/dsp/dsptypes.h
 	include-gpl/dsp/fftengine.h
+	include-gpl/dsp/fftwengine.h
 	include-gpl/dsp/fftwindow.h
 	include-gpl/dsp/interpolator.h
 	include-gpl/dsp/inthalfbandfilter.h
+	include/dsp/kissfft.h
+	include-gpl/dsp/kissengine.h
 	include-gpl/dsp/lowpass.h
 	include-gpl/dsp/movingaverage.h
 	include-gpl/dsp/nco.h
