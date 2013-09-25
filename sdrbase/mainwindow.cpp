@@ -144,6 +144,8 @@ void MainWindow::addChannelCreateAction(QAction* action)
 void MainWindow::addChannelRollup(QWidget* widget)
 {
 	((ChannelWindow*)ui->channelDock->widget())->addRollupWidget(widget);
+	ui->channelDock->show();
+	ui->channelDock->raise();
 }
 
 void MainWindow::addViewAction(QAction* action)

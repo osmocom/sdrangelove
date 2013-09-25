@@ -1,6 +1,7 @@
 #ifndef INCLUDE_TCPSRCGUI_H
 #define INCLUDE_TCPSRCGUI_H
 
+#include <QHostAddress>
 #include "gui/rollupwidget.h"
 #include "plugin/plugingui.h"
 
@@ -54,6 +55,9 @@ private:
 	~TCPSrcGUI();
 
 	void applySettings();
+
+	void addConnection(quint32 id, const QHostAddress& peerAddress, int peerPort);
+	void delConnection(quint32 id);
 };
 
 #endif // INCLUDE_TCPSRCGUI_H

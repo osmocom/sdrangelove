@@ -43,7 +43,16 @@ bool TCPSrcGUI::deserialize(const QByteArray& data)
 
 bool TCPSrcGUI::handleMessage(Message* message)
 {
-	return false;
+	if(message->id() == TCPSrc::MsgTCPSrcConnection::ID()) {
+		TCPSrc::MsgTCPSrcConnection* con = (TCPSrc::MsgTCPSrcConnection*)message;
+		if(con->getConnect())
+			addConnection(con->id(), con->getPeerAddress(), con->getPeerPort());
+		else delConnection(con->id());
+		message->completed();
+		return true;
+	} else {
+		return false;
+	}
 }
 
 void TCPSrcGUI::channelMarkerChanged()
@@ -57,10 +66,11 @@ TCPSrcGUI::TCPSrcGUI(PluginAPI* pluginAPI, QWidget* parent) :
 	m_pluginAPI(pluginAPI)
 {
 	ui->setupUi(this);
+	ui->connectedClientsBox->hide();
 	setAttribute(Qt::WA_DeleteOnClose, true);
 
 	m_spectrumVis = new SpectrumVis(ui->glSpectrum);
-	m_tcpSrc = new TCPSrc(m_spectrumVis);
+	m_tcpSrc = new TCPSrc(m_pluginAPI->getMainWindowMessageQueue(), this, m_spectrumVis);
 	m_channelizer = new Channelizer(m_tcpSrc);
 	m_threadedSampleSink = new ThreadedSampleSink(m_channelizer);
 	m_pluginAPI->addSampleSink(m_threadedSampleSink);
@@ -120,8 +130,21 @@ void TCPSrcGUI::applySettings()
 		outputSampleRate,
 		m_channelMarker->getCenterFrequency());
 
+	TCPSrc::SampleFormat sampleFormat;
+	switch(ui->sampleFormat->currentIndex()) {
+		case 0:
+			sampleFormat = TCPSrc::FormatS8;
+			break;
+		case 1:
+			sampleFormat = TCPSrc::FormatS16LE;
+			break;
+		default:
+			sampleFormat = TCPSrc::FormatS8;
+			break;
+	}
+
 	m_tcpSrc->configure(m_threadedSampleSink->getMessageQueue(),
-		ui->sampleFormat->currentIndex(),
+		sampleFormat,
 		outputSampleRate,
 		rfBandwidth,
 		tcpPort);
@@ -152,4 +175,23 @@ void TCPSrcGUI::on_tcpPort_textEdited(const QString& arg1)
 void TCPSrcGUI::on_applyBtn_clicked()
 {
 	applySettings();
+}
+
+void TCPSrcGUI::addConnection(quint32 id, const QHostAddress& peerAddress, int peerPort)
+{
+	QStringList l;
+	l.append(QString("%1:%2").arg(peerAddress.toString()).arg(peerPort));
+	new QTreeWidgetItem(ui->connections, l, id);
+	ui->connectedClientsBox->setWindowTitle(tr("Connected Clients (%1)").arg(ui->connections->topLevelItemCount()));
+}
+
+void TCPSrcGUI::delConnection(quint32 id)
+{
+	for(int i = 0; i < ui->connections->topLevelItemCount(); i++) {
+		if(ui->connections->topLevelItem(i)->type() == id) {
+			delete ui->connections->topLevelItem(i);
+			ui->connectedClientsBox->setWindowTitle(tr("Connected Clients (%1)").arg(ui->connections->topLevelItemCount()));
+			return;
+		}
+	}
 }

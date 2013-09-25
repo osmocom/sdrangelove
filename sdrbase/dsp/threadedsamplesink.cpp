@@ -16,6 +16,8 @@ ThreadedSampleSink::ThreadedSampleSink(SampleSink* sampleSink) :
 	m_sampleFifo.moveToThread(m_thread);
 	connect(&m_sampleFifo, SIGNAL(dataReady()), this, SLOT(handleData()));
 	m_sampleFifo.setSize(262144);
+
+	sampleSink->moveToThread(m_thread);
 }
 
 ThreadedSampleSink::~ThreadedSampleSink()

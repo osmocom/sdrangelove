@@ -222,14 +222,26 @@ void RollupWidget::mousePressEvent(QMouseEvent* event)
 	}
 }
 
+bool RollupWidget::event(QEvent* event)
+{
+	if(event->type() == QEvent::ChildAdded) {
+		((QChildEvent*)event)->child()->installEventFilter(this);
+		arrangeRollups();
+	} else if(event->type() == QEvent::ChildRemoved) {
+		((QChildEvent*)event)->child()->removeEventFilter(this);
+		arrangeRollups();
+	}
+	return QWidget::event(event);
+}
+
 bool RollupWidget::eventFilter(QObject* object, QEvent* event)
 {
 	if((event->type() == QEvent::Show) || (event->type() == QEvent::Hide)) {
 		if(children().contains(object))
 			arrangeRollups();
-	} else if((event->type() == QEvent::ChildAdded) || (event->type() == QEvent::ChildRemoved)) {
-		arrangeRollups();
+	} else if(event->type() == QEvent::WindowTitleChange) {
+		if(children().contains(object))
+			repaint();
 	}
-
 	return QWidget::eventFilter(object, event);
 }

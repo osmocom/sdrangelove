@@ -19,6 +19,7 @@ protected:
 	void resizeEvent(QResizeEvent* size);
 	void mousePressEvent(QMouseEvent* event);
 
+	bool event(QEvent* event);
 	bool eventFilter(QObject* object, QEvent* event);
 };
 

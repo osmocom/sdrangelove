@@ -10,7 +10,7 @@
 class QThread;
 class SampleSink;
 
-class SDRANGELOVE_API ThreadedSampleSink : public QObject, public SampleSink {
+class SDRANGELOVE_API ThreadedSampleSink : public SampleSink {
 	Q_OBJECT
 
 public:

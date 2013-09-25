@@ -107,7 +107,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="widget_3" native="true">
+  <widget class="QWidget" name="spectrumBox" native="true">
    <property name="geometry">
     <rect>
      <x>15</x>
@@ -131,7 +131,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="widget_2" native="true">
+  <widget class="QWidget" name="connectedClientsBox" native="true">
    <property name="geometry">
     <rect>
      <x>15</x>
@@ -141,7 +141,7 @@
     </rect>
    </property>
    <property name="windowTitle">
-    <string>Connected Clients</string>
+    <string>Connected Clients (0)</string>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="spacing">
@@ -151,7 +151,7 @@
      <number>2</number>
     </property>
     <item>
-     <widget class="QTreeWidget" name="treeWidget">
+     <widget class="QTreeWidget" name="connections">
       <property name="rootIsDecorated">
        <bool>false</bool>
       </property>
@@ -191,7 +191,7 @@
   <tabstop>rfBandwidth</tabstop>
   <tabstop>tcpPort</tabstop>
   <tabstop>applyBtn</tabstop>
-  <tabstop>treeWidget</tabstop>
+  <tabstop>connections</tabstop>
  </tabstops>
  <resources/>
  <connections/>
