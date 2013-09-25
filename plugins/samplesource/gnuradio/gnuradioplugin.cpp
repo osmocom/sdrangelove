@@ -43,7 +43,9 @@ PluginInterface::SampleSourceDevices GNURadioPlugin::enumSampleSources()
 PluginGUI* GNURadioPlugin::createSampleSource(const QString& sourceName, const QByteArray& address)
 {
 	if(sourceName == "org.osmocom.sdr.samplesource.gr-osmosdr") {
-		return new GNURadioGui(m_pluginAPI);
+		GNURadioGui* gui = new GNURadioGui(m_pluginAPI);
+		m_pluginAPI->setInputGUI(gui);
+		return gui;
 	} else {
 		return NULL;
 	}

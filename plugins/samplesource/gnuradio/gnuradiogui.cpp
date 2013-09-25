@@ -28,7 +28,7 @@
 #include <QSlider>
 
 GNURadioGui::GNURadioGui(PluginAPI* pluginAPI, QWidget* parent) :
-	PluginGUI(parent),
+	QWidget(parent),
 	ui(new Ui::GNURadioGui),
 	m_pluginAPI(pluginAPI),
 	m_settings(),
@@ -50,6 +50,11 @@ GNURadioGui::~GNURadioGui()
 void GNURadioGui::destroy()
 {
 	delete this;
+}
+
+void GNURadioGui::setName(const QString& name)
+{
+	setObjectName(name);
 }
 
 void GNURadioGui::resetToDefaults()

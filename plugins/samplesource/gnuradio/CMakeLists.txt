@@ -41,13 +41,11 @@ include_directories(
 	${GNURADIO_OSMOSDR_INCLUDE_DIRS}
 )
 
-include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_PLUGIN)
 add_definitions(-DQT_SHARED)
 add_definitions(-DBOOST_ALL_NO_LIB)
 
-#qt5_wrap_cpp(gnuradio_HEADERS_MOC ${gnuradio_HEADERS})
 qt5_wrap_ui(gnuradio_FORMS_HEADERS ${gnuradio_FORMS})
 
 add_library(inputgnuradio SHARED

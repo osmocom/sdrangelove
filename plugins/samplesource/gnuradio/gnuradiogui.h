@@ -34,13 +34,15 @@ class GNURadioGui;
 
 class PluginAPI;
 
-class GNURadioGui : public PluginGUI {
+class GNURadioGui : public QWidget, public PluginGUI {
 	Q_OBJECT
 
 public:
 	explicit GNURadioGui(PluginAPI* pluginAPI, QWidget* parent = NULL);
 	~GNURadioGui();
 	void destroy();
+
+	void setName(const QString& name);
 
 	void resetToDefaults();
 	QByteArray serializeGeneral() const;
