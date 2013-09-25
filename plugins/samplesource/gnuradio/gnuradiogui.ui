@@ -204,7 +204,7 @@
      <item>
       <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>Sample Rate (kHz)</string>
+        <string>Sample Rate (MHz)</string>
        </property>
        <property name="textFormat">
         <enum>Qt::AutoText</enum>
@@ -233,7 +233,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="cboAntennas"/>
+      <widget class="QComboBox" name="cboAntennas">
+       <property name="frame">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -273,7 +277,7 @@
      <item>
       <widget class="QLabel" name="label_5">
        <property name="text">
-        <string>Bandwidth (kHz)</string>
+        <string>Bandwidth (MHz)</string>
        </property>
       </widget>
      </item>
