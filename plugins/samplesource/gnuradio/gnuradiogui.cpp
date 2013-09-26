@@ -237,7 +237,7 @@ void GNURadioGui::displaySettings()
 	ui->cboSampleRate->clear();
 
 	for ( int i = 0; i < m_sampRates.size(); i++ )
-		ui->cboSampleRate->addItem( QString::number(m_sampRates[i] / 1e3, '.', 3) );
+		ui->cboSampleRate->addItem( QString::number(m_sampRates[i] / 1e6) );
 
 	if ( oldIndex > ui->cboSampleRate->count() - 1 )
 		oldIndex = 0;
@@ -306,7 +306,7 @@ void GNURadioGui::displaySettings()
 		if ( 0.0 == m_bandwidths[i] )
 			ui->cboBandwidth->addItem( "Auto" );
 		else
-			ui->cboBandwidth->addItem( QString::number(m_bandwidths[i] / 1e3, '.', 3) );
+			ui->cboBandwidth->addItem( QString::number(m_bandwidths[i] / 1e6) );
 
 	if ( oldIndex > ui->cboBandwidth->count() - 1 )
 		oldIndex = 0;
