@@ -63,10 +63,11 @@ void TCPSrc::feed(SampleVector::const_iterator begin, SampleVector::const_iterat
 			m_sampleBufferS8.push_back(it->imag() >> 8);
 		}
 		for(int i = 0; i < m_s8Sockets.count(); i++)
-			m_s8Sockets[i].socket->write((const char*)&m_sampleBufferS8[0], m_sampleBuffer.size());
+			m_s8Sockets[i].socket->write((const char*)&m_sampleBufferS8[0], m_sampleBufferS8.size());
 	}
 
 	m_sampleBuffer.clear();
+	m_sampleBufferS8.clear();
 }
 
 void TCPSrc::start()
