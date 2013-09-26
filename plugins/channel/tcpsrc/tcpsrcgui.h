@@ -4,6 +4,7 @@
 #include <QHostAddress>
 #include "gui/rollupwidget.h"
 #include "plugin/plugingui.h"
+#include "tcpsrc.h"
 
 class PluginAPI;
 class ChannelMarker;
@@ -44,6 +45,12 @@ private:
 	Ui::TCPSrcGUI* ui;
 	PluginAPI* m_pluginAPI;
 	ChannelMarker* m_channelMarker;
+
+	// settings
+	TCPSrc::SampleFormat m_sampleFormat;
+	Real m_outputSampleRate;
+	Real m_rfBandwidth;
+	int m_tcpPort;
 
 	// RF path
 	ThreadedSampleSink* m_threadedSampleSink;

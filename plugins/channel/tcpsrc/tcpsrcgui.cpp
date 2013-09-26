@@ -4,6 +4,7 @@
 #include "dsp/channelizer.h"
 #include "dsp/spectrumvis.h"
 #include "dsp/threadedsamplesink.h"
+#include "util/simpleserializer.h"
 #include "ui_tcpsrcgui.h"
 
 TCPSrcGUI* TCPSrcGUI::create(PluginAPI* pluginAPI)
@@ -33,12 +34,57 @@ void TCPSrcGUI::resetToDefaults()
 
 QByteArray TCPSrcGUI::serialize() const
 {
-	return QByteArray();
+	SimpleSerializer s(1);
+	s.writeBlob(1, saveState());
+	s.writeS32(2, m_channelMarker->getCenterFrequency());
+	s.writeS32(3, m_sampleFormat);
+	s.writeReal(4, m_outputSampleRate);
+	s.writeReal(5, m_rfBandwidth);
+	s.writeS32(6, m_tcpPort);
+	return s.final();
 }
 
 bool TCPSrcGUI::deserialize(const QByteArray& data)
 {
-	return false;
+	SimpleDeserializer d(data);
+
+	if(!d.isValid()) {
+		resetToDefaults();
+		return false;
+	}
+
+	if(d.getVersion() == 1) {
+		QByteArray bytetmp;
+		qint32 s32tmp;
+		Real realtmp;
+		d.readBlob(1, &bytetmp);
+		restoreState(bytetmp);
+		d.readS32(2, &s32tmp, 0);
+		m_channelMarker->setCenterFrequency(s32tmp);
+		d.readS32(3, &s32tmp, TCPSrc::FormatS8);
+		switch(s32tmp) {
+			case TCPSrc::FormatS8:
+				ui->sampleFormat->setCurrentIndex(0);
+				break;
+			case TCPSrc::FormatS16LE:
+				ui->sampleFormat->setCurrentIndex(1);
+				break;
+			default:
+				ui->sampleFormat->setCurrentIndex(0);
+				break;
+		}
+		d.readReal(4, &realtmp, 25000);
+		ui->sampleRate->setText(QString("%1").arg(realtmp, 0));
+		d.readReal(5, &realtmp, 20000);
+		ui->rfBandwidth->setText(QString("%1").arg(realtmp, 0));
+		d.readS32(6, &s32tmp, 9999);
+		ui->tcpPort->setText(QString("%1").arg(s32tmp));
+		applySettings();
+		return true;
+	} else {
+		resetToDefaults();
+		return false;
+	}
 }
 
 bool TCPSrcGUI::handleMessage(Message* message)
@@ -113,7 +159,7 @@ void TCPSrcGUI::applySettings()
 		outputSampleRate = 25000;
 	Real rfBandwidth = ui->rfBandwidth->text().toDouble(&ok);
 	if((!ok) || (rfBandwidth > outputSampleRate))
-		rfBandwidth = outputSampleRate / 1.05;
+		rfBandwidth = outputSampleRate;
 	int tcpPort = ui->tcpPort->text().toInt(&ok);
 	if((!ok) || (tcpPort < 1) || (tcpPort > 65535))
 		tcpPort = 9999;
@@ -142,6 +188,11 @@ void TCPSrcGUI::applySettings()
 			sampleFormat = TCPSrc::FormatS8;
 			break;
 	}
+
+	m_sampleFormat = sampleFormat;
+	m_outputSampleRate = outputSampleRate;
+	m_rfBandwidth = rfBandwidth;
+	m_tcpPort = tcpPort;
 
 	m_tcpSrc->configure(m_threadedSampleSink->getMessageQueue(),
 		sampleFormat,
