@@ -10,7 +10,14 @@ class SDRANGELOVE_API RollupWidget : public QWidget {
 public:
 	RollupWidget(QWidget* parent = NULL);
 
+	QByteArray saveState(int version = 0) const;
+	bool restoreState(const QByteArray& state, int version = 0);
+
 protected:
+	enum {
+		VersionMarker = 0xff
+	};
+
 	int arrangeRollups();
 
 	void paintEvent(QPaintEvent*);

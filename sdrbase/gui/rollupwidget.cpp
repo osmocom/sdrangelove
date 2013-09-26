@@ -16,6 +16,78 @@ RollupWidget::RollupWidget(QWidget* parent) :
 	setAttribute(Qt::WA_OpaquePaintEvent, true);
 }
 
+QByteArray RollupWidget::saveState(int version) const
+{
+	QByteArray state;
+	QDataStream stream(&state, QIODevice::WriteOnly);
+	int count = 0;
+
+	for(int i = 0; i < children().count(); ++i) {
+		QWidget* r = qobject_cast<QWidget*>(children()[i]);
+		if(r != NULL)
+			count++;
+	}
+
+	stream << VersionMarker;
+	stream << version;
+	stream << count;
+
+	for(int i = 0; i < children().count(); ++i) {
+		QWidget* r = qobject_cast<QWidget*>(children()[i]);
+		if(r != NULL) {
+			stream << r->objectName();
+			if(r->isHidden())
+				stream << (int)0;
+			else stream << (int)1;
+		}
+	}
+
+	return state;
+}
+
+bool RollupWidget::restoreState(const QByteArray& state, int version)
+{
+	if(state.isEmpty())
+		return false;
+	QByteArray sd = state;
+	QDataStream stream(&sd, QIODevice::ReadOnly);
+	int marker, v;
+	stream >> marker;
+	stream >> v;
+	if((stream.status() != QDataStream::Ok) || (marker != VersionMarker) || (v != version))
+		return false;
+
+	int count;
+	stream >> count;
+
+	if(stream.status() != QDataStream::Ok)
+		return false;
+	for(int i = 0; i < count; ++i) {
+		QString name;
+		int visible;
+
+		stream >> name;
+		stream >> visible;
+
+		if(stream.status() != QDataStream::Ok)
+			return false;
+
+		for(int j = 0; j < children().count(); ++j) {
+			QWidget* r = qobject_cast<QWidget*>(children()[j]);
+			if(r != NULL) {
+				if(r->objectName() == name) {
+					if(visible)
+						r->show();
+					else r->hide();
+					break;
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
 int RollupWidget::arrangeRollups()
 {
 	QFontMetrics fm(font());
