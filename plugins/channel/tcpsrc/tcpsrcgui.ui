@@ -130,7 +130,7 @@
      <widget class="GLSpectrum" name="glSpectrum" native="true"/>
     </item>
     <item>
-     <widget class="GLSpectrumGUISmall" name="spectrumGUI" native="true"/>
+     <widget class="GLSpectrumGUI" name="spectrumGUI" native="true"/>
     </item>
    </layout>
   </widget>
@@ -182,21 +182,21 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>RollupWidget</class>
-   <extends>QWidget</extends>
-   <header>gui/rollupwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>GLSpectrum</class>
    <extends>QWidget</extends>
    <header>gui/glspectrum.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>GLSpectrumGUISmall</class>
+   <class>GLSpectrumGUI</class>
    <extends>QWidget</extends>
-   <header>gui/glspectrumguismall.h</header>
+   <header>gui/glspectrumgui.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RollupWidget</class>
+   <extends>QWidget</extends>
+   <header>gui/rollupwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

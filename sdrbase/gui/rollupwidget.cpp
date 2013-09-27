@@ -297,6 +297,17 @@ void RollupWidget::mousePressEvent(QMouseEvent* event)
 	}
 }
 
+void RollupWidget::mouseDoubleClickEvent(QMouseEvent* event)
+{
+	QFontMetrics fm(font());
+
+	// menu box left
+	if(QRectF(3.5, 3.5, fm.ascent(), fm.ascent()).contains(event->pos())) {
+		emit menuDoubleClickEvent(event->pos());
+		return;
+	}
+}
+
 bool RollupWidget::event(QEvent* event)
 {
 	if(event->type() == QEvent::ChildAdded) {

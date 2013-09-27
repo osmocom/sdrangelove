@@ -38,22 +38,28 @@ private:
 	qint32 m_fftWindow;
 	Real m_refLevel;
 	Real m_powerRange;
+	int m_decay;
 	bool m_displayWaterfall;
 	bool m_invertedWaterfall;
 	bool m_displayMaxHold;
 	bool m_displayHistogram;
+	bool m_displayGrid;
+	bool m_invert;
 
 	void applySettings();
 
 private slots:
-	void on_fftSize_valueChanged(int value);
 	void on_fftWindow_currentIndexChanged(int index);
-	void on_refLevel_valueChanged(int value);
-	void on_levelRange_valueChanged(int value);
-	void on_decay_valueChanged(int value);
+	void on_fftSize_currentIndexChanged(int index);
+	void on_refLevel_currentIndexChanged(int index);
+	void on_levelRange_currentIndexChanged(int index);
+	void on_decay_currentIndexChanged(int index);
+
 	void on_waterfall_toggled(bool checked);
 	void on_histogram_toggled(bool checked);
 	void on_maxHold_toggled(bool checked);
+	void on_invert_toggled(bool checked);
+	void on_grid_toggled(bool checked);
 };
 
 #endif // INCLUDE_GLSPECTRUMGUI_H

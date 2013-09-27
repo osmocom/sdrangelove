@@ -63,12 +63,12 @@ set(sdrbase_SOURCES
 
 	sdrbase/gui/aboutdialog.cpp
 	sdrbase/gui/addpresetdialog.cpp
+	sdrbase/gui/basicchannelsettingswidget.cpp
 	sdrbase/gui/buttonswitch.cpp
 	sdrbase/gui/channelwindow.cpp
 	sdrbase/gui/glscope.cpp
 	sdrbase/gui/glspectrum.cpp
 	sdrbase/gui/glspectrumgui.cpp
-	sdrbase/gui/glspectrumguismall.cpp
 	sdrbase/gui/indicator.cpp
 	sdrbase/gui/pluginsdialog.cpp
 	sdrbase/gui/preferencesdialog.cpp
@@ -128,12 +128,12 @@ set(sdrbase_HEADERS
 
 	include-gpl/gui/aboutdialog.h
 	include-gpl/gui/addpresetdialog.h
+	include/gui/basicchannelsettingswidget.h
 	include-gpl/gui/buttonswitch.h
 	include-gpl/gui/channelwindow.h
 	include-gpl/gui/glscope.h
 	include-gpl/gui/glspectrum.h
 	include-gpl/gui/glspectrumgui.h
-	include-gpl/gui/glspectrumguismall.h
 	include-gpl/gui/indicator.h
 	include-gpl/gui/physicalunit.h
 	include-gpl/gui/pluginsdialog.h
@@ -174,8 +174,8 @@ set(sdrbase_FORMS
 
 	sdrbase/gui/aboutdialog.ui
 	sdrbase/gui/addpresetdialog.ui
+	sdrbase/gui/basicchannelsettingswidget.ui
 	sdrbase/gui/glspectrumgui.ui
-	sdrbase/gui/glspectrumguismall.ui
 	sdrbase/gui/pluginsdialog.ui
 	sdrbase/gui/preferencesdialog.ui
 	sdrbase/gui/scopewindow.ui

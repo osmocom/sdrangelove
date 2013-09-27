@@ -15,6 +15,7 @@ public:
 
 signals:
 	void widgetRolled(QWidget* widget, bool rollDown);
+	void menuDoubleClickEvent(const QPoint& position);
 
 protected:
 	enum {
@@ -28,6 +29,7 @@ protected:
 
 	void resizeEvent(QResizeEvent* size);
 	void mousePressEvent(QMouseEvent* event);
+	void mouseDoubleClickEvent(QMouseEvent* event);
 
 	bool event(QEvent* event);
 	bool eventFilter(QObject* object, QEvent* event);

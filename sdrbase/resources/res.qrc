@@ -11,5 +11,6 @@
         <file>logo.png</file>
         <file>maxhold.png</file>
         <file>grid.png</file>
+        <file>invertspectrum.png</file>
     </qresource>
 </RCC>
