@@ -26,8 +26,10 @@ GLSpectrum::GLSpectrum(QWidget* parent) :
 	m_centerFrequency(100000000),
 	m_referenceLevel(0),
 	m_powerRange(100),
+	m_decay(0),
 	m_sampleRate(500000),
 	m_fftSize(512),
+	m_displayGrid(true),
 	m_invertedWaterfall(false),
 	m_displayMaxHold(false),
 	m_leftMarginTextureAllocated(false),
@@ -158,6 +160,15 @@ void GLSpectrum::setPowerRange(Real powerRange)
 	update();
 }
 
+void GLSpectrum::setDecay(int decay)
+{
+	m_decay = decay;
+	if(m_decay < -2)
+		m_decay = -2;
+	else if(m_decay > 2)
+		m_decay = 2;
+}
+
 void GLSpectrum::setSampleRate(qint32 sampleRate)
 {
 	m_sampleRate = sampleRate;
@@ -194,6 +205,12 @@ void GLSpectrum::setDisplayHistogram(bool display)
 	m_displayHistogram = display;
 	m_changesPending = true;
 	stopDrag();
+	update();
+}
+
+void GLSpectrum::setDisplayGrid(bool display)
+{
+	m_displayGrid = display;
 	update();
 }
 
@@ -271,14 +288,20 @@ void GLSpectrum::updateHistogram(const std::vector<Real>& spectrum)
 {
 	quint8* b = m_histogram;
 	quint8* h = m_histogramHoldoff;
+	int sub = 1;
+
+	if(m_decay > 0)
+		sub += m_decay;
 
 	m_histogramHoldoffCount--;
 	if(m_histogramHoldoffCount <= 0) {
 		for(int i = 0; i < 100 * m_fftSize; i++) {
 			if(*b > 20) {
-				*b = *b - 1;
+				*b = *b - sub;
 			} else if(*b > 0) {
-				if(*h > 0) {
+				if(*h >= sub) {
+					*h = *h - sub;
+				} else if(*h > 0) {
 					*h = *h - 1;
 				} else {
 					*b = *b - 1;
@@ -305,28 +328,67 @@ void GLSpectrum::updateHistogram(const std::vector<Real>& spectrum)
 		}
 	}
 #else
-	const __m128 refl = {m_referenceLevel,m_referenceLevel,m_referenceLevel,m_referenceLevel};
-	const __m128 power = {m_powerRange,m_powerRange,m_powerRange,m_powerRange};
-	const __m128 mul = {100.0f,100.0f,100.0f,100.0f};
+	if(m_decay >= 0) { // normal
+		const __m128 refl = {m_referenceLevel, m_referenceLevel, m_referenceLevel, m_referenceLevel};
+		const __m128 power = {m_powerRange, m_powerRange, m_powerRange, m_powerRange};
+		const __m128 mul = {100.0f, 100.0f, 100.0f, 100.0f};
 
-	for(int i = 0; i < m_fftSize; i+=4) {
-		__m128 abc = _mm_loadu_ps (&spectrum[i]);
-		abc = _mm_sub_ps(abc, refl);
-		abc = _mm_mul_ps(abc, mul);
-		abc = _mm_div_ps(abc, power);
-		abc =  _mm_add_ps(abc, mul);
-		__m128i result = _mm_cvtps_epi32(abc);
+		for(int i = 0; i < m_fftSize; i += 4) {
+			__m128 abc = _mm_loadu_ps (&spectrum[i]);
+			abc = _mm_sub_ps(abc, refl);
+			abc = _mm_mul_ps(abc, mul);
+			abc = _mm_div_ps(abc, power);
+			abc =  _mm_add_ps(abc, mul);
+			__m128i result = _mm_cvtps_epi32(abc);
 
-		for(int j = 0; j < 4; j++) {
+			for(int j = 0; j < 4; j++) {
+				int v = ((int*)&result)[j];
+				if((v >= 0) && (v <= 99)) {
+					b = m_histogram + (i + j) * 100 + v;
+					if(*b < 220)
+						*b += 4;
+					else if(*b < 239)
+						*b += 1;
+				}
+			}
+		}
+	} else { // draw double pixels
+		int add = -m_decay * 4;
+		const __m128 refl = {m_referenceLevel, m_referenceLevel, m_referenceLevel, m_referenceLevel};
+		const __m128 power = {m_powerRange, m_powerRange, m_powerRange, m_powerRange};
+		const __m128 mul = {100.0f, 100.0f, 100.0f, 100.0f};
 
-		int v = ((int*)&result)[j];
+		for(int i = 0; i < m_fftSize; i += 4) {
+			__m128 abc = _mm_loadu_ps (&spectrum[i]);
+			abc = _mm_sub_ps(abc, refl);
+			abc = _mm_mul_ps(abc, mul);
+			abc = _mm_div_ps(abc, power);
+			abc =  _mm_add_ps(abc, mul);
+			__m128i result = _mm_cvtps_epi32(abc);
 
-			if((v >= 0) && (v <= 99)) {
-				b = m_histogram + (i+j) * 100 + v;
-				if(*b < 220)
-					*b += 4;
-				else if(*b < 239)
-					*b += 1;
+			for(int j = 0; j < 4; j++) {
+				int v = ((int*)&result)[j];
+				if((v >= 1) && (v <= 98)) {
+					b = m_histogram + (i + j) * 100 + v;
+					if(b[-1] < 220)
+						b[-1] += add;
+					else if(b[-1] < 239)
+						b[-1] += 1;
+					if(b[0] < 220)
+						b[0] += add;
+					else if(b[0] < 239)
+						b[0] += 1;
+					if(b[1] < 220)
+						b[1] += add;
+					else if(b[0] < 239)
+						b[1] += 1;
+				} else if((v >= 0) && (v <= 99)) {
+					b = m_histogram + (i + j) * 100 + v;
+					if(*b < 220)
+						*b += add;
+					else if(*b < 239)
+						*b += 1;
+				}
 			}
 		}
 	}
@@ -603,10 +665,11 @@ void GLSpectrum::paintGL()
 		for(int i = 0; i < m_fftSize; i++) {
 			int j;
 			quint8* bs = m_histogram + i * 100;
-			for(j = 99; j > 0; j--) {
+			for(j = 99; j > 1; j--) {
 				if(bs[j] > 0)
 					break;
 			}
+			// TODO: ((bs[j] * (float)j) + (bs[j + 1] * (float)(j + 1))) / (bs[j] +  bs[j + 1])
 			j = j - 99;
 			m_maxHold[i] = (j * m_powerRange) / 99.0 + m_referenceLevel;
 		}
@@ -635,7 +698,7 @@ void GLSpectrum::paintGL()
 	}
 
 	// paint waterfall grid
-	if(m_displayWaterfall) {
+	if(m_displayWaterfall && m_displayGrid) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glLineWidth(1.0f);
@@ -680,7 +743,7 @@ void GLSpectrum::paintGL()
 	}
 
 	// paint histogram grid
-	if(m_displayHistogram || m_displayMaxHold) {
+	if((m_displayHistogram || m_displayMaxHold) && (m_displayGrid)) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glLineWidth(1.0f);

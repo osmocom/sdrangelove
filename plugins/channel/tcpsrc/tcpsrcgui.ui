@@ -129,6 +129,9 @@
     <item>
      <widget class="GLSpectrum" name="glSpectrum" native="true"/>
     </item>
+    <item>
+     <widget class="GLSpectrumGUISmall" name="spectrumGUI" native="true"/>
+    </item>
    </layout>
   </widget>
   <widget class="QWidget" name="connectedClientsBox" native="true">
@@ -182,6 +185,12 @@
    <class>GLSpectrum</class>
    <extends>QWidget</extends>
    <header>gui/glspectrum.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>GLSpectrumGUISmall</class>
+   <extends>QWidget</extends>
+   <header>gui/glspectrumguismall.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

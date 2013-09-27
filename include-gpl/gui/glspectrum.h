@@ -37,10 +37,12 @@ public:
 	void setSampleRate(qint32 sampleRate);
 	void setReferenceLevel(Real referenceLevel);
 	void setPowerRange(Real powerRange);
+	void setDecay(int decay);
 	void setDisplayWaterfall(bool display);
 	void setInvertedWaterfall(bool inv);
 	void setDisplayMaxHold(bool display);
 	void setDisplayHistogram(bool display);
+	void setDisplayGrid(bool display);
 
 	void addChannelMarker(ChannelMarker* channelMarker);
 	void removeChannelMarker(ChannelMarker* channelMarker);
@@ -78,10 +80,12 @@ private:
 	qint64 m_centerFrequency;
 	Real m_referenceLevel;
 	Real m_powerRange;
+	int m_decay;
 	quint32 m_sampleRate;
 
 	int m_fftSize;
 
+	bool m_displayGrid;
 	bool m_invertedWaterfall;
 
 	std::vector<Real> m_maxHold;

@@ -13,6 +13,9 @@ public:
 	QByteArray saveState(int version = 0) const;
 	bool restoreState(const QByteArray& state, int version = 0);
 
+signals:
+	void widgetRolled(QWidget* widget, bool rollDown);
+
 protected:
 	enum {
 		VersionMarker = 0xff

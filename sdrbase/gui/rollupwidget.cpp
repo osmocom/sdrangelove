@@ -8,7 +8,6 @@ RollupWidget::RollupWidget(QWidget* parent) :
 	QWidget(parent)
 {
 	setMinimumSize(250, 150);
-	setMaximumSize(400, 200);
 	setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 	setBackgroundRole(QPalette::Window);
 
@@ -279,9 +278,13 @@ void RollupWidget::mousePressEvent(QMouseEvent* event)
 		QWidget* r = qobject_cast<QWidget*>(children()[i]);
 		if(r != NULL) {
 			if((event->y() >= pos) && (event->y() < (pos + fm.height() + 3))) {
-				if(r->isHidden())
+				if(r->isHidden()) {
 					r->show();
-				else r->hide();
+					//emit widgetRolled(r, true);
+				} else {
+					r->hide();
+					//emit widgetRolled(r, false);
+				}
 				arrangeRollups();
 				repaint();
 				return;
@@ -308,9 +311,16 @@ bool RollupWidget::event(QEvent* event)
 
 bool RollupWidget::eventFilter(QObject* object, QEvent* event)
 {
-	if((event->type() == QEvent::Show) || (event->type() == QEvent::Hide)) {
-		if(children().contains(object))
+	if(event->type() == QEvent::Show) {
+		if(children().contains(object)) {
 			arrangeRollups();
+			emit widgetRolled(qobject_cast<QWidget*>(object), true);
+		}
+	} else if(event->type() == QEvent::Hide) {
+		if(children().contains(object)) {
+			arrangeRollups();
+			emit widgetRolled(qobject_cast<QWidget*>(object), false);
+		}
 	} else if(event->type() == QEvent::WindowTitleChange) {
 		if(children().contains(object))
 			repaint();

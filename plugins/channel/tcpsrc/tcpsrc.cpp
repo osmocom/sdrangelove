@@ -7,6 +7,7 @@
 
 MessageRegistrator TCPSrc::MsgTCPSrcConfigure::ID("MsgTCPSrcConfigure");
 MessageRegistrator TCPSrc::MsgTCPSrcConnection::ID("MsgTCPSrcConnection");
+MessageRegistrator TCPSrc::MsgTCPSrcSpectrum::ID("MsgTCPSrcSpectrum");
 
 TCPSrc::TCPSrc(MessageQueue* uiMessageQueue, TCPSrcGUI* tcpSrcGUI, SampleSink* spectrum)
 {
@@ -21,6 +22,7 @@ TCPSrc::TCPSrc(MessageQueue* uiMessageQueue, TCPSrcGUI* tcpSrcGUI, SampleSink* s
 	m_uiMessageQueue = uiMessageQueue;
 	m_tcpSrcGUI = tcpSrcGUI;
 	m_spectrum = spectrum;
+	m_spectrumEnabled = false;
 	m_nextS8Id = 0;
 	m_nextS16leId = 0;
 }
@@ -32,6 +34,12 @@ TCPSrc::~TCPSrc()
 void TCPSrc::configure(MessageQueue* messageQueue, SampleFormat sampleFormat, Real outputSampleRate, Real rfBandwidth, int tcpPort)
 {
 	Message* cmd = MsgTCPSrcConfigure::create(sampleFormat, outputSampleRate, rfBandwidth, tcpPort);
+	cmd->submit(messageQueue, this);
+}
+
+void TCPSrc::setSpectrum(MessageQueue* messageQueue, bool enabled)
+{
+	Message* cmd = MsgTCPSrcSpectrum::create(enabled);
 	cmd->submit(messageQueue, this);
 }
 
@@ -51,7 +59,7 @@ void TCPSrc::feed(SampleVector::const_iterator begin, SampleVector::const_iterat
 		}
 	}
 
-	if(m_spectrum != NULL)
+	if((m_spectrum != NULL) && (m_spectrumEnabled))
 		m_spectrum->feed(m_sampleBuffer.begin(), m_sampleBuffer.end(), firstOfBurst);
 
 	for(int i = 0; i < m_s16leSockets.count(); i++)
@@ -113,8 +121,15 @@ bool TCPSrc::handleMessage(Message* cmd)
 		m_sampleDistanceRemain = m_inputSampleRate / m_outputSampleRate;
 		cmd->completed();
 		return true;
+	} else if(cmd->id() == MsgTCPSrcSpectrum::ID()) {
+		MsgTCPSrcSpectrum* spc = (MsgTCPSrcSpectrum*)cmd;
+		m_spectrumEnabled = spc->getEnabled();
+		cmd->completed();
+		return true;
 	} else {
-		return false;
+		if(m_spectrum != NULL)
+		   return m_spectrum->handleMessage(cmd);
+		else return false;
 	}
 }
 

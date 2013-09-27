@@ -38,8 +38,8 @@ private slots:
 	void on_sampleRate_textEdited(const QString& arg1);
 	void on_rfBandwidth_textEdited(const QString& arg1);
 	void on_tcpPort_textEdited(const QString& arg1);
-
 	void on_applyBtn_clicked();
+	void onWidgetRolled(QWidget* widget, bool rollDown);
 
 private:
 	Ui::TCPSrcGUI* ui;

@@ -24,6 +24,7 @@ public:
 	~TCPSrc();
 
 	void configure(MessageQueue* messageQueue, SampleFormat sampleFormat, Real outputSampleRate, Real rfBandwidth, int tcpPort);
+	void setSpectrum(MessageQueue* messageQueue, bool enabled);
 
 	void feed(SampleVector::const_iterator begin, SampleVector::const_iterator end, bool firstOfBurst);
 	void start();
@@ -88,6 +89,25 @@ protected:
 			m_tcpPort(tcpPort)
 		{ }
 	};
+	class MsgTCPSrcSpectrum : public Message {
+	public:
+		static MessageRegistrator ID;
+
+		bool getEnabled() const { return m_enabled; }
+
+		static MsgTCPSrcSpectrum* create(bool enabled)
+		{
+			return new MsgTCPSrcSpectrum(enabled);
+		}
+
+	private:
+		bool m_enabled;
+
+		MsgTCPSrcSpectrum(bool enabled) :
+			Message(ID()),
+			m_enabled(enabled)
+		{ }
+	};
 
 	MessageQueue* m_uiMessageQueue;
 	TCPSrcGUI* m_tcpSrcGUI;
@@ -106,6 +126,7 @@ protected:
 	SampleVector m_sampleBuffer;
 	std::vector<qint8> m_sampleBufferS8;
 	SampleSink* m_spectrum;
+	bool m_spectrumEnabled;
 
 	QTcpServer* m_tcpServer;
 	struct Socket {

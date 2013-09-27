@@ -10,5 +10,6 @@
         <file>vertical.png</file>
         <file>logo.png</file>
         <file>maxhold.png</file>
+        <file>grid.png</file>
     </qresource>
 </RCC>

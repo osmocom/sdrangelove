@@ -3,9 +3,9 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
 project(sdrangelove)
 
-#set(CMAKE_BUILD_TYPE "Release")
-#set(CMAKE_BUILD_TYPE "ReleaseWithDebInfo")
-set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_BUILD_TYPE "Release")
+#set(CMAKE_BUILD_TYPE "ReleaseWithDebugInfo")
+#set(CMAKE_BUILD_TYPE "Debug")
 
 set(QT_USE_QTOPENGL TRUE)
 set(CMAKE_AUTOMOC ON)
@@ -68,6 +68,7 @@ set(sdrbase_SOURCES
 	sdrbase/gui/glscope.cpp
 	sdrbase/gui/glspectrum.cpp
 	sdrbase/gui/glspectrumgui.cpp
+	sdrbase/gui/glspectrumguismall.cpp
 	sdrbase/gui/indicator.cpp
 	sdrbase/gui/pluginsdialog.cpp
 	sdrbase/gui/preferencesdialog.cpp
@@ -132,6 +133,7 @@ set(sdrbase_HEADERS
 	include-gpl/gui/glscope.h
 	include-gpl/gui/glspectrum.h
 	include-gpl/gui/glspectrumgui.h
+	include-gpl/gui/glspectrumguismall.h
 	include-gpl/gui/indicator.h
 	include-gpl/gui/physicalunit.h
 	include-gpl/gui/pluginsdialog.h
@@ -173,6 +175,7 @@ set(sdrbase_FORMS
 	sdrbase/gui/aboutdialog.ui
 	sdrbase/gui/addpresetdialog.ui
 	sdrbase/gui/glspectrumgui.ui
+	sdrbase/gui/glspectrumguismall.ui
 	sdrbase/gui/pluginsdialog.ui
 	sdrbase/gui/preferencesdialog.ui
 	sdrbase/gui/scopewindow.ui

@@ -29,6 +29,7 @@ void TCPSrcGUI::resetToDefaults()
 	ui->sampleRate->setText("25000");
 	ui->rfBandwidth->setText("20000");
 	ui->tcpPort->setText("9999");
+	ui->spectrumGUI->resetToDefaults();
 	applySettings();
 }
 
@@ -41,6 +42,7 @@ QByteArray TCPSrcGUI::serialize() const
 	s.writeReal(4, m_outputSampleRate);
 	s.writeReal(5, m_rfBandwidth);
 	s.writeS32(6, m_tcpPort);
+	s.writeBlob(7, ui->spectrumGUI->serialize());
 	return s.final();
 }
 
@@ -79,6 +81,8 @@ bool TCPSrcGUI::deserialize(const QByteArray& data)
 		ui->rfBandwidth->setText(QString("%1").arg(realtmp, 0));
 		d.readS32(6, &s32tmp, 9999);
 		ui->tcpPort->setText(QString("%1").arg(s32tmp));
+		d.readBlob(7, &bytetmp);
+		ui->spectrumGUI->deserialize(bytetmp);
 		applySettings();
 		return true;
 	} else {
@@ -111,8 +115,10 @@ TCPSrcGUI::TCPSrcGUI(PluginAPI* pluginAPI, QWidget* parent) :
 	ui(new Ui::TCPSrcGUI),
 	m_pluginAPI(pluginAPI)
 {
+	m_tcpSrc = NULL;
 	ui->setupUi(this);
 	ui->connectedClientsBox->hide();
+	connect(this, SIGNAL(widgetRolled(QWidget*,bool)), this, SLOT(onWidgetRolled(QWidget*,bool)));
 	setAttribute(Qt::WA_DeleteOnClose, true);
 
 	m_spectrumVis = new SpectrumVis(ui->glSpectrum);
@@ -134,6 +140,8 @@ TCPSrcGUI::TCPSrcGUI(PluginAPI* pluginAPI, QWidget* parent) :
 	m_channelMarker->setVisible(true);
 	connect(m_channelMarker, SIGNAL(changed()), this, SLOT(channelMarkerChanged()));
 	m_pluginAPI->addChannelMarker(m_channelMarker);
+
+	ui->spectrumGUI->setBuddies(m_threadedSampleSink->getMessageQueue(), m_spectrumVis, ui->glSpectrum);
 
 	applySettings();
 }
@@ -226,6 +234,12 @@ void TCPSrcGUI::on_tcpPort_textEdited(const QString& arg1)
 void TCPSrcGUI::on_applyBtn_clicked()
 {
 	applySettings();
+}
+
+void TCPSrcGUI::onWidgetRolled(QWidget* widget, bool rollDown)
+{
+	if((widget == ui->spectrumBox) && (m_tcpSrc != NULL))
+		m_tcpSrc->setSpectrum(m_threadedSampleSink->getMessageQueue(), rollDown);
 }
 
 void TCPSrcGUI::addConnection(quint32 id, const QHostAddress& peerAddress, int peerPort)
