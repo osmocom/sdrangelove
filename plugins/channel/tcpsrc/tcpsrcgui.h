@@ -40,6 +40,7 @@ private slots:
 	void on_tcpPort_textEdited(const QString& arg1);
 	void on_applyBtn_clicked();
 	void onWidgetRolled(QWidget* widget, bool rollDown);
+	void onMenuDoubleClicked();
 
 private:
 	Ui::TCPSrcGUI* ui;
@@ -51,6 +52,7 @@ private:
 	Real m_outputSampleRate;
 	Real m_rfBandwidth;
 	int m_tcpPort;
+	bool m_basicSettingsShown;
 
 	// RF path
 	ThreadedSampleSink* m_threadedSampleSink;

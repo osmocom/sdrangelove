@@ -27,6 +27,9 @@ public:
 	const QColor& getColor() const { return m_color; }
 
 protected:
+	static QRgb m_colorTable[];
+	static int m_nextColor;
+
 	QString m_title;
 	int m_centerFrequency;
 	int m_bandwidth;

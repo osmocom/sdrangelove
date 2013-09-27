@@ -13,6 +13,8 @@ RollupWidget::RollupWidget(QWidget* parent) :
 
 	setAutoFillBackground(false);
 	setAttribute(Qt::WA_OpaquePaintEvent, true);
+
+	m_titleColor = palette().highlight().color();
 }
 
 QByteArray RollupWidget::saveState(int version) const
@@ -87,6 +89,12 @@ bool RollupWidget::restoreState(const QByteArray& state, int version)
 	return true;
 }
 
+void RollupWidget::setTitleColor(const QColor& c)
+{
+	m_titleColor = c;
+	update();
+}
+
 int RollupWidget::arrangeRollups()
 {
 	QFontMetrics fm(font());
@@ -139,7 +147,7 @@ void RollupWidget::paintEvent(QPaintEvent*)
 
 	// Titel-Hintergrund
 	p.setPen(Qt::NoPen);
-	p.setBrush(palette().highlight());
+	p.setBrush(m_titleColor);
 	QPainterPath path;
 	path.moveTo(1.5, fm.height() + 2.5);
 	path.lineTo(width() - 1.5, fm.height() + 2.5);
@@ -303,7 +311,7 @@ void RollupWidget::mouseDoubleClickEvent(QMouseEvent* event)
 
 	// menu box left
 	if(QRectF(3.5, 3.5, fm.ascent(), fm.ascent()).contains(event->pos())) {
-		emit menuDoubleClickEvent(event->pos());
+		emit menuDoubleClickEvent();
 		return;
 	}
 }

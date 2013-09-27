@@ -5,6 +5,7 @@
 #include "dsp/spectrumvis.h"
 #include "dsp/threadedsamplesink.h"
 #include "util/simpleserializer.h"
+#include "gui/basicchannelsettingswidget.h"
 #include "ui_tcpsrcgui.h"
 
 TCPSrcGUI* TCPSrcGUI::create(PluginAPI* pluginAPI)
@@ -43,6 +44,7 @@ QByteArray TCPSrcGUI::serialize() const
 	s.writeReal(5, m_rfBandwidth);
 	s.writeS32(6, m_tcpPort);
 	s.writeBlob(7, ui->spectrumGUI->serialize());
+	s.writeU32(8, m_channelMarker->getColor().rgb());
 	return s.final();
 }
 
@@ -58,6 +60,7 @@ bool TCPSrcGUI::deserialize(const QByteArray& data)
 	if(d.getVersion() == 1) {
 		QByteArray bytetmp;
 		qint32 s32tmp;
+		quint32 u32tmp;
 		Real realtmp;
 		d.readBlob(1, &bytetmp);
 		restoreState(bytetmp);
@@ -83,6 +86,8 @@ bool TCPSrcGUI::deserialize(const QByteArray& data)
 		ui->tcpPort->setText(QString("%1").arg(s32tmp));
 		d.readBlob(7, &bytetmp);
 		ui->spectrumGUI->deserialize(bytetmp);
+		if(d.readU32(8, &u32tmp))
+			m_channelMarker->setColor(u32tmp);
 		applySettings();
 		return true;
 	} else {
@@ -119,6 +124,7 @@ TCPSrcGUI::TCPSrcGUI(PluginAPI* pluginAPI, QWidget* parent) :
 	ui->setupUi(this);
 	ui->connectedClientsBox->hide();
 	connect(this, SIGNAL(widgetRolled(QWidget*,bool)), this, SLOT(onWidgetRolled(QWidget*,bool)));
+	connect(this, SIGNAL(menuDoubleClickEvent()), this, SLOT(onMenuDoubleClicked()));
 	setAttribute(Qt::WA_DeleteOnClose, true);
 
 	m_spectrumVis = new SpectrumVis(ui->glSpectrum);
@@ -134,7 +140,6 @@ TCPSrcGUI::TCPSrcGUI(PluginAPI* pluginAPI, QWidget* parent) :
 	m_spectrumVis->configure(m_threadedSampleSink->getMessageQueue(), 64, 10, FFTWindow::BlackmanHarris);
 
 	m_channelMarker = new ChannelMarker(this);
-	m_channelMarker->setColor(Qt::red);
 	m_channelMarker->setBandwidth(25000);
 	m_channelMarker->setCenterFrequency(0);
 	m_channelMarker->setVisible(true);
@@ -142,6 +147,8 @@ TCPSrcGUI::TCPSrcGUI(PluginAPI* pluginAPI, QWidget* parent) :
 	m_pluginAPI->addChannelMarker(m_channelMarker);
 
 	ui->spectrumGUI->setBuddies(m_threadedSampleSink->getMessageQueue(), m_spectrumVis, ui->glSpectrum);
+
+	m_basicSettingsShown = false;
 
 	applySettings();
 }
@@ -172,6 +179,7 @@ void TCPSrcGUI::applySettings()
 	if((!ok) || (tcpPort < 1) || (tcpPort > 65535))
 		tcpPort = 9999;
 
+	setTitleColor(m_channelMarker->getColor());
 	ui->sampleRate->setText(QString("%1").arg(outputSampleRate, 0));
 	ui->rfBandwidth->setText(QString("%1").arg(rfBandwidth, 0));
 	ui->tcpPort->setText(QString("%1").arg(tcpPort));
@@ -240,6 +248,15 @@ void TCPSrcGUI::onWidgetRolled(QWidget* widget, bool rollDown)
 {
 	if((widget == ui->spectrumBox) && (m_tcpSrc != NULL))
 		m_tcpSrc->setSpectrum(m_threadedSampleSink->getMessageQueue(), rollDown);
+}
+
+void TCPSrcGUI::onMenuDoubleClicked()
+{
+	if(!m_basicSettingsShown) {
+		m_basicSettingsShown = true;
+		BasicChannelSettingsWidget* bcsw = new BasicChannelSettingsWidget(m_channelMarker, this);
+		bcsw->show();
+	}
 }
 
 void TCPSrcGUI::addConnection(quint32 id, const QHostAddress& peerAddress, int peerPort)

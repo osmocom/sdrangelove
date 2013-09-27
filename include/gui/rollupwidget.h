@@ -13,14 +13,18 @@ public:
 	QByteArray saveState(int version = 0) const;
 	bool restoreState(const QByteArray& state, int version = 0);
 
+	void setTitleColor(const QColor& c);
+
 signals:
 	void widgetRolled(QWidget* widget, bool rollDown);
-	void menuDoubleClickEvent(const QPoint& position);
+	void menuDoubleClickEvent();
 
 protected:
 	enum {
 		VersionMarker = 0xff
 	};
+
+	QColor m_titleColor;
 
 	int arrangeRollups();
 
