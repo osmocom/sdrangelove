@@ -75,6 +75,7 @@ private:
 
 	QTimer m_timer;
 	QMutex m_mutex;
+	bool m_mouseInside;
 	bool m_changesPending;
 
 	qint64 m_centerFrequency;
@@ -143,6 +144,9 @@ private:
 	void mouseMoveEvent(QMouseEvent* event);
 	void mousePressEvent(QMouseEvent* event);
 	void mouseReleaseEvent(QMouseEvent* event);
+
+	void enterEvent(QEvent* event);
+	void leaveEvent(QEvent* event);
 
 private slots:
 	void tick();

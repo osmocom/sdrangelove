@@ -22,6 +22,7 @@
 GLSpectrum::GLSpectrum(QWidget* parent) :
 	QGLWidget(parent),
 	m_cursorState(CSNormal),
+	m_mouseInside(false),
 	m_changesPending(true),
 	m_centerFrequency(100000000),
 	m_referenceLevel(0),
@@ -459,23 +460,25 @@ void GLSpectrum::paintGL()
 		glDisable(GL_TEXTURE_2D);
 
 		// paint channels
-		for(int i = 0; i < m_channelMarkerStates.size(); ++i) {
-			ChannelMarkerState* dv = m_channelMarkerStates[i];
-			if(dv->m_channelMarker->getVisible()) {
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				glColor4f(dv->m_channelMarker->getColor().redF(), dv->m_channelMarker->getColor().greenF(), dv->m_channelMarker->getColor().blueF(), 0.15f);
-				glPushMatrix();
-				glTranslatef(dv->m_glRect.x(), dv->m_glRect.y(), 0);
-				glScalef(dv->m_glRect.width(), dv->m_glRect.height(), 1);
-				glBegin(GL_QUADS);
-				glVertex2f(0, 0);
-				glVertex2f(1, 0);
-				glVertex2f(1, 1);
-				glVertex2f(0, 1);
-				glEnd();
-				glDisable(GL_BLEND);
-				glPopMatrix();
+		if(m_mouseInside) {
+			for(int i = 0; i < m_channelMarkerStates.size(); ++i) {
+				ChannelMarkerState* dv = m_channelMarkerStates[i];
+				if(dv->m_channelMarker->getVisible()) {
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					glColor4f(dv->m_channelMarker->getColor().redF(), dv->m_channelMarker->getColor().greenF(), dv->m_channelMarker->getColor().blueF(), 0.15f);
+					glPushMatrix();
+					glTranslatef(dv->m_glRect.x(), dv->m_glRect.y(), 0);
+					glScalef(dv->m_glRect.width(), dv->m_glRect.height(), 1);
+					glBegin(GL_QUADS);
+					glVertex2f(0, 0);
+					glVertex2f(1, 0);
+					glVertex2f(1, 1);
+					glVertex2f(0, 1);
+					glEnd();
+					glDisable(GL_BLEND);
+					glPopMatrix();
+				}
 			}
 		}
 
@@ -537,28 +540,30 @@ void GLSpectrum::paintGL()
 		}
 
 		// paint channels
-		for(int i = 0; i < m_channelMarkerStates.size(); ++i) {
-			ChannelMarkerState* dv = m_channelMarkerStates[i];
-			if(dv->m_channelMarker->getVisible()) {
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				glColor4f(dv->m_channelMarker->getColor().redF(), dv->m_channelMarker->getColor().greenF(), dv->m_channelMarker->getColor().blueF(), 0.15f);
-				glPushMatrix();
-				glTranslatef(dv->m_glRect.x(), dv->m_glRect.y(), 0);
-				glScalef(dv->m_glRect.width(), dv->m_glRect.height(), 1);
-				glBegin(GL_QUADS);
-				glVertex2f(0, 0);
-				glVertex2f(1, 0);
-				glVertex2f(1, 1);
-				glVertex2f(0, 1);
-				glEnd();
-				glDisable(GL_BLEND);
-				glColor3f(0.8f, 0.8f, 0.6f);
-				glBegin(GL_LINE_LOOP);
-				glVertex2f(0.5, 0);
-				glVertex2f(0.5, 1);
-				glEnd();
-				glPopMatrix();
+		if(m_mouseInside) {
+			for(int i = 0; i < m_channelMarkerStates.size(); ++i) {
+				ChannelMarkerState* dv = m_channelMarkerStates[i];
+				if(dv->m_channelMarker->getVisible()) {
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					glColor4f(dv->m_channelMarker->getColor().redF(), dv->m_channelMarker->getColor().greenF(), dv->m_channelMarker->getColor().blueF(), 0.15f);
+					glPushMatrix();
+					glTranslatef(dv->m_glRect.x(), dv->m_glRect.y(), 0);
+					glScalef(dv->m_glRect.width(), dv->m_glRect.height(), 1);
+					glBegin(GL_QUADS);
+					glVertex2f(0, 0);
+					glVertex2f(1, 0);
+					glVertex2f(1, 1);
+					glVertex2f(0, 1);
+					glEnd();
+					glDisable(GL_BLEND);
+					glColor3f(0.8f, 0.8f, 0.6f);
+					glBegin(GL_LINE_LOOP);
+					glVertex2f(0.5, 0);
+					glVertex2f(0.5, 1);
+					glEnd();
+					glPopMatrix();
+				}
 			}
 		}
 
@@ -1237,6 +1242,20 @@ void GLSpectrum::mouseReleaseEvent(QMouseEvent*)
 		releaseMouse();
 		m_cursorState = CSChannel;
 	}
+}
+
+void GLSpectrum::enterEvent(QEvent* event)
+{
+	m_mouseInside = true;
+	update();
+	QGLWidget::enterEvent(event);
+}
+
+void GLSpectrum::leaveEvent(QEvent* event)
+{
+	m_mouseInside = false;
+	update();
+	QGLWidget::enterEvent(event);
 }
 
 void GLSpectrum::tick()
