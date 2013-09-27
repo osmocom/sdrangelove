@@ -39,49 +39,7 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="1">
-     <widget class="QLineEdit" name="tcpPort">
-      <property name="text">
-       <string>9999</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_3">
-      <property name="text">
-       <string>RF Bandwidth</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="sampleRate">
-      <property name="text">
-       <string>25000</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1">
-     <widget class="QLineEdit" name="rfBandwidth">
-      <property name="text">
-       <string>20000</string>
-      </property>
-     </widget>
-    </item>
     <item row="1" column="0">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>Samplerate</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="label_4">
-      <property name="text">
-       <string>TCP Port</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
      <widget class="QComboBox" name="sampleFormat">
       <item>
        <property name="text">
@@ -95,7 +53,49 @@
       </item>
      </widget>
     </item>
-    <item row="4" column="1">
+    <item row="3" column="1">
+     <widget class="QLineEdit" name="rfBandwidth">
+      <property name="text">
+       <string>20000</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>RF Bandwidth (Hz)</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Samplerate (Hz)</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="sampleRate">
+      <property name="text">
+       <string>25000</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>TCP Port</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLineEdit" name="tcpPort">
+      <property name="text">
+       <string>9999</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0" colspan="2">
      <widget class="QPushButton" name="applyBtn">
       <property name="enabled">
        <bool>false</bool>
@@ -155,6 +155,12 @@
     </property>
     <item>
      <widget class="QTreeWidget" name="connections">
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>100</height>
+       </size>
+      </property>
       <property name="rootIsDecorated">
        <bool>false</bool>
       </property>
@@ -196,9 +202,9 @@
  </customwidgets>
  <tabstops>
   <tabstop>sampleFormat</tabstop>
+  <tabstop>tcpPort</tabstop>
   <tabstop>sampleRate</tabstop>
   <tabstop>rfBandwidth</tabstop>
-  <tabstop>tcpPort</tabstop>
   <tabstop>applyBtn</tabstop>
   <tabstop>connections</tabstop>
  </tabstops>
