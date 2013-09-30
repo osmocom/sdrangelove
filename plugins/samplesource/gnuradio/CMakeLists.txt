@@ -66,6 +66,10 @@ add_definitions(-DQT_PLUGIN)
 add_definitions(-DQT_SHARED)
 add_definitions(-DBOOST_ALL_NO_LIB)
 
+if(MSVC)
+add_definitions(-DNOMINMAX)
+endif()
+
 qt5_wrap_ui(gnuradio_FORMS_HEADERS ${gnuradio_FORMS})
 
 add_library(inputgnuradio SHARED
@@ -81,5 +85,7 @@ target_link_libraries(inputgnuradio
 	${GNURADIO_OSMOSDR_LIBRARIES}
 	sdrbase
 )
+
+qt5_use_modules(inputgnuradio Core Widgets OpenGL Multimedia)
 
 endif(Boost_FOUND AND GNURADIO_RUNTIME_FOUND AND GNURADIO_OSMOSDR_FOUND)
