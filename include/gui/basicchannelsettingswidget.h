@@ -2,6 +2,7 @@
 #define INCLUDE_BASICCHANNELSETTINGSWIDGET_H
 
 #include <QWidget>
+#include "util/export.h"
 
 namespace Ui {
 	class BasicChannelSettingsWidget;
@@ -9,7 +10,7 @@ namespace Ui {
 
 class ChannelMarker;
 
-class BasicChannelSettingsWidget : public QWidget {
+class SDRANGELOVE_API BasicChannelSettingsWidget : public QWidget {
 	Q_OBJECT
 
 public:

@@ -5,7 +5,9 @@
 #include "dsp/dsptypes.h"
 #include "util/export.h"
 #include <stdio.h>
+#ifndef WIN32
 #include <unistd.h>
+#endif
 
 class SDRANGELOVE_API Interpolator {
 public:

@@ -9,7 +9,7 @@ if(UNIX AND NOT BOOST_ROOT AND EXISTS "/usr/lib64")
     list(APPEND BOOST_LIBRARYDIR "/usr/lib64") #fedora 64-bit fix
 endif(UNIX AND NOT BOOST_ROOT AND EXISTS "/usr/lib64")
 
-find_package(Boost)
+find_package(Boost COMPONENTS system)
 
 if(NOT GNURADIO_RUNTIME_FOUND AND GNURADIO_OSMOSDR_FOUND)
 
