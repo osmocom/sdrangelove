@@ -315,8 +315,11 @@ bool GNURadioInput::applySettings(const GeneralSettings& generalSettings,
 			}
 		}
 
-		if((m_settings.m_bandwidth != settings.m_bandwidth) || force) {
+		if((m_settings.m_bandwidth != settings.m_bandwidth) ||
+				(0.0f == settings.m_bandwidth) || force) {
 			m_settings.m_bandwidth = settings.m_bandwidth;
+			/* setting the BW to 0.0 triggers automatic bandwidth
+			 * selection when supported by device */
 			radio->set_bandwidth( m_settings.m_bandwidth );
 		}
 

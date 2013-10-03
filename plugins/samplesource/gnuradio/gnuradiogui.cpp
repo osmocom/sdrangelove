@@ -391,7 +391,6 @@ void GNURadioGui::on_cboSampleRate_currentIndexChanged(int index)
 		return;
 
 	m_settings.m_sampRate = m_sampRates[index];
-
 	sendSettings();
 }
 
