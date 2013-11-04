@@ -953,7 +953,7 @@ void GLSpectrum::applyChanges()
 		histogramHeight = height() - topMargin - frequencyScaleHeight;
 
 		m_powerScale.setSize(histogramHeight);
-		m_powerScale.setRange(Unit::Decibel, -100, 0);
+		m_powerScale.setRange(Unit::Decibel, m_referenceLevel - m_powerRange, m_referenceLevel);
 		leftMargin = m_powerScale.getScaleWidth();
 		leftMargin += 2 * M;
 
