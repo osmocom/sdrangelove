@@ -381,7 +381,7 @@ void GLSpectrum::updateHistogram(const std::vector<Real>& spectrum)
 						b[0] += 1;
 					if(b[1] < 220)
 						b[1] += add;
-					else if(b[0] < 239)
+					else if(b[1] < 239)
 						b[1] += 1;
 				} else if((v >= 0) && (v <= 99)) {
 					b = m_histogram + (i + j) * 100 + v;
