@@ -28,16 +28,17 @@ void NFMPlugin::initPlugin(PluginAPI* pluginAPI)
 	m_pluginAPI = pluginAPI;
 
 	// register NFM demodulator
-	QAction* action = new QAction(tr("&NFM"), this);
+	QAction* action = new QAction(tr("&NFM Demodulator"), this);
 	connect(action, SIGNAL(triggered()), this, SLOT(createInstanceNFM()));
-	m_pluginAPI->registerDemodulator("de.maintech.sdrangelove.demod.nfm", this, action);
+	m_pluginAPI->registerChannel("de.maintech.sdrangelove.channel.nfm", this, action);
 }
 
-PluginGUI* NFMPlugin::createDemod(const QString& demodName)
+PluginGUI* NFMPlugin::createChannel(const QString& channelName)
 {
-	if(demodName == "de.maintech.sdrangelove.demod.nfm") {
-		PluginGUI* gui = NFMDemodGUI::create(m_pluginAPI);
-		m_pluginAPI->registerDemodulatorInstance("de.maintech.sdrangelove.demod.nfm", gui);
+	if(channelName == "de.maintech.sdrangelove.channel.nfm") {
+		NFMDemodGUI* gui = NFMDemodGUI::create(m_pluginAPI);
+		m_pluginAPI->registerChannelInstance("de.maintech.sdrangelove.channel.nfm", gui);
+		m_pluginAPI->addChannelRollup(gui);
 		return gui;
 	} else {
 		return NULL;
@@ -46,6 +47,7 @@ PluginGUI* NFMPlugin::createDemod(const QString& demodName)
 
 void NFMPlugin::createInstanceNFM()
 {
-	m_pluginAPI->registerDemodulatorInstance("de.maintech.sdrangelove.demod.nfm", NFMDemodGUI::create(m_pluginAPI));
+	NFMDemodGUI* gui = NFMDemodGUI::create(m_pluginAPI);
+	m_pluginAPI->registerChannelInstance("de.maintech.sdrangelove.channel.nfm", gui);
+	m_pluginAPI->addChannelRollup(gui);
 }
-

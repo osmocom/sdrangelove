@@ -1,9 +1,8 @@
 #ifndef INCLUDE_NFMDEMODGUI_H
 #define INCLUDE_NFMDEMODGUI_H
 
+#include "gui/rollupwidget.h"
 #include "plugin/plugingui.h"
-
-class QDockWidget;
 
 class PluginAPI;
 class ChannelMarker;
@@ -18,14 +17,14 @@ namespace Ui {
 	class NFMDemodGUI;
 }
 
-class NFMDemodGUI : public PluginGUI {
+class NFMDemodGUI : public RollupWidget, public PluginGUI {
 	Q_OBJECT
 
 public:
 	static NFMDemodGUI* create(PluginAPI* pluginAPI);
 	void destroy();
 
-	void setWidgetName(const QString& name);
+	void setName(const QString& name);
 
 	void resetToDefaults();
 	QByteArray serialize() const;
@@ -39,12 +38,14 @@ private slots:
 	void on_afBW_valueChanged(int value);
 	void on_volume_valueChanged(int value);
 	void on_squelch_valueChanged(int value);
+	void onWidgetRolled(QWidget* widget, bool rollDown);
+	void onMenuDoubleClicked();
 
 private:
 	Ui::NFMDemodGUI* ui;
 	PluginAPI* m_pluginAPI;
-	QDockWidget* m_dockWidget;
 	ChannelMarker* m_channelMarker;
+	bool m_basicSettingsShown;
 
 	AudioFifo* m_audioFifo;
 	ThreadedSampleSink* m_threadedSampleSink;
@@ -52,10 +53,9 @@ private:
 	NFMDemod* m_nfmDemod;
 	SpectrumVis* m_spectrumVis;
 
-	static const QString m_demodName;
 	static const int m_rfBW[];
 
-	explicit NFMDemodGUI(PluginAPI* pluginAPI, QDockWidget* dockWidget, QWidget* parent = NULL);
+	explicit NFMDemodGUI(PluginAPI* pluginAPI, QWidget* parent = NULL);
 	~NFMDemodGUI();
 
 	void applySettings();

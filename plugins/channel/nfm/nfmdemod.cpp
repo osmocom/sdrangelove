@@ -140,6 +140,8 @@ bool NFMDemod::handleMessage(Message* cmd)
 		cmd->completed();
 		return true;
 	} else {
-		return false;
+		if(m_sampleSink != NULL)
+		   return m_sampleSink->handleMessage(cmd);
+		else return false;
 	}
 }

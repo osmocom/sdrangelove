@@ -7,7 +7,7 @@
 class NFMPlugin : public QObject, PluginInterface {
 	Q_OBJECT
 	Q_INTERFACES(PluginInterface)
-	Q_PLUGIN_METADATA(IID "de.maintech.sdrangelove.demod.nfm")
+	Q_PLUGIN_METADATA(IID "de.maintech.sdrangelove.channel.nfm")
 
 public:
 	explicit NFMPlugin(QObject* parent = NULL);
@@ -15,7 +15,7 @@ public:
 	const PluginDescriptor& getPluginDescriptor() const;
 	void initPlugin(PluginAPI* pluginAPI);
 
-	PluginGUI* createDemod(const QString& demodName);
+	PluginGUI* createChannel(const QString& channelName);
 
 private:
 	static const PluginDescriptor m_pluginDescriptor;
