@@ -118,9 +118,10 @@ void TCPSrcGUI::channelMarkerChanged()
 TCPSrcGUI::TCPSrcGUI(PluginAPI* pluginAPI, QWidget* parent) :
 	RollupWidget(parent),
 	ui(new Ui::TCPSrcGUI),
-	m_pluginAPI(pluginAPI)
+	m_pluginAPI(pluginAPI),
+	m_tcpSrc(NULL),
+	m_basicSettingsShown(false)
 {
-	m_tcpSrc = NULL;
 	ui->setupUi(this);
 	ui->connectedClientsBox->hide();
 	connect(this, SIGNAL(widgetRolled(QWidget*,bool)), this, SLOT(onWidgetRolled(QWidget*,bool)));
@@ -147,8 +148,6 @@ TCPSrcGUI::TCPSrcGUI(PluginAPI* pluginAPI, QWidget* parent) :
 	m_pluginAPI->addChannelMarker(m_channelMarker);
 
 	ui->spectrumGUI->setBuddies(m_threadedSampleSink->getMessageQueue(), m_spectrumVis, ui->glSpectrum);
-
-	m_basicSettingsShown = false;
 
 	applySettings();
 }

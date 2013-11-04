@@ -50,6 +50,4 @@ void TCPSrcPlugin::createInstanceTCPSrc()
 	TCPSrcGUI* gui = TCPSrcGUI::create(m_pluginAPI);
 	m_pluginAPI->registerChannelInstance("de.maintech.sdrangelove.channel.tcpsrc", gui);
 	m_pluginAPI->addChannelRollup(gui);
-	//m_pluginAPI->registerChannelInstance("de.maintech.sdrangelove.channel.tcpsrc", TCPSrcGUI::create(m_pluginAPI));
 }
-
