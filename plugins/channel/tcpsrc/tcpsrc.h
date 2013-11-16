@@ -32,9 +32,9 @@ public:
 	bool handleMessage(Message* cmd);
 
 	class MsgTCPSrcConnection : public Message {
-	public:
-		static MessageRegistrator ID;
+		MESSAGE_CLASS_DECLARATION
 
+	public:
 		bool getConnect() const { return m_connect; }
 		quint32 getID() const { return m_id; }
 		const QHostAddress& getPeerAddress() const { return m_peerAddress; }
@@ -52,7 +52,7 @@ public:
 		int m_peerPort;
 
 		MsgTCPSrcConnection(bool connect, quint32 id, const QHostAddress& peerAddress, int peerPort) :
-			Message(ID()),
+			Message(),
 			m_connect(connect),
 			m_id(id),
 			m_peerAddress(peerAddress),
@@ -62,9 +62,9 @@ public:
 
 protected:
 	class MsgTCPSrcConfigure : public Message {
-	public:
-		static MessageRegistrator ID;
+		MESSAGE_CLASS_DECLARATION
 
+	public:
 		SampleFormat getSampleFormat() const { return m_sampleFormat; }
 		Real getOutputSampleRate() const { return m_outputSampleRate; }
 		Real getRFBandwidth() const { return m_rfBandwidth; }
@@ -82,7 +82,7 @@ protected:
 		int m_tcpPort;
 
 		MsgTCPSrcConfigure(SampleFormat sampleFormat, Real outputSampleRate, Real rfBandwidth, int tcpPort) :
-			Message(ID()),
+			Message(),
 			m_sampleFormat(sampleFormat),
 			m_outputSampleRate(outputSampleRate),
 			m_rfBandwidth(rfBandwidth),
@@ -90,9 +90,9 @@ protected:
 		{ }
 	};
 	class MsgTCPSrcSpectrum : public Message {
-	public:
-		static MessageRegistrator ID;
+		MESSAGE_CLASS_DECLARATION
 
+	public:
 		bool getEnabled() const { return m_enabled; }
 
 		static MsgTCPSrcSpectrum* create(bool enabled)
@@ -104,7 +104,7 @@ protected:
 		bool m_enabled;
 
 		MsgTCPSrcSpectrum(bool enabled) :
-			Message(ID()),
+			Message(),
 			m_enabled(enabled)
 		{ }
 	};

@@ -82,7 +82,7 @@ bool RTLSDRGui::deserialize(const QByteArray& data)
 
 bool RTLSDRGui::handleMessage(Message* message)
 {
-	if(message->id() == RTLSDRInput::MsgReportRTLSDR::ID()) {
+	if(RTLSDRInput::MsgReportRTLSDR::match(message)) {
 		m_gains = ((RTLSDRInput::MsgReportRTLSDR*)message)->getGains();
 		displaySettings();
 		message->completed();

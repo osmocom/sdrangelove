@@ -52,9 +52,9 @@ public:
 	};
 
 	class MsgConfigureOsmoSDR : public Message {
-	public:
-		static MessageRegistrator ID;
+		MESSAGE_CLASS_DECLARATION
 
+	public:
 		const GeneralSettings& getGeneralSettings() const { return m_generalSettings; }
 		const Settings& getSettings() const { return m_settings; }
 
@@ -68,7 +68,7 @@ public:
 		Settings m_settings;
 
 		MsgConfigureOsmoSDR(const GeneralSettings& generalSettings, const Settings& settings) :
-			Message(ID()),
+			Message(),
 			m_generalSettings(generalSettings),
 			m_settings(settings)
 		{ }

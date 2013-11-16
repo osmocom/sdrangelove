@@ -122,12 +122,12 @@ void ScopeVis::stop()
 
 bool ScopeVis::handleMessage(Message* message)
 {
-	if(message->id() == DSPSignalNotification::ID()) {
+	if(DSPSignalNotification::match(message)) {
 		DSPSignalNotification* signal = (DSPSignalNotification*)message;
 		m_sampleRate = signal->getSampleRate();
 		message->completed();
 		return true;
-	} else if(message->id() == DSPConfigureScopeVis::ID()) {
+	} else if(DSPConfigureScopeVis::match(message)) {
 		DSPConfigureScopeVis* conf = (DSPConfigureScopeVis*)message;
 		m_triggerState = Untriggered;
 		m_triggerChannel = (TriggerChannel)conf->getTriggerChannel();

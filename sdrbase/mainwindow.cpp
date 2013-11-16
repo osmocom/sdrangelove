@@ -306,8 +306,8 @@ void MainWindow::handleMessages()
 {
 	Message* message;
 	while((message = m_messageQueue->accept()) != NULL) {
-		qDebug("Message: %d: %s", message->id(), message->name());
-		if(message->id() == DSPEngineReport::ID()) {
+		qDebug("Message: %s", message->getIdentifier());
+		if(DSPEngineReport::match(message)) {
 			DSPEngineReport* rep = (DSPEngineReport*)message;
 			m_sampleRate = rep->getSampleRate();
 			m_centerFrequency = rep->getCenterFrequency();
@@ -490,7 +490,8 @@ void MainWindow::on_action_Oscilloscope_triggered()
 
 	QDockWidget* dock = new QDockWidget(tr("Signalscope"), this);
 	dock->setObjectName(QString::fromUtf8("scopeDock"));
-	m_scopeWindow = new ScopeWindow(m_dspEngine);
+	m_scopeWindow = new ScopeWindow();
+	m_scopeWindow->setDSPEngine(m_dspEngine);
 	connect(m_scopeWindow, SIGNAL(destroyed()), this, SLOT(scopeWindowDestroyed()));
 	m_scopeWindow->setSampleRate(m_sampleRate);
 	dock->setWidget(m_scopeWindow);

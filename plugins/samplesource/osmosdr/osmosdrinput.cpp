@@ -22,7 +22,7 @@
 #include "osmosdrgui.h"
 #include "util/simpleserializer.h"
 
-MessageRegistrator OsmoSDRInput::MsgConfigureOsmoSDR::ID("MsgConfigureOsmoSDR");
+MESSAGE_CLASS_DEFINITION(OsmoSDRInput::MsgConfigureOsmoSDR, Message)
 
 OsmoSDRInput::Settings::Settings() :
 	m_swapIQ(false),
@@ -331,7 +331,7 @@ quint64 OsmoSDRInput::getCenterFrequency() const
 
 bool OsmoSDRInput::handleMessage(Message* message)
 {
-	if(message->id() == MsgConfigureOsmoSDR::ID()) {
+	if(MsgConfigureOsmoSDR::match(message)) {
 		MsgConfigureOsmoSDR* conf = (MsgConfigureOsmoSDR*)message;
 		if(!applySettings(conf->getGeneralSettings(), conf->getSettings(), false))
 			qDebug("OsmoSDR config error");

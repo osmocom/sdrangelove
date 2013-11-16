@@ -37,9 +37,9 @@ public:
 	};
 
 	class MsgConfigureRTLSDR : public Message {
-	public:
-		static MessageRegistrator ID;
+		MESSAGE_CLASS_DECLARATION
 
+	public:
 		const GeneralSettings& getGeneralSettings() const { return m_generalSettings; }
 		const Settings& getSettings() const { return m_settings; }
 
@@ -53,16 +53,16 @@ public:
 		Settings m_settings;
 
 		MsgConfigureRTLSDR(const GeneralSettings& generalSettings, const Settings& settings) :
-			Message(ID()),
+			Message(),
 			m_generalSettings(generalSettings),
 			m_settings(settings)
 		{ }
 	};
 
 	class MsgReportRTLSDR : public Message {
-	public:
-		static MessageRegistrator ID;
+		MESSAGE_CLASS_DECLARATION
 
+	public:
 		const std::vector<int>& getGains() const { return m_gains; }
 
 		static MsgReportRTLSDR* create(const std::vector<int>& gains)
@@ -74,7 +74,7 @@ public:
 		std::vector<int> m_gains;
 
 		MsgReportRTLSDR(const std::vector<int>& gains) :
-			Message(ID()),
+			Message(),
 			m_gains(gains)
 		{ }
 	};

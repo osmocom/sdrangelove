@@ -153,14 +153,14 @@ void PluginManager::freeAll()
 bool PluginManager::handleMessage(Message* message)
 {
 	if(m_sampleSourceInstance != NULL) {
-		if((message->destination() == NULL) || (message->destination() == m_sampleSourceInstance)) {
+		if((message->getDestination() == NULL) || (message->getDestination() == m_sampleSourceInstance)) {
 			if(m_sampleSourceInstance->handleMessage(message))
 				return true;
 		}
 	}
 
 	for(ChannelInstanceRegistrations::iterator it = m_channelInstanceRegistrations.begin(); it != m_channelInstanceRegistrations.end(); ++it) {
-		if((message->destination() == NULL) || (message->destination() == it->m_gui)) {
+		if((message->getDestination() == NULL) || (message->getDestination() == it->m_gui)) {
 			if(it->m_gui->handleMessage(message))
 				return true;
 		}

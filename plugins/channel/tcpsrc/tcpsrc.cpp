@@ -5,9 +5,9 @@
 #include "tcpsrcgui.h"
 #include "dsp/dspcommands.h"
 
-MessageRegistrator TCPSrc::MsgTCPSrcConfigure::ID("MsgTCPSrcConfigure");
-MessageRegistrator TCPSrc::MsgTCPSrcConnection::ID("MsgTCPSrcConnection");
-MessageRegistrator TCPSrc::MsgTCPSrcSpectrum::ID("MsgTCPSrcSpectrum");
+MESSAGE_CLASS_DEFINITION(TCPSrc::MsgTCPSrcConfigure, Message)
+MESSAGE_CLASS_DEFINITION(TCPSrc::MsgTCPSrcConnection, Message)
+MESSAGE_CLASS_DEFINITION(TCPSrc::MsgTCPSrcSpectrum, Message)
 
 TCPSrc::TCPSrc(MessageQueue* uiMessageQueue, TCPSrcGUI* tcpSrcGUI, SampleSink* spectrum)
 {
@@ -97,7 +97,7 @@ void TCPSrc::stop()
 
 bool TCPSrc::handleMessage(Message* cmd)
 {
-	if(cmd->id() == DSPSignalNotification::ID()) {
+	if(DSPSignalNotification::match(cmd)) {
 		DSPSignalNotification* signal = (DSPSignalNotification*)cmd;
 		qDebug("%d samples/sec, %lld Hz offset", signal->getSampleRate(), signal->getFrequencyOffset());
 		m_inputSampleRate = signal->getSampleRate();
@@ -106,7 +106,7 @@ bool TCPSrc::handleMessage(Message* cmd)
 		m_sampleDistanceRemain = m_inputSampleRate / m_outputSampleRate;
 		cmd->completed();
 		return true;
-	} else if(cmd->id() == MsgTCPSrcConfigure::ID()) {
+	} else if(DSPSignalNotification::match(cmd)) {
 		MsgTCPSrcConfigure* cfg = (MsgTCPSrcConfigure*)cmd;
 		m_sampleFormat = cfg->getSampleFormat();
 		m_outputSampleRate = cfg->getOutputSampleRate();
@@ -121,7 +121,7 @@ bool TCPSrc::handleMessage(Message* cmd)
 		m_sampleDistanceRemain = m_inputSampleRate / m_outputSampleRate;
 		cmd->completed();
 		return true;
-	} else if(cmd->id() == MsgTCPSrcSpectrum::ID()) {
+	} else if(MsgTCPSrcSpectrum::match(cmd)) {
 		MsgTCPSrcSpectrum* spc = (MsgTCPSrcSpectrum*)cmd;
 		m_spectrumEnabled = spc->getEnabled();
 		cmd->completed();

@@ -22,8 +22,8 @@
 #include "rtlsdrgui.h"
 #include "util/simpleserializer.h"
 
-MessageRegistrator RTLSDRInput::MsgConfigureRTLSDR::ID("MsgConfigureRTLSDR");
-MessageRegistrator RTLSDRInput::MsgReportRTLSDR::ID("MsgReportRTLSDR");
+MESSAGE_CLASS_DEFINITION(RTLSDRInput::MsgConfigureRTLSDR, Message)
+MESSAGE_CLASS_DEFINITION(RTLSDRInput::MsgReportRTLSDR, Message)
 
 RTLSDRInput::Settings::Settings() :
 	m_gain(0),
@@ -192,7 +192,7 @@ quint64 RTLSDRInput::getCenterFrequency() const
 
 bool RTLSDRInput::handleMessage(Message* message)
 {
-	if(message->id() == MsgConfigureRTLSDR::ID()) {
+	if(MsgConfigureRTLSDR::match(message)) {
 		MsgConfigureRTLSDR* conf = (MsgConfigureRTLSDR*)message;
 		if(!applySettings(conf->getGeneralSettings(), conf->getSettings(), false))
 			qDebug("RTLSDR config error");

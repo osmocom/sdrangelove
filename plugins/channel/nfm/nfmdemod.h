@@ -43,9 +43,9 @@ public:
 
 private:
 	class MsgConfigureNFMDemod : public Message {
-	public:
-		static MessageRegistrator ID;
+		MESSAGE_CLASS_DECLARATION
 
+	public:
 		Real getRFBandwidth() const { return m_rfBandwidth; }
 		Real getAFBandwidth() const { return m_afBandwidth; }
 		Real getVolume() const { return m_volume; }
@@ -63,7 +63,7 @@ private:
 		Real m_squelch;
 
 		MsgConfigureNFMDemod(Real rfBandwidth, Real afBandwidth, Real volume, Real squelch) :
-			Message(ID()),
+			Message(),
 			m_rfBandwidth(rfBandwidth),
 			m_afBandwidth(afBandwidth),
 			m_volume(volume),

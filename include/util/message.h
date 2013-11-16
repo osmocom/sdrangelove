@@ -1,43 +1,33 @@
 #ifndef INCLUDE_MESSAGE_H
 #define INCLUDE_MESSAGE_H
 
+#include <stdlib.h>
 #include <QAtomicInt>
-#include <QStringList>
 #include "util/export.h"
 
 class MessageQueue;
 class QWaitCondition;
 class QMutex;
 
-class SDRANGELOVE_API MessageRegistrator {
-public:
-	MessageRegistrator(const char* name);
-	int operator()() const { return m_registeredID; }
-
-	const char* name() const;
-
-private:
-	int m_registeredID;
-};
-
 class SDRANGELOVE_API Message {
 public:
+	Message();
 	virtual ~Message();
+
+	virtual const char* getIdentifier() const;
+	virtual bool matchIdentifier(const char* identifier) const;
+	static bool match(Message* message);
+
+	void* getDestination() const { return m_destination; }
 
 	void submit(MessageQueue* queue, void* destination = NULL);
 	int execute(MessageQueue* queue, void* destination = NULL);
 
 	void completed(int result = 0);
 
-	int id() const { return m_id; }
-	const char* name() const;
-	void* destination() const { return m_destination; }
-
 protected:
-	Message(int id);
-
-	// adressing
-	int m_id;
+	// addressing
+	static const char* m_identifier;
 	void* m_destination;
 
 	// stuff for synchronous messages
@@ -46,6 +36,25 @@ protected:
 	QMutex* m_mutex;
 	QAtomicInt m_complete;
 	int m_result;
+
+	void prepareSync();
 };
+
+#define MESSAGE_CLASS_DECLARATION \
+	public: \
+		const char* getIdentifier() const; \
+		bool matchIdentifier(const char* identifier) const; \
+		static bool match(Message* message); \
+	protected: \
+		static const char* m_identifier; \
+	private:
+
+#define MESSAGE_CLASS_DEFINITION(Name, BaseClass) \
+	const char* Name::m_identifier = #Name; \
+	const char* Name::getIdentifier() const { return m_identifier; } \
+	bool Name::matchIdentifier(const char* identifier) const {\
+		return (m_identifier == identifier) ? true : BaseClass::matchIdentifier(identifier); \
+	} \
+	bool Name::match(Message* message) { return message->matchIdentifier(m_identifier); }
 
 #endif // INCLUDE_MESSAGE_H

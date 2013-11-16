@@ -21,7 +21,7 @@
 #include "audio/audiooutput.h"
 #include "dsp/dspcommands.h"
 
-MessageRegistrator NFMDemod::MsgConfigureNFMDemod::ID("MsgConfigureNFMDemod");
+MESSAGE_CLASS_DEFINITION(NFMDemod::MsgConfigureNFMDemod, Message)
 
 NFMDemod::NFMDemod(AudioFifo* audioFifo, SampleSink* sampleSink) :
 	m_sampleSink(sampleSink),
@@ -119,7 +119,7 @@ void NFMDemod::stop()
 
 bool NFMDemod::handleMessage(Message* cmd)
 {
-	if(cmd->id() == DSPSignalNotification::ID()) {
+	if(DSPSignalNotification::match(cmd)) {
 		DSPSignalNotification* signal = (DSPSignalNotification*)cmd;
 		qDebug("%d samples/sec, %lld Hz offset", signal->getSampleRate(), signal->getFrequencyOffset());
 		m_sampleRate = signal->getSampleRate();
@@ -129,7 +129,7 @@ bool NFMDemod::handleMessage(Message* cmd)
 		m_squelchState = 0;
 		cmd->completed();
 		return true;
-	} else if(cmd->id() == MsgConfigureNFMDemod::ID()) {
+	} else if(MsgConfigureNFMDemod::match(cmd)) {
 		MsgConfigureNFMDemod* cfg = (MsgConfigureNFMDemod*)cmd;
 		m_rfBandwidth = cfg->getRFBandwidth();
 		m_interpolator.create(16, m_sampleRate, m_rfBandwidth / 2.1);

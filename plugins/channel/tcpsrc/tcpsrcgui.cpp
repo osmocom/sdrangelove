@@ -98,11 +98,11 @@ bool TCPSrcGUI::deserialize(const QByteArray& data)
 
 bool TCPSrcGUI::handleMessage(Message* message)
 {
-	if(message->id() == TCPSrc::MsgTCPSrcConnection::ID()) {
+	if(TCPSrc::MsgTCPSrcConnection::match(message)) {
 		TCPSrc::MsgTCPSrcConnection* con = (TCPSrc::MsgTCPSrcConnection*)message;
 		if(con->getConnect())
-			addConnection(con->id(), con->getPeerAddress(), con->getPeerPort());
-		else delConnection(con->id());
+			addConnection(con->getID(), con->getPeerAddress(), con->getPeerPort());
+		else delConnection(con->getID());
 		message->completed();
 		return true;
 	} else {

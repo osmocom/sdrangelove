@@ -57,7 +57,7 @@ void Channelizer::stop()
 
 bool Channelizer::handleMessage(Message* cmd)
 {
-	if(cmd->id() == DSPSignalNotification::ID()) {
+	if(DSPSignalNotification::match(cmd)) {
 		DSPSignalNotification* signal = (DSPSignalNotification*)cmd;
 		m_inputSampleRate = signal->getSampleRate();
 		applyConfiguration();
@@ -68,7 +68,7 @@ bool Channelizer::handleMessage(Message* cmd)
 				signal->completed();
 		}
 		return true;
-	} else if(cmd->id() == DSPConfigureChannelizer::ID()) {
+	} else if(DSPConfigureChannelizer::match(cmd)) {
 		DSPConfigureChannelizer* chan = (DSPConfigureChannelizer*)cmd;
 		m_requestedOutputSampleRate = chan->getSampleRate();
 		m_requestedCenterFrequency = chan->getCenterFrequency();

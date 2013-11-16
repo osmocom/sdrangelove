@@ -11,39 +11,25 @@ class SampleSink;
 class AudioFifo;
 
 class SDRANGELOVE_API DSPPing : public Message {
-public:
-	static MessageRegistrator ID;
-
-	DSPPing() : Message(ID()) { }
+	MESSAGE_CLASS_DECLARATION
 };
 
 class SDRANGELOVE_API DSPExit : public Message {
-public:
-	static MessageRegistrator ID;
-
-	DSPExit() : Message(ID()) { }
+	MESSAGE_CLASS_DECLARATION
 };
 
 class SDRANGELOVE_API DSPAcquisitionStart : public Message {
-public:
-	static MessageRegistrator ID;
-
-	DSPAcquisitionStart() : Message(ID()) { }
+	MESSAGE_CLASS_DECLARATION
 };
 
 class SDRANGELOVE_API DSPAcquisitionStop : public Message {
-public:
-	static MessageRegistrator ID;
-
-	DSPAcquisitionStop() : Message(ID()) { }
+	MESSAGE_CLASS_DECLARATION
 };
 
 class SDRANGELOVE_API DSPGetDeviceDescription : public Message {
+	MESSAGE_CLASS_DECLARATION
+
 public:
-	static MessageRegistrator ID;
-
-	DSPGetDeviceDescription() : Message(ID()) { }
-
 	void setDeviceDescription(const QString& text) { m_deviceDescription = text; }
 	const QString& getDeviceDescription() const { return m_deviceDescription; }
 
@@ -52,11 +38,9 @@ private:
 };
 
 class SDRANGELOVE_API DSPGetErrorMessage : public Message {
+	MESSAGE_CLASS_DECLARATION
+
 public:
-	static MessageRegistrator ID;
-
-	DSPGetErrorMessage() : Message(ID()) { }
-
 	void setErrorMessage(const QString& text) { m_errorMessage = text; }
 	const QString& getErrorMessage() const { return m_errorMessage; }
 
@@ -65,10 +49,10 @@ private:
 };
 
 class SDRANGELOVE_API DSPSetSource : public Message {
-public:
-	static MessageRegistrator ID;
+	MESSAGE_CLASS_DECLARATION
 
-	DSPSetSource(SampleSource* sampleSource) : Message(ID()), m_sampleSource(sampleSource) { }
+public:
+	DSPSetSource(SampleSource* sampleSource) : Message(), m_sampleSource(sampleSource) { }
 
 	SampleSource* getSampleSource() const { return m_sampleSource; }
 
@@ -77,10 +61,10 @@ private:
 };
 
 class SDRANGELOVE_API DSPAddSink : public Message {
-public:
-	static MessageRegistrator ID;
+	MESSAGE_CLASS_DECLARATION
 
-	DSPAddSink(SampleSink* sampleSink) : Message(ID()), m_sampleSink(sampleSink) { }
+public:
+	DSPAddSink(SampleSink* sampleSink) : Message(), m_sampleSink(sampleSink) { }
 
 	SampleSink* getSampleSink() const { return m_sampleSink; }
 
@@ -89,10 +73,10 @@ private:
 };
 
 class SDRANGELOVE_API DSPRemoveSink : public Message {
-public:
-	static MessageRegistrator ID;
+	MESSAGE_CLASS_DECLARATION
 
-	DSPRemoveSink(SampleSink* sampleSink) : Message(ID()), m_sampleSink(sampleSink) { }
+public:
+	DSPRemoveSink(SampleSink* sampleSink) : Message(), m_sampleSink(sampleSink) { }
 
 	SampleSink* getSampleSink() const { return m_sampleSink; }
 
@@ -101,10 +85,10 @@ private:
 };
 
 class SDRANGELOVE_API DSPAddAudioSource : public Message {
-public:
-	static MessageRegistrator ID;
+	MESSAGE_CLASS_DECLARATION
 
-	DSPAddAudioSource(AudioFifo* audioFifo) : Message(ID()), m_audioFifo(audioFifo) { }
+public:
+	DSPAddAudioSource(AudioFifo* audioFifo) : Message(), m_audioFifo(audioFifo) { }
 
 	AudioFifo* getAudioFifo() const { return m_audioFifo; }
 
@@ -113,10 +97,10 @@ private:
 };
 
 class SDRANGELOVE_API DSPRemoveAudioSource : public Message {
-public:
-	static MessageRegistrator ID;
+	MESSAGE_CLASS_DECLARATION
 
-	DSPRemoveAudioSource(AudioFifo* audioFifo) : Message(ID()), m_audioFifo(audioFifo) { }
+public:
+	DSPRemoveAudioSource(AudioFifo* audioFifo) : Message(), m_audioFifo(audioFifo) { }
 
 	AudioFifo* getAudioFifo() const { return m_audioFifo; }
 
@@ -125,9 +109,9 @@ private:
 };
 
 class SDRANGELOVE_API DSPConfigureSpectrumVis : public Message {
-public:
-	static MessageRegistrator ID;
+	MESSAGE_CLASS_DECLARATION
 
+public:
 	int getFFTSize() const { return m_fftSize; }
 	int getOverlapPercent() const { return m_overlapPercent; }
 	FFTWindow::Function getWindow() const { return m_window; }
@@ -143,7 +127,7 @@ private:
 	FFTWindow::Function m_window;
 
 	DSPConfigureSpectrumVis(int fftSize, int overlapPercent, FFTWindow::Function window) :
-		Message(ID()),
+		Message(),
 		m_fftSize(fftSize),
 		m_overlapPercent(overlapPercent),
 		m_window(window)
@@ -151,9 +135,9 @@ private:
 };
 
 class SDRANGELOVE_API DSPConfigureCorrection : public Message {
-public:
-	static MessageRegistrator ID;
+	MESSAGE_CLASS_DECLARATION
 
+public:
 	bool getDCOffsetCorrection() const { return m_dcOffsetCorrection; }
 	bool getIQImbalanceCorrection() const { return m_iqImbalanceCorrection; }
 
@@ -167,16 +151,16 @@ private:
 	bool m_iqImbalanceCorrection;
 
 	DSPConfigureCorrection(bool dcOffsetCorrection, bool iqImbalanceCorrection) :
-		Message(ID()),
+		Message(),
 		m_dcOffsetCorrection(dcOffsetCorrection),
 		m_iqImbalanceCorrection(iqImbalanceCorrection)
 	{ }
 };
 
 class SDRANGELOVE_API DSPEngineReport : public Message {
-public:
-	static MessageRegistrator ID;
+	MESSAGE_CLASS_DECLARATION
 
+public:
 	int getSampleRate() const { return m_sampleRate; }
 	quint64 getCenterFrequency() const { return m_centerFrequency; }
 
@@ -190,16 +174,16 @@ private:
 	quint64 m_centerFrequency;
 
 	DSPEngineReport(int sampleRate, quint64 centerFrequency) :
-		Message(ID()),
+		Message(),
 		m_sampleRate(sampleRate),
 		m_centerFrequency(centerFrequency)
 	{ }
 };
 
 class SDRANGELOVE_API DSPConfigureScopeVis : public Message {
-public:
-	static MessageRegistrator ID;
+	MESSAGE_CLASS_DECLARATION
 
+public:
 	int getTriggerChannel() const { return m_triggerChannel; }
 	Real getTriggerLevelHigh() const { return m_triggerLevelHigh; }
 	Real getTriggerLevelLow() const { return m_triggerLevelLow; }
@@ -215,7 +199,7 @@ private:
 	Real m_triggerLevelLow;
 
 	DSPConfigureScopeVis(int triggerChannel, Real triggerLevelHigh, Real triggerLevelLow) :
-		Message(ID()),
+		Message(),
 		m_triggerChannel(triggerChannel),
 		m_triggerLevelHigh(triggerLevelHigh),
 		m_triggerLevelLow(triggerLevelLow)
@@ -223,9 +207,9 @@ private:
 };
 
 class SDRANGELOVE_API DSPSignalNotification : public Message {
-public:
-	static MessageRegistrator ID;
+	MESSAGE_CLASS_DECLARATION
 
+public:
 	int getSampleRate() const { return m_sampleRate; }
 	qint64 getFrequencyOffset() const { return m_frequencyOffset; }
 
@@ -239,16 +223,16 @@ private:
 	qint64 m_frequencyOffset;
 
 	DSPSignalNotification(int samplerate, qint64 frequencyOffset) :
-		Message(ID()),
+		Message(),
 		m_sampleRate(samplerate),
 		m_frequencyOffset(frequencyOffset)
 	{ }
 };
 
 class SDRANGELOVE_API DSPConfigureChannelizer : public Message {
-public:
-	static MessageRegistrator ID;
+	MESSAGE_CLASS_DECLARATION
 
+public:
 	int getSampleRate() const { return m_sampleRate; }
 	int getCenterFrequency() const { return m_centerFrequency; }
 
@@ -262,7 +246,7 @@ private:
 	int m_centerFrequency;
 
 	DSPConfigureChannelizer(int sampleRate, int centerFrequency) :
-		Message(ID()),
+		Message(),
 		m_sampleRate(sampleRate),
 		m_centerFrequency(centerFrequency)
 	{ }

@@ -94,7 +94,7 @@ void SpectrumVis::stop()
 
 bool SpectrumVis::handleMessage(Message* message)
 {
-	if(message->id() == DSPConfigureSpectrumVis::ID()) {
+	if(DSPConfigureSpectrumVis::match(message)) {
 		DSPConfigureSpectrumVis* conf = (DSPConfigureSpectrumVis*)message;
 		handleConfigure(conf->getFFTSize(), conf->getOverlapPercent(), conf->getWindow());
 		message->completed();
