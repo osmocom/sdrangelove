@@ -23,8 +23,8 @@
 #include "gnuradiothread.h"
 #include "gnuradiogui.h"
 
-MessageRegistrator GNURadioInput::MsgConfigureGNURadio::ID("MsgConfigureGNURadio");
-MessageRegistrator GNURadioInput::MsgReportGNURadio::ID("MsgReportGNURadio");
+MESSAGE_CLASS_DEFINITION(GNURadioInput::MsgConfigureGNURadio, Message)
+MESSAGE_CLASS_DEFINITION(GNURadioInput::MsgReportGNURadio, Message)
 
 GNURadioInput::Settings::Settings() :
 	m_args(""),
@@ -135,7 +135,7 @@ bool GNURadioInput::startInput(int device)
 			freqMin = freq_rage.start();
 			freqMax = freq_rage.stop();
 		} catch ( std::exception &ex ) {
-			qDebug(ex.what());
+			qDebug("%s", ex.what());
 		}
 
 		freqCorr = radio->get_freq_corr();
@@ -160,14 +160,14 @@ bool GNURadioInput::startInput(int device)
 
 				m_settings.m_namedGains.push_back( pair2 );
 			} catch ( std::exception &ex ) {
-				qDebug(ex.what());
+				qDebug("%s", ex.what());
 			}
 		}
 
 		try {
 			sampRates = radio->get_sample_rates().values();
 		} catch ( std::exception &ex ) {
-			qDebug(ex.what());
+			qDebug("%s", ex.what());
 		}
 
 		antennas.clear();
@@ -188,7 +188,7 @@ bool GNURadioInput::startInput(int device)
 		try {
 			bandwidths = radio->get_bandwidth_range().values();
 		} catch ( std::exception &ex ) {
-			qDebug(ex.what());
+			qDebug("%s", ex.what());
 		}
 	}
 
@@ -235,7 +235,7 @@ quint64 GNURadioInput::getCenterFrequency() const
 
 bool GNURadioInput::handleMessage(Message* message)
 {
-	if(message->id() == MsgConfigureGNURadio::ID()) {
+	if(MsgConfigureGNURadio::match(message)) {
 		MsgConfigureGNURadio* conf = (MsgConfigureGNURadio*)message;
 		if(!applySettings(conf->getGeneralSettings(), conf->getSettings(), false))
 			qDebug("Gnuradio config error");
@@ -324,7 +324,7 @@ bool GNURadioInput::applySettings(const GeneralSettings& generalSettings,
 		}
 
 	} catch ( std::exception &ex ) {
-		qDebug(ex.what());
+		qDebug("%s", ex.what());
 		return false;
 	}
 

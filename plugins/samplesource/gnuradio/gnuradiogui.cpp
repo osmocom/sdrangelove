@@ -106,7 +106,7 @@ bool GNURadioGui::deserialize(const QByteArray& data)
 
 bool GNURadioGui::handleMessage(Message* message)
 {
-	if(message->id() == GNURadioInput::MsgReportGNURadio::ID()) {
+	if(GNURadioInput::MsgReportGNURadio::match(message)) {
 		GNURadioInput::MsgReportGNURadio* rep = (GNURadioInput::MsgReportGNURadio*)message;
 		m_namedGains = rep->getNamedGains();
 		m_freqMin = rep->getFreqMin();

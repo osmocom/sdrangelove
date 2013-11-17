@@ -46,9 +46,9 @@ public:
 	};
 
 	class MsgConfigureGNURadio : public Message {
-	public:
-		static MessageRegistrator ID;
+		MESSAGE_CLASS_DECLARATION
 
+	public:
 		const GeneralSettings& getGeneralSettings() const { return m_generalSettings; }
 		const Settings& getSettings() const { return m_settings; }
 
@@ -62,16 +62,16 @@ public:
 		Settings m_settings;
 
 		MsgConfigureGNURadio(const GeneralSettings& generalSettings, const Settings& settings) :
-			Message(ID()),
+			Message(),
 			m_generalSettings(generalSettings),
 			m_settings(settings)
 		{ }
 	};
 
 	class MsgReportGNURadio : public Message {
-	public:
-		static MessageRegistrator ID;
+		MESSAGE_CLASS_DECLARATION
 
+	public:
 		const std::vector< std::pair< QString, std::vector<double> > >& getNamedGains() const { return m_namedGains; }
 		const double getFreqMin() const { return m_freqMin; }
 		const double getFreqMax() const { return m_freqMax; }
@@ -115,7 +115,7 @@ public:
 				  const std::vector<QString>& dcoffs,
 				  const std::vector<QString>& iqbals,
 				  const std::vector<double>& bandwidths) :
-			Message(ID()),
+			Message(),
 			m_freqMin(freqMin),
 			m_freqMax(freqMax),
 			m_freqCorr(freqCorr),
