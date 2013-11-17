@@ -490,8 +490,7 @@ void MainWindow::on_action_Oscilloscope_triggered()
 
 	QDockWidget* dock = new QDockWidget(tr("Signalscope"), this);
 	dock->setObjectName(QString::fromUtf8("scopeDock"));
-	m_scopeWindow = new ScopeWindow();
-	m_scopeWindow->setDSPEngine(m_dspEngine);
+	m_scopeWindow = new ScopeWindow(m_dspEngine);
 	connect(m_scopeWindow, SIGNAL(destroyed()), this, SLOT(scopeWindowDestroyed()));
 	m_scopeWindow->setSampleRate(m_sampleRate);
 	dock->setWidget(m_scopeWindow);
