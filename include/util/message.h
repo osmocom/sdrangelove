@@ -36,8 +36,6 @@ protected:
 	QMutex* m_mutex;
 	QAtomicInt m_complete;
 	int m_result;
-
-	void prepareSync();
 };
 
 #define MESSAGE_CLASS_DECLARATION \
