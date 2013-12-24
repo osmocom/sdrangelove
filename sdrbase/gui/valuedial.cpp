@@ -238,10 +238,14 @@ void ValueDial::mouseMoveEvent(QMouseEvent* event)
 
 void ValueDial::wheelEvent(QWheelEvent* event)
 {
-	if(m_hightlightedDigit < 0)
+	int i;
+
+	i = (event->x() - 1) / m_digitWidth;
+	if(m_text[i] != QChar('.'))
+		m_hightlightedDigit = i;
+	else
 		return;
-	if(m_text[m_hightlightedDigit] == QChar('.'))
-		return;
+
 	if(m_cursor >= 0) {
 		m_cursor = -1;
 		m_blinkTimer.stop();
