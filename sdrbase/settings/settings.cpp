@@ -15,6 +15,7 @@ Settings::~Settings()
 
 void Settings::load()
 {
+#if 0
 	QSettings s;
 
 	m_preferences.deserialize(qUncompress(QByteArray::fromBase64(s.value("preferences").toByteArray())));
@@ -31,10 +32,12 @@ void Settings::load()
 			s.endGroup();
 		}
 	}
+#endif
 }
 
 void Settings::save() const
 {
+#if 0
 	QSettings s;
 
 	s.setValue("preferences", qCompress(m_preferences.serialize()).toBase64());
@@ -52,6 +55,7 @@ void Settings::save() const
 		s.setValue("data", qCompress(m_presets[i]->serialize()).toBase64());
 		s.endGroup();
 	}
+#endif
 }
 
 void Settings::resetToDefaults()

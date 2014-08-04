@@ -34,7 +34,7 @@ RTLSDRInput::Settings::Settings() :
 void RTLSDRInput::Settings::resetToDefaults()
 {
 	m_gain = 0;
-	m_decimation = 0;
+	m_decimation = 2;
 }
 
 QByteArray RTLSDRInput::Settings::serialize() const
@@ -111,7 +111,7 @@ bool RTLSDRInput::startInput(int device)
 	qDebug("RTLSDRInput open: %s %s, SN: %s", vendor, product, serial);
 	m_deviceDescription = QString("%1 (SN %2)").arg(product).arg(serial);
 
-	if((res = rtlsdr_set_sample_rate(m_dev, 2000000)) < 0) {
+	if((res = rtlsdr_set_sample_rate(m_dev, 1000000)) < 0) {
 		qCritical("could not set sample rate: %s", strerror(errno));
 		goto failed;
 	}
@@ -182,7 +182,7 @@ const QString& RTLSDRInput::getDeviceDescription() const
 
 int RTLSDRInput::getSampleRate() const
 {
-	return 2000000 / (1 << m_settings.m_decimation);
+	return 1000000 / (1 << m_settings.m_decimation);
 }
 
 quint64 RTLSDRInput::getCenterFrequency() const

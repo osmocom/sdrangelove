@@ -64,30 +64,30 @@ MainWindow::MainWindow(QWidget* parent) :
 	removeDockWidget(ui->inputDock);
 	removeDockWidget(ui->processingDock);
 	removeDockWidget(ui->presetDock);
-	removeDockWidget(ui->channelDock);
-	addDockWidget(Qt::LeftDockWidgetArea, ui->inputDock);
-	addDockWidget(Qt::LeftDockWidgetArea, ui->processingDock);
-	addDockWidget(Qt::LeftDockWidgetArea, ui->presetDock);
-	addDockWidget(Qt::RightDockWidgetArea, ui->channelDock);
-	ui->inputDock->show();
-	ui->processingDock->show();
-	ui->presetDock->show();
-	ui->channelDock->show();
+//	removeDockWidget(ui->channelDock);
+    addDockWidget(Qt::LeftDockWidgetArea, ui->inputDock);
+    addDockWidget(Qt::LeftDockWidgetArea, ui->processingDock);
+//    addDockWidget(Qt::LeftDockWidgetArea, ui->presetDock);
+//	addDockWidget(Qt::RightDockWidgetArea, ui->channelDock);
+//    ui->inputDock->show();
+//    ui->processingDock->show();
+//    ui->presetDock->show();
+    //ui->channelDock->show();
 
 	ui->menu_Window->addAction(ui->inputDock->toggleViewAction());
 	ui->menu_Window->addAction(ui->processingDock->toggleViewAction());
-	ui->menu_Window->addAction(ui->presetDock->toggleViewAction());
-	ui->menu_Window->addAction(ui->channelDock->toggleViewAction());
+//	ui->menu_Window->addAction(ui->presetDock->toggleViewAction());
+    //ui->menu_Window->addAction(ui->channelDock->toggleViewAction());
 
 	connect(m_messageQueue, SIGNAL(messageEnqueued()), this, SLOT(handleMessages()), Qt::QueuedConnection);
 
 	connect(&m_statusTimer, SIGNAL(timeout()), this, SLOT(updateStatus()));
 	m_statusTimer.start(500);
 
-	m_pluginManager->loadPlugins();
-	bool sampleSourceSignalsBlocked = ui->sampleSource->blockSignals(true);
-	m_pluginManager->fillSampleSourceSelector(ui->sampleSource);
-	ui->sampleSource->blockSignals(sampleSourceSignalsBlocked);
+    m_pluginManager->loadPlugins();
+    bool sampleSourceSignalsBlocked = ui->sampleSource->blockSignals(true);
+    m_pluginManager->fillSampleSourceSelector(ui->sampleSource);
+    ui->sampleSource->blockSignals(sampleSourceSignalsBlocked);
 
 	m_dspEngine->start();
 
@@ -98,12 +98,12 @@ MainWindow::MainWindow(QWidget* parent) :
 
 	loadSettings();
 
-	int sampleSourceIndex = m_pluginManager->selectSampleSource(m_settings.getCurrent()->getSource()); // select SampleSource from settings
-	if(sampleSourceIndex >= 0) {
-		bool sampleSourceSignalsBlocked = ui->sampleSource->blockSignals(true);
-		ui->sampleSource->setCurrentIndex(sampleSourceIndex);
-		ui->sampleSource->blockSignals(sampleSourceSignalsBlocked);
-	}
+    int sampleSourceIndex = m_pluginManager->selectSampleSource(m_settings.getCurrent()->getSource()); // select SampleSource from settings
+    if(sampleSourceIndex >= 0) {
+        bool sampleSourceSignalsBlocked = ui->sampleSource->blockSignals(true);
+        ui->sampleSource->setCurrentIndex(sampleSourceIndex);
+        ui->sampleSource->blockSignals(sampleSourceSignalsBlocked);
+    }
 
 	loadSettings(m_settings.getCurrent());
 
@@ -143,9 +143,9 @@ void MainWindow::addChannelCreateAction(QAction* action)
 
 void MainWindow::addChannelRollup(QWidget* widget)
 {
-	((ChannelWindow*)ui->channelDock->widget())->addRollupWidget(widget);
-	ui->channelDock->show();
-	ui->channelDock->raise();
+//	((ChannelWindow*)ui->channelDock->widget())->addRollupWidget(widget);
+//	ui->channelDock->show();
+//	ui->channelDock->raise();
 }
 
 void MainWindow::addViewAction(QAction* action)

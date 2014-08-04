@@ -256,6 +256,9 @@ int PluginManager::selectSampleSource(const QString& source)
 void PluginManager::loadPlugins(const QDir& dir)
 {
 	QDir pluginsDir(dir);
+    QStringList filters;
+	filters << "libsdrange*.so" << "input*dll";
+    pluginsDir.setNameFilters(filters);
 	foreach(QString fileName, pluginsDir.entryList(QDir::Files)) {
 		QPluginLoader* loader = new QPluginLoader(pluginsDir.absoluteFilePath(fileName));
 		PluginInterface* plugin = qobject_cast<PluginInterface*>(loader->instance());

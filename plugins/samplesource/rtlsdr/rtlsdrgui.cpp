@@ -1,6 +1,6 @@
 #include "rtlsdrgui.h"
 #include "ui_rtlsdrgui.h"
-#include "plugin/pluginapi.h"
+#include <plugin/pluginapi.h>
 
 RTLSDRGui::RTLSDRGui(PluginAPI* pluginAPI, QWidget* parent) :
 	QWidget(parent),

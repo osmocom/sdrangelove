@@ -13,9 +13,9 @@ void Preset::resetToDefaults()
 	m_centerFrequency = 0;
 	m_spectrumConfig.clear();
 	m_scopeConfig.clear();
-	m_dcOffsetCorrection = true;
-	m_iqImbalanceCorrection = true;
-	m_showScope = true;
+	m_dcOffsetCorrection = false;
+	m_iqImbalanceCorrection = false;
+    m_showScope = false;
 	m_layout.clear();
 	m_spectrumConfig.clear();
 	m_channelConfigs.clear();

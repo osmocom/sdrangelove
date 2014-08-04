@@ -109,10 +109,10 @@
          <property name="text">
           <string/>
          </property>
-         <property name="icon">
+         <!-- <property name="icon">
           <iconset resource="../resources/res.qrc">
            <normaloff>:/horizontal.png</normaloff>:/horizontal.png</iconset>
-         </property>
+         </property> -->
          <property name="iconSize">
           <size>
            <width>16</width>
@@ -135,10 +135,10 @@
          <property name="text">
           <string/>
          </property>
-         <property name="icon">
+         <!-- <property name="icon">
           <iconset resource="../resources/res.qrc">
            <normaloff>:/vertical.png</normaloff>:/vertical.png</iconset>
-         </property>
+         </property> -->
          <property name="iconSize">
           <size>
            <width>16</width>

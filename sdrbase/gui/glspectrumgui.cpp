@@ -17,7 +17,7 @@ GLSpectrumGUI::GLSpectrumGUI(QWidget* parent) :
 	m_refLevel(0),
 	m_powerRange(100),
 	m_decay(0),
-	m_displayWaterfall(false),
+    m_displayWaterfall(true),
 	m_invertedWaterfall(false),
 	m_displayMaxHold(true),
 	m_displayHistogram(true),
@@ -52,7 +52,7 @@ void GLSpectrumGUI::resetToDefaults()
 	m_refLevel = 0;
 	m_powerRange = 100;
 	m_decay = 0;
-	m_displayWaterfall = false;
+    m_displayWaterfall = true;
 	m_invertedWaterfall = false;
 	m_displayMaxHold = true;
 	m_displayHistogram = true;

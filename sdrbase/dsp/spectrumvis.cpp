@@ -5,12 +5,11 @@
 
 #define MAX_FFT_SIZE 4096
 
-#ifdef _WIN32
-double log2f(double n)
+inline float log2f(float f)
 {
-	return log(n) / log(2.0);
+   return logf(f) * (float) (1.0 / M_LN2);
 }
-#endif
+
 
 SpectrumVis::SpectrumVis(GLSpectrum* glSpectrum) :
 	SampleSink(),

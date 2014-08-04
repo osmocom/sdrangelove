@@ -1,7 +1,9 @@
 #ifndef INCLUDE_INTERPOLATOR_H
 #define INCLUDE_INTERPOLATOR_H
 
+#if 0
 #include <immintrin.h>
+#endif
 #include "dsp/dsptypes.h"
 #include "util/export.h"
 #include <stdio.h>
@@ -55,7 +57,7 @@ private:
 
 	void doInterpolate(int phase, Complex* result)
 	{
-#if 1
+#if 0
 		// beware of the ringbuffer
 		if(m_ptr == 0) {
 			// only one straight block

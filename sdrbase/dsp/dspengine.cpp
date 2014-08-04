@@ -325,7 +325,7 @@ DSPEngine::State DSPEngine::gotoIdle()
 		(*it)->stop();
 	m_sampleSource->stopInput();
 	m_deviceDescription.clear();
-	m_audioOutput.stop();
+	//m_audioOutput.stop();
 	m_sampleRate = 0;
 
 	return StIdle;
@@ -357,7 +357,7 @@ DSPEngine::State DSPEngine::gotoRunning()
 		return gotoError("Could not start sample source");
 	m_deviceDescription = m_sampleSource->getDeviceDescription();
 
-	m_audioOutput.start(0, 44100);
+	//m_audioOutput.start(0, 44100);
 	for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
 		(*it)->start();
 	m_sampleRate = 0; // make sure, report is sent
@@ -489,10 +489,10 @@ void DSPEngine::handleMessages()
 			m_sampleSinks.remove(sink);
 			message->completed();
 		} else if(DSPAddAudioSource::match(message)) {
-			m_audioOutput.addFifo(((DSPAddAudioSource*)message)->getAudioFifo());
+			//m_audioOutput.addFifo(((DSPAddAudioSource*)message)->getAudioFifo());
 			message->completed();
 		} else if(DSPRemoveAudioSource::match(message)) {
-			m_audioOutput.removeFifo(((DSPAddAudioSource*)message)->getAudioFifo());
+			//m_audioOutput.removeFifo(((DSPAddAudioSource*)message)->getAudioFifo());
 			message->completed();
 		} else if(DSPConfigureCorrection::match(message)) {
 			DSPConfigureCorrection* conf = (DSPConfigureCorrection*)message;

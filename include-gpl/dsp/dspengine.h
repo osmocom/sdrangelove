@@ -84,7 +84,7 @@ private:
 	typedef std::list<SampleSink*> SampleSinks;
 	SampleSinks m_sampleSinks;
 
-	AudioOutput m_audioOutput;
+	//AudioOutput m_audioOutput;
 
 	uint m_sampleRate;
 	quint64 m_centerFrequency;
