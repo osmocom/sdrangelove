@@ -5,6 +5,9 @@
 #ifdef USE_FFTW
 #include "dsp/fftwengine.h"
 #endif // USE_FFTW
+#ifdef USE_FFTS
+#include "dsp/fftsengine.h"
+#endif // USE_FFTS
 
 FFTEngine::~FFTEngine()
 {
@@ -20,7 +23,10 @@ FFTEngine* FFTEngine::create()
 	qDebug("FFT: using KissFFT engine");
 	return new KissEngine;
 #endif // USE_KISSFFT
-
+#ifdef USE_FFTS
+    qDebug("FFT: using FFTS engine");
+    return new FFTSEngine;
+#endif // USE_FFTS
 	qCritical("FFT: no engine built");
 	return NULL;
 }
