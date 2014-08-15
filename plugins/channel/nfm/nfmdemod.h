@@ -43,7 +43,7 @@ public:
 
 private:
 	class MsgConfigureNFMDemod : public Message {
-		MESSAGE_CLASS_DECLARATION
+		MESSAGE_CLASS_DECLARATION(MsgConfigureNFMDemod)
 
 	public:
 		Real getRFBandwidth() const { return m_rfBandwidth; }
@@ -77,19 +77,45 @@ private:
 	};
 	typedef std::vector<AudioSample> AudioVector;
 
-	Real m_rfBandwidth;
-	Real m_volume;
-	Real m_squelchLevel;
-	int m_sampleRate;
-	int m_frequency;
+	enum RateState {
+		RSInitialFill,
+		RSRunning
+	};
+
+	struct Config {
+		int m_inputSampleRate;
+		qint64 m_inputFrequencyOffset;
+		Real m_rfBandwidth;
+		Real m_afBandwidth;
+		Real m_squelch;
+		Real m_volume;
+		quint32 m_audioSampleRate;
+
+		Config() :
+			m_inputSampleRate(-1),
+			m_inputFrequencyOffset(0),
+			m_rfBandwidth(-1),
+			m_afBandwidth(-1),
+			m_squelch(0),
+			m_volume(0),
+			m_audioSampleRate(0)
+		{ }
+	};
+
+	Config m_config;
+	Config m_running;
 
 	NCO m_nco;
+	Real m_interpolatorRegulation;
 	Interpolator m_interpolator;
-	Real m_sampleDistanceRemain;
+	Real m_interpolatorDistance;
+	Real m_interpolatorDistanceRemain;
 	Lowpass<Real> m_lowpass;
 
+	Real m_squelchLevel;
 	int m_squelchState;
 
+	Real m_lastArgument;
 	Complex m_lastSample;
 	MovingAverage m_movingAverage;
 
@@ -99,6 +125,8 @@ private:
 
 	SampleSink* m_sampleSink;
 	SampleVector m_sampleBuffer;
+
+	void apply();
 };
 
 #endif // INCLUDE_NFMDEMOD_H

@@ -15,7 +15,7 @@ ThreadedSampleSink::ThreadedSampleSink(SampleSink* sampleSink) :
 
 	m_sampleFifo.moveToThread(m_thread);
 	connect(&m_sampleFifo, SIGNAL(dataReady()), this, SLOT(handleData()));
-	m_sampleFifo.setSize(262144);
+	m_sampleFifo.setSize(128 * 1024);
 
 	sampleSink->moveToThread(m_thread);
 }
@@ -55,8 +55,11 @@ bool ThreadedSampleSink::handleMessage(Message* cmd)
 void ThreadedSampleSink::handleData()
 {
 	bool firstOfBurst = true;
+	QTime time;
 
-	while((m_sampleFifo.fill() > 0) && (m_messageQueue.countPending() == 0)) {
+	time.start();
+
+	while((m_sampleFifo.fill() > 0) && (m_messageQueue.countPending() == 0) && (time.elapsed() < 250)) {
 		SampleVector::iterator part1begin;
 		SampleVector::iterator part1end;
 		SampleVector::iterator part2begin;
@@ -64,19 +67,19 @@ void ThreadedSampleSink::handleData()
 
 		size_t count = m_sampleFifo.readBegin(m_sampleFifo.fill(), &part1begin, &part1end, &part2begin, &part2end);
 
-		// first part of FIFO data
-		if(part1begin != part1end) {
-			// handle data
-			if(m_sampleSink != NULL)
+		if(m_sampleSink != NULL) {
+			// first part of FIFO data
+			if(part1begin != part1end) {
+				// handle data
 				m_sampleSink->feed(part1begin, part1end, firstOfBurst);
-			firstOfBurst = false;
-		}
-		// second part of FIFO data (used when block wraps around)
-		if(part2begin != part2end) {
-			// handle data
-			if(m_sampleSink != NULL)
-				m_sampleSink->feed(part1begin, part1end, firstOfBurst);
-			firstOfBurst = false;
+				firstOfBurst = false;
+			}
+			// second part of FIFO data (used when block wraps around)
+			if(part2begin != part2end) {
+				// handle data
+				m_sampleSink->feed(part2begin, part2end, firstOfBurst);
+				firstOfBurst = false;
+			}
 		}
 
 		// adjust FIFO pointers
@@ -88,7 +91,7 @@ void ThreadedSampleSink::handleMessages()
 {
 	Message* message;
 	while((message = m_messageQueue.accept()) != NULL) {
-		qDebug("CMD: %s", message->getIdentifier());
+		//qDebug("CMD: %s", message->getIdentifier());
 		if(m_sampleSink != NULL) {
 			if(!m_sampleSink->handleMessage(message))
 				message->completed();

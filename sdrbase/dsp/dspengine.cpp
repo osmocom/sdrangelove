@@ -109,6 +109,12 @@ void DSPEngine::configureCorrections(bool dcOffsetCorrection, bool iqImbalanceCo
 	cmd->submit(&m_messageQueue);
 }
 
+void DSPEngine::configureAudioOutput(const QString& audioOutput, quint32 audioOutputRate)
+{
+	Message* cmd = DSPConfigureAudioOutput::create(audioOutput, audioOutputRate);
+	cmd->submit(&m_messageQueue);
+}
+
 QString DSPEngine::errorMessage()
 {
 	DSPGetErrorMessage cmd;
@@ -174,7 +180,6 @@ void DSPEngine::imbalance(SampleVector::iterator begin, SampleVector::iterator e
 				qMin = it->imag();
 			else if(it->imag() > qMax)
 				qMax = it->imag();
-
 		} else {
 			iMin = it->real();
 			iMax = it->real();
@@ -202,7 +207,7 @@ void DSPEngine::work()
 	size_t samplesDone = 0;
 	bool firstOfBurst = true;
 
-	while((sampleFifo->fill() > 0) && (m_messageQueue.countPending() == 0) && (samplesDone < m_sampleRate)) {
+	while((sampleFifo->fill() > 0) && (m_messageQueue.countPending() == 0) && (samplesDone < m_sampleRate / 2)) {
 		SampleVector::iterator part1begin;
 		SampleVector::iterator part1end;
 		SampleVector::iterator part2begin;
@@ -218,7 +223,7 @@ void DSPEngine::work()
 			if(m_iqImbalanceCorrection)
 				imbalance(part1begin, part1end);
 			// feed data to handlers
-			for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
+			for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); ++it)
 				(*it)->feed(part1begin, part1end, firstOfBurst);
 			firstOfBurst = false;
 		}
@@ -230,7 +235,7 @@ void DSPEngine::work()
 			if(m_iqImbalanceCorrection)
 				imbalance(part2begin, part2end);
 			// feed data to handlers
-			for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
+			for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); ++it)
 				(*it)->feed(part2begin, part2end, firstOfBurst);
 			firstOfBurst = false;
 		}
@@ -239,69 +244,6 @@ void DSPEngine::work()
 		sampleFifo->readCommit(count);
 		samplesDone += count;
 	}
-
-#if 0
-	size_t wus;
-	size_t maxWorkUnitSize = 0;
-	size_t samplesDone = 0;
-
-	wus = m_spectrum.workUnitSize();
-	if(wus > maxWorkUnitSize)
-		maxWorkUnitSize = wus;
-	for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++) {
-		wus = (*it)->workUnitSize();
-		if(wus > maxWorkUnitSize)
-			maxWorkUnitSize = wus;
-	}
-
-	while((m_sampleFifo.fill() > maxWorkUnitSize) && (m_commandQueue.countPending() == 0) && (samplesDone < m_sampleRate)) {
-		SampleVector::iterator part1begin;
-		SampleVector::iterator part1end;
-		SampleVector::iterator part2begin;
-		SampleVector::iterator part2end;
-
-		size_t count = m_sampleFifo.readBegin(m_sampleFifo.fill(), &part1begin, &part1end, &part2begin, &part2end);
-
-		// first part of FIFO data
-		if(part1begin != part1end) {
-			// correct stuff
-			if(m_settings.dcOffsetCorrection())
-				dcOffset(part1begin, part1end);
-			if(m_settings.iqImbalanceCorrection())
-				imbalance(part1begin, part1end);
-			// feed data to handlers
-			m_spectrum.feed(part1begin, part1end);
-			for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
-				(*it)->feed(part1begin, part1end);
-		}
-		// second part of FIFO data (used when block wraps around)
-		if(part2begin != part2end) {
-			// correct stuff
-			if(m_settings.dcOffsetCorrection())
-				dcOffset(part2begin, part2end);
-			if(m_settings.iqImbalanceCorrection())
-				imbalance(part2begin, part2end);
-			// feed data to handlers
-			m_spectrum.feed(part2begin, part2end);
-			for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
-				(*it)->feed(part1begin, part1end);
-		}
-
-		// adjust FIFO pointers
-		m_sampleFifo.readCommit(count);
-		samplesDone += count;
-	}
-
-	// check if the center frequency has changed (has to be responsive)
-	if(m_settings.isModifiedCenterFreq())
-		m_sampleSource->setCenterFrequency(m_settings.centerFreq());
-	// check if decimation has changed (needed to be done here, because to high a sample rate can clog the switch)
-	if(m_settings.isModifiedDecimation()) {
-		m_sampleSource->setDecimation(m_settings.decimation());
-		m_sampleRate = 4000000 / (1 << m_settings.decimation());
-		qDebug("New rate: %d", m_sampleRate);
-	}
-#endif
 }
 
 DSPEngine::State DSPEngine::gotoIdle()
@@ -357,7 +299,11 @@ DSPEngine::State DSPEngine::gotoRunning()
 		return gotoError("Could not start sample source");
 	m_deviceDescription = m_sampleSource->getDeviceDescription();
 
-	m_audioOutput.start(0, 44100);
+	if(!m_audioOutput.start()) {
+		m_sampleSource->stopInput();
+		return gotoError(m_audioOutput.getError());
+	}
+
 	for(SampleSinks::const_iterator it = m_sampleSinks.begin(); it != m_sampleSinks.end(); it++)
 		(*it)->start();
 	m_sampleRate = 0; // make sure, report is sent
@@ -447,7 +393,7 @@ void DSPEngine::handleMessages()
 {
 	Message* message;
 	while((message = m_messageQueue.accept()) != NULL) {
-		qDebug("Message: %s", message->getIdentifier());
+		//qDebug("Message: %s", message->getIdentifier());
 
 		if(DSPPing::match(message)) {
 			message->completed(m_state);
@@ -465,16 +411,16 @@ void DSPEngine::handleMessages()
 			m_state = gotoIdle();
 			message->completed(m_state);
 		} else if(DSPGetDeviceDescription::match(message)) {
-			((DSPGetDeviceDescription*)message)->setDeviceDescription(m_deviceDescription);
+			DSPGetDeviceDescription::cast(message)->setDeviceDescription(m_deviceDescription);
 			message->completed();
 		} else if(DSPGetErrorMessage::match(message)) {
 			((DSPGetErrorMessage*)message)->setErrorMessage(m_errorMessage);
 			message->completed();
 		} else if(DSPSetSource::match(message)) {
-			handleSetSource(((DSPSetSource*)message)->getSampleSource());
+			handleSetSource(DSPSetSource::cast(message)->getSampleSource());
 			message->completed();
 		} else if(DSPAddSink::match(message)) {
-			SampleSink* sink = ((DSPAddSink*)message)->getSampleSink();
+			SampleSink* sink = DSPAddSink::cast(message)->getSampleSink();
 			if(m_state == StRunning) {
 				DSPSignalNotification* signal = DSPSignalNotification::create(m_sampleRate, 0);
 				signal->submit(&m_messageQueue, sink);
@@ -489,13 +435,16 @@ void DSPEngine::handleMessages()
 			m_sampleSinks.remove(sink);
 			message->completed();
 		} else if(DSPAddAudioSource::match(message)) {
-			m_audioOutput.addFifo(((DSPAddAudioSource*)message)->getAudioFifo());
+			m_audioOutput.addFifo(DSPAddAudioSource::cast(message)->getAudioFifo());
 			message->completed();
 		} else if(DSPRemoveAudioSource::match(message)) {
 			m_audioOutput.removeFifo(((DSPAddAudioSource*)message)->getAudioFifo());
 			message->completed();
+		} else if(DSPConfigureAudioOutput::match(message)) {
+			DSPConfigureAudioOutput* conf = DSPConfigureAudioOutput::cast(message);
+			m_audioOutput.configure(conf->getAudioOutputDevice(), conf->getAudioOutputRate());
 		} else if(DSPConfigureCorrection::match(message)) {
-			DSPConfigureCorrection* conf = (DSPConfigureCorrection*)message;
+			DSPConfigureCorrection* conf = DSPConfigureCorrection::cast(message);
 			m_iqImbalanceCorrection = conf->getIQImbalanceCorrection();
 			if(m_dcOffsetCorrection != conf->getDCOffsetCorrection()) {
 				m_dcOffsetCorrection = conf->getDCOffsetCorrection();

@@ -3,7 +3,7 @@
 
 #include <QDialog>
 
-class AudioDeviceInfo;
+class Preferences;
 
 namespace Ui {
 	class PreferencesDialog;
@@ -13,19 +13,13 @@ class PreferencesDialog : public QDialog {
 	Q_OBJECT
 
 public:
-	explicit PreferencesDialog(AudioDeviceInfo* audioDeviceInfo, QWidget* parent = NULL);
+	explicit PreferencesDialog(Preferences* preferences, QWidget* parent = NULL);
 	~PreferencesDialog();
 
 private:
-	enum Audio {
-		ATDefault,
-		ATInterface,
-		ATDevice
-	};
-
 	Ui::PreferencesDialog* ui;
 
-	AudioDeviceInfo* m_audioDeviceInfo;
+	Preferences* m_preferences;
 
 private slots:
 	void accept();

@@ -39,7 +39,6 @@ endif()
 set(sdrbase_SOURCES
 	sdrbase/mainwindow.cpp
 
-	sdrbase/audio/audiodeviceinfo.cpp
 	sdrbase/audio/audiofifo.cpp
 	sdrbase/audio/audiooutput.cpp
 
@@ -100,7 +99,6 @@ set(sdrbase_SOURCES
 set(sdrbase_HEADERS
 	include-gpl/mainwindow.h
 
-	include-gpl/audio/audiodeviceinfo.h
 	include-gpl/audio/audiofifo.h
 	include-gpl/audio/audiooutput.h
 
@@ -119,7 +117,7 @@ set(sdrbase_HEADERS
 	include-gpl/dsp/lowpass.h
 	include-gpl/dsp/movingaverage.h
 	include-gpl/dsp/nco.h
-	sdrbase/dsp/pidcontroller.h
+	include-gpl/dsp/pidcontroller.h
 	include/dsp/samplefifo.h
 	include/dsp/samplesink.h
 	include-gpl/dsp/scopevis.h

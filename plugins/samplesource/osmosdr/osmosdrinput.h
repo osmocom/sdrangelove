@@ -52,7 +52,7 @@ public:
 	};
 
 	class MsgConfigureOsmoSDR : public Message {
-		MESSAGE_CLASS_DECLARATION
+		MESSAGE_CLASS_DECLARATION(MsgConfigureOsmoSDR)
 
 	public:
 		const GeneralSettings& getGeneralSettings() const { return m_generalSettings; }

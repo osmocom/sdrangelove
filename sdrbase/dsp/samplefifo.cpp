@@ -64,17 +64,21 @@ bool SampleFifo::setSize(int size)
 {
 	create(size);
 
-	return m_data.size() == (uint)size;
+	return m_size == (uint)size;
 }
 
 uint SampleFifo::write(const quint8* data, uint count)
 {
+	return write(SampleVector::const_iterator((Sample*)data), SampleVector::const_iterator((Sample*)(data + count)));
+#if 0
 	QMutexLocker mutexLocker(&m_mutex);
 	uint total;
 	uint remaining;
 	uint len;
 	const Sample* begin = (const Sample*)data;
-	count /= 4;
+	count /= sizeof(Sample);
+
+	//qDebug("write pre count %d %u", count, m_fill);
 
 	total = MIN(count, m_size - m_fill);
 	if(total < count) {
@@ -96,6 +100,7 @@ uint SampleFifo::write(const quint8* data, uint count)
 	remaining = total;
 	while(remaining > 0) {
 		len = MIN(remaining, m_size - m_tail);
+		//qDebug("write remaining %u, len %u", remaining, len);
 		std::copy(begin, begin + len, m_data.begin() + m_tail);
 		m_tail += len;
 		m_tail %= m_size;
@@ -104,10 +109,13 @@ uint SampleFifo::write(const quint8* data, uint count)
 		remaining -= len;
 	}
 
+	//qDebug("write post count %d %u [%u;%u]", count, m_fill, m_head, m_tail);
+
 	if(m_fill > 0)
 		emit dataReady();
 
 	return total;
+#endif
 }
 
 uint SampleFifo::write(SampleVector::const_iterator begin, SampleVector::const_iterator end)
@@ -139,8 +147,7 @@ uint SampleFifo::write(SampleVector::const_iterator begin, SampleVector::const_i
 	while(remaining > 0) {
 		len = MIN(remaining, m_size - m_tail);
 		std::copy(begin, begin + len, m_data.begin() + m_tail);
-		m_tail += len;
-		m_tail %= m_size;
+		m_tail = (m_tail + len) % m_size;
 		m_fill += len;
 		begin += len;
 		remaining -= len;
@@ -151,7 +158,7 @@ uint SampleFifo::write(SampleVector::const_iterator begin, SampleVector::const_i
 
 	return total;
 }
-
+/*
 uint SampleFifo::read(SampleVector::iterator begin, SampleVector::iterator end)
 {
 	QMutexLocker mutexLocker(&m_mutex);
@@ -177,13 +184,14 @@ uint SampleFifo::read(SampleVector::iterator begin, SampleVector::iterator end)
 
 	return total;
 }
-
+*/
 uint SampleFifo::readBegin(uint count,
 	SampleVector::iterator* part1Begin, SampleVector::iterator* part1End,
 	SampleVector::iterator* part2Begin, SampleVector::iterator* part2End)
 {
 	QMutexLocker mutexLocker(&m_mutex);
 	uint total;
+	uint done = 0;
 	uint remaining;
 	uint len;
 	uint head = m_head;
@@ -196,10 +204,10 @@ uint SampleFifo::readBegin(uint count,
 	if(remaining > 0) {
 		len = MIN(remaining, m_size - head);
 		*part1Begin = m_data.begin() + head;
-		*part1End = m_data.begin() + head + len;
-		head += len;
-		head %= m_size;
+		*part1End = *part1Begin + len;
+		head = (head + len) % m_size;
 		remaining -= len;
+		done += len;
 	} else {
 		*part1Begin = m_data.end();
 		*part1End = m_data.end();
@@ -207,13 +215,14 @@ uint SampleFifo::readBegin(uint count,
 	if(remaining > 0) {
 		len = MIN(remaining, m_size - head);
 		*part2Begin = m_data.begin() + head;
-		*part2End = m_data.begin() + head + len;
+		*part2End = *part2Begin + len;
+		done += len;
 	} else {
 		*part2Begin = m_data.end();
 		*part2End = m_data.end();
 	}
 
-	return total;
+	return done;
 }
 
 uint SampleFifo::readCommit(uint count)

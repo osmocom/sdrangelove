@@ -64,6 +64,7 @@ public:
 	void removeAudioSource(AudioFifo* audioFifo);
 
 	void configureCorrections(bool dcOffsetCorrection, bool iqImbalanceCorrection);
+	void configureAudioOutput(const QString& audioOutput, quint32 audioOutputRate);
 
 	State state() const { return m_state; }
 

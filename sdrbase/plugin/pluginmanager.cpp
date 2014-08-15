@@ -72,7 +72,7 @@ void PluginManager::registerSampleSource(const QString& sourceName, PluginInterf
 
 void PluginManager::loadSettings(const Preset* preset)
 {
-	qDebug("-------- [%s | %s] --------", qPrintable(preset->getGroup()), qPrintable(preset->getDescription()));
+	//qDebug("-------- [%s | %s] --------", qPrintable(preset->getGroup()), qPrintable(preset->getDescription()));
 
 	// copy currently open channels and clear list
 	ChannelInstanceRegistrations openChannels = m_channelInstanceRegistrations;
@@ -83,7 +83,7 @@ void PluginManager::loadSettings(const Preset* preset)
 		ChannelInstanceRegistration reg;
 		// if we have one instance available already, use it
 		for(int i = 0; i < openChannels.count(); i++) {
-			qDebug("compare [%s] vs [%s]", qPrintable(openChannels[i].m_channelName), qPrintable(channelConfig.m_channel));
+			//qDebug("compare [%s] vs [%s]", qPrintable(openChannels[i].m_channelName), qPrintable(channelConfig.m_channel));
 			if(openChannels[i].m_channelName == channelConfig.m_channel) {
 				qDebug("channel [%s] found", qPrintable(openChannels[i].m_channelName));
 				reg = openChannels.takeAt(i);
@@ -235,7 +235,7 @@ int PluginManager::selectSampleSource(const QString& source)
 
 	qDebug("finding sample source [%s]", qPrintable(source));
 	for(int i = 0; i < m_sampleSourceDevices.count(); i++) {
-		qDebug("*** %s vs %s", qPrintable(m_sampleSourceDevices[i].m_sourceName), qPrintable(source));
+		//qDebug("*** %s vs %s", qPrintable(m_sampleSourceDevices[i].m_sourceName), qPrintable(source));
 		if(m_sampleSourceDevices[i].m_sourceName == source) {
 			index = i;
 			break;

@@ -8,19 +8,15 @@ Preferences::Preferences()
 
 void Preferences::resetToDefaults()
 {
-	m_sourceType.clear();
-	m_sourceDevice.clear();
-	m_audioType.clear();
-	m_audioDevice.clear();
+	m_audioOutput.clear();
+	m_audioOutputRate = 44100;
 }
 
 QByteArray Preferences::serialize() const
 {
 	SimpleSerializer s(1);
-	s.writeString(1, m_sourceType);
-	s.writeString(2, m_sourceDevice);
-	s.writeString(3, m_audioType);
-	s.writeString(4, m_audioDevice);
+	s.writeString(1, m_audioOutput);
+	s.writeU32(2, m_audioOutputRate);
 	return s.final();
 }
 
@@ -34,10 +30,10 @@ bool Preferences::deserialize(const QByteArray& data)
 	}
 
 	if(d.getVersion() == 1) {
-		d.readString(1, &m_sourceType);
-		d.readString(2, &m_sourceDevice);
-		d.readString(3, &m_audioType);
-		d.readString(4, &m_audioDevice);
+		d.readString(1, &m_audioOutput);
+		quint32 tmp;
+		d.readU32(2, &tmp, 44100);
+		m_audioOutputRate = tmp;
 		return true;
 	} else {
 		resetToDefaults();

@@ -27,7 +27,6 @@ class QLabel;
 class QTreeWidgetItem;
 class QDir;
 
-class AudioDeviceInfo;
 class DSPEngine;
 class Indicator;
 class ScopeWindow;
@@ -69,8 +68,6 @@ private:
 	};
 
 	Ui::MainWindow* ui;
-
-	AudioDeviceInfo* m_audioDeviceInfo;
 
 	MessageQueue* m_messageQueue;
 
@@ -114,6 +111,7 @@ private:
 private slots:
 	void handleMessages();
 	void updateStatus();
+	void updateEnables(bool running);
 	void scopeWindowDestroyed();
 	void on_action_Start_triggered();
 	void on_action_Stop_triggered();

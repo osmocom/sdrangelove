@@ -22,6 +22,8 @@ public:
 
 	Preset* getCurrent() { return &m_current; }
 
+	Preferences* getPreferences() { return &m_preferences; }
+
 protected:
 	Preferences m_preferences;
 	Preset m_current;

@@ -33,14 +33,25 @@ public:
 	AudioOutput();
 	~AudioOutput();
 
-	bool start(int device, int rate);
+	void configure(const QString& deviceName, uint rate);
+
+	bool start();
 	void stop();
 
 	void addFifo(AudioFifo* audioFifo);
 	void removeFifo(AudioFifo* audioFifo);
 
+	uint getCurrentRate();
+
+	const QString& getError() const { return m_error; }
+
 private:
 	QMutex m_mutex;
+	QString m_error;
+
+	QString m_deviceName;
+	quint32 m_rate;
+
 	QAudioOutput* m_audioOutput;
 
 	typedef std::list<AudioFifo*> AudioFifos;

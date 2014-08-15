@@ -281,7 +281,6 @@ protected:
 #error unsupported filter order
 #endif
 
-
 		// init read-pointer
 		int a = (m_ptr + 1) % (HB_FILTERORDER + 1);
 		int b = (m_ptr + (HB_FILTERORDER - 1)) % (HB_FILTERORDER + 1);

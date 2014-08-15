@@ -46,7 +46,7 @@ public:
 	};
 
 	class MsgConfigureGNURadio : public Message {
-		MESSAGE_CLASS_DECLARATION
+		MESSAGE_CLASS_DECLARATION(MsgConfigureGNURadio)
 
 	public:
 		const GeneralSettings& getGeneralSettings() const { return m_generalSettings; }
@@ -69,7 +69,7 @@ public:
 	};
 
 	class MsgReportGNURadio : public Message {
-		MESSAGE_CLASS_DECLARATION
+		MESSAGE_CLASS_DECLARATION(MsgReportGNURadio)
 
 	public:
 		const std::vector< std::pair< QString, std::vector<double> > >& getNamedGains() const { return m_namedGains; }

@@ -37,7 +37,7 @@ public:
 	};
 
 	class MsgConfigureRTLSDR : public Message {
-		MESSAGE_CLASS_DECLARATION
+		MESSAGE_CLASS_DECLARATION(MsgConfigureRTLSDR)
 
 	public:
 		const GeneralSettings& getGeneralSettings() const { return m_generalSettings; }
@@ -60,7 +60,7 @@ public:
 	};
 
 	class MsgReportRTLSDR : public Message {
-		MESSAGE_CLASS_DECLARATION
+		MESSAGE_CLASS_DECLARATION(MsgReportRTLSDR)
 
 	public:
 		const std::vector<int>& getGains() const { return m_gains; }

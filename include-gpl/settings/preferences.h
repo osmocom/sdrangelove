@@ -11,22 +11,15 @@ public:
 	QByteArray serialize() const;
 	bool deserialize(const QByteArray& data);
 
-	void setSourceType(const QString& value) { m_sourceType = value; }
-	const QString& getSourceType() const { return m_sourceType; }
-	void setSourceDevice(const QString& value) { m_sourceDevice= value; }
-	const QString& getSourceDevice() const { return m_sourceDevice; }
+	void setAudioOutput(const QString& value) { m_audioOutput = value; }
+	const QString& getAudioOutput() const { return m_audioOutput; }
 
-	void setAudioType(const QString& value) { m_audioType = value; }
-	const QString& getAudioType() const { return m_audioType; }
-	void setAudioDevice(const QString& value) { m_audioDevice= value; }
-	const QString& getAudioDevice() const { return m_audioDevice; }
+	void setAudioOutputRate(quint32 value) { m_audioOutputRate = value; }
+	uint getAudioOutputRate() const { return m_audioOutputRate; }
 
 protected:
-	QString m_sourceType;
-	QString m_sourceDevice;
-
-	QString m_audioType;
-	QString m_audioDevice;
+	QString m_audioOutput;
+	uint m_audioOutputRate;
 };
 
 #endif // INCLUDE_PREFERENCES_H

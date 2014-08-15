@@ -19,19 +19,23 @@
 #include "ui_scopewindow.h"
 #include "util/simpleserializer.h"
 
-ScopeWindow::ScopeWindow(DSPEngine* dspEngine, QWidget* parent) :
+ScopeWindow::ScopeWindow(QWidget* parent) :
 	QWidget(parent),
 	ui(new Ui::ScopeWindow),
 	m_sampleRate(0),
 	m_timeBase(1)
 {
 	ui->setupUi(this);
-	ui->scope->setDSPEngine(dspEngine);
 }
 
 ScopeWindow::~ScopeWindow()
 {
 	delete ui;
+}
+
+void ScopeWindow::setDSPEngine(DSPEngine* dspEngine)
+{
+	ui->scope->setDSPEngine(dspEngine);
 }
 
 void ScopeWindow::setSampleRate(int sampleRate)

@@ -38,11 +38,12 @@ protected:
 	int m_result;
 };
 
-#define MESSAGE_CLASS_DECLARATION \
+#define MESSAGE_CLASS_DECLARATION(Name) \
 	public: \
 		const char* getIdentifier() const; \
 		bool matchIdentifier(const char* identifier) const; \
 		static bool match(Message* message); \
+		static Name* cast(Message* message) { return match(message) ? (Name*)message : NULL; } \
 	protected: \
 		static const char* m_identifier; \
 	private:

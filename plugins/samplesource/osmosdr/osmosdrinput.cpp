@@ -122,108 +122,7 @@ bool OsmoSDRInput::Settings::deserialize(const QByteArray& data)
 		return false;
 	}
 }
-#if 0
-OsmoSDRInput::Settings::Settings() :
-{
-}
 
-QString OsmoSDRInput::Settings::serialize() const
-{
-	return QString("osmosdr:a:%1:%2:%3:%4:%5:%6:%7:%8:%9:%10:%11:%12:%13:%14:%15:%16:%17:%18")
-		.arg(centerFrequency)
-		.arg(swapIQ ? 1 : 0)
-		.arg(decimation)
-		.arg(lnaGain)
-		.arg(mixerGain)
-		.arg(mixerEnhancement)
-		.arg(if1gain)
-		.arg(if2gain)
-		.arg(if3gain)
-		.arg(if4gain)
-		.arg(if5gain)
-		.arg(if6gain)
-		.arg(opAmpI1)
-		.arg(opAmpI2)
-		.arg(opAmpQ1)
-		.arg(opAmpQ2)
-		.arg(dcOfsI)
-		.arg(dcOfsQ);
-}
-
-bool OsmoSDRInput::Settings::deserialize(const QString& settings)
-{
-	QStringList list = settings.split(":");
-	if(list.size() < 2)
-		return false;
-	if(list[0] != "osmosdr")
-		return false;
-
-	if(list[1] == "a") {
-		bool ok;
-		if(list.size() != 20)
-			return false;
-		centerFrequency = list[2].toLongLong(&ok);
-		if(!ok)
-			return false;
-		swapIQ = (list[3].toInt(&ok) != 0) ? true : false;
-		if(!ok)
-			return false;
-		decimation = list[4].toInt(&ok);
-		if(!ok)
-			return false;
-		lnaGain = list[5].toInt(&ok);
-		if(!ok)
-			return false;
-		mixerGain = list[6].toInt(&ok);
-		if(!ok)
-			return false;
-		mixerEnhancement = list[7].toInt(&ok);
-		if(!ok)
-			return false;
-		if1gain = list[8].toInt(&ok);
-		if(!ok)
-			return false;
-		if2gain = list[9].toInt(&ok);
-		if(!ok)
-			return false;
-		if3gain = list[10].toInt(&ok);
-		if(!ok)
-			return false;
-		if4gain = list[11].toInt(&ok);
-		if(!ok)
-			return false;
-		if5gain = list[12].toInt(&ok);
-		if(!ok)
-			return false;
-		if6gain = list[13].toInt(&ok);
-		if(!ok)
-			return false;
-		opAmpI1 = list[14].toInt(&ok);
-		if(!ok)
-			return false;
-		opAmpI2 = list[15].toInt(&ok);
-		if(!ok)
-			return false;
-		opAmpQ1 = list[16].toInt(&ok);
-		if(!ok)
-			return false;
-		opAmpQ2 = list[17].toInt(&ok);
-		if(!ok)
-			return false;
-		dcOfsI = list[18].toInt(&ok);
-		if(!ok)
-			return false;
-		dcOfsQ = list[19].toInt(&ok);
-		if(!ok)
-			return false;
-		return true;
-	} else {
-		return false;
-	}
-}
-
-MessageRegistrator OsmoSDRInput::MsgConfigureSourceOsmoSDR::ID("MsgConfigureSourceOsmoSDR");
-#endif
 OsmoSDRInput::OsmoSDRInput(MessageQueue* msgQueueToGUI) :
 	SampleSource(msgQueueToGUI),
 	m_settings(),
@@ -250,7 +149,7 @@ bool OsmoSDRInput::startInput(int device)
 	char serial[256];
 	int res;
 
-	if(!m_sampleFifo.setSize(524288)) {
+	if(!m_sampleFifo.setSize(128 * 1024)) {
 		qCritical("Could not allocate SampleFifo");
 		return false;
 	}
@@ -341,14 +240,6 @@ bool OsmoSDRInput::handleMessage(Message* message)
 		return false;
 	}
 
-	/*
-	if(cmd->sourceType() != DSPCmdConfigureSourceOsmoSDR::SourceType)
-		return false;
-	if(!applySettings(((DSPCmdConfigureSourceOsmoSDR*)cmd)->getSettings(), false))
-		qDebug("OsmoSDR config error");
-	cmd->completed();
-	return true;
-	*/
 	return false;
 }
 

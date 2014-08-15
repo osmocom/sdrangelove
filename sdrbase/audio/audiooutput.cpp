@@ -24,6 +24,9 @@
 
 AudioOutput::AudioOutput() :
 	m_mutex(),
+	m_error(),
+	m_deviceName(),
+	m_rate(0),
 	m_audioOutput(NULL),
 	m_audioFifos()
 {
@@ -39,17 +42,38 @@ AudioOutput::~AudioOutput()
 	m_audioFifos.clear();
 }
 
-bool AudioOutput::start(int device, int rate)
+void AudioOutput::configure(const QString& deviceName, uint rate)
 {
 	QMutexLocker mutexLocker(&m_mutex);
 
-	Q_UNUSED(device);
-	Q_UNUSED(rate);
+	m_deviceName = deviceName;
+	m_rate = rate;
+}
+
+bool AudioOutput::start()
+{
+	QMutexLocker mutexLocker(&m_mutex);
 
 	QAudioFormat format;
 	QAudioDeviceInfo devInfo(QAudioDeviceInfo::defaultOutputDevice());
 
-	format.setSampleRate(41000);
+	if(!m_deviceName.isEmpty()) {
+		QList<QAudioDeviceInfo> devices = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
+		bool found = false;
+		for(int i = 0; i < devices.count(); ++i) {
+			if(devices[i].deviceName() == m_deviceName) {
+				devInfo = devices[i];
+				found = true;
+				break;
+			}
+		}
+		if(!found) {
+			m_error = tr("Audio output device %1 not available").arg(m_deviceName);
+			return false;
+		}
+	}
+
+	format.setSampleRate(m_rate);
 	format.setChannelCount(2);
 	format.setSampleSize(16);
 	format.setCodec("audio/pcm");
@@ -60,25 +84,32 @@ bool AudioOutput::start(int device, int rate)
 		qDebug("default format not supported - try to use nearest");
 		format = devInfo.nearestFormat(format);
 	}
+	qDebug("Audio output %s using samplerate %d", qPrintable(devInfo.deviceName()), format.sampleRate());
 
 	if(format.sampleSize() != 16) {
-		qDebug("audio device doesn't support 16 bit samples (%s)", qPrintable(devInfo.defaultOutputDevice().deviceName()));
+		m_error = tr("Audio output %1 doesn't support 16 bit samples").arg(devInfo.deviceName());
 		return false;
 	}
 
-	m_audioOutput = new QAudioOutput(format);
+	m_audioOutput = new QAudioOutput(devInfo, format);
 
 	QIODevice::open(QIODevice::ReadOnly);
 
+	//m_audioOutput->setBufferSize(3 * 4096);
 	m_audioOutput->start(this);
 
-	return true;
+	for(AudioFifos::iterator it = m_audioFifos.begin(); it != m_audioFifos.end(); ++it)
+		(*it)->setSampleRate(m_audioOutput->format().sampleRate());
 
+	return true;
 }
 
 void AudioOutput::stop()
 {
 	QMutexLocker mutexLocker(&m_mutex);
+
+	for(AudioFifos::iterator it = m_audioFifos.begin(); it != m_audioFifos.end(); ++it)
+		(*it)->setSampleRate(0);
 
 	if(m_audioOutput != NULL) {
 		m_audioOutput->stop();
@@ -92,6 +123,10 @@ void AudioOutput::addFifo(AudioFifo* audioFifo)
 {
 	QMutexLocker mutexLocker(&m_mutex);
 
+	if(m_audioOutput == NULL)
+		audioFifo->setSampleRate(0);
+	else audioFifo->setSampleRate(m_audioOutput->format().sampleRate());
+
 	m_audioFifos.push_back(audioFifo);
 }
 
@@ -99,7 +134,17 @@ void AudioOutput::removeFifo(AudioFifo* audioFifo)
 {
 	QMutexLocker mutexLocker(&m_mutex);
 
+	audioFifo->setSampleRate(0);
 	m_audioFifos.remove(audioFifo);
+}
+
+quint32 AudioOutput::getCurrentRate()
+{
+	QMutexLocker mutexLocker(&m_mutex);
+
+	if(m_audioOutput == NULL)
+		return 0;
+	else return m_audioOutput->format().sampleRate();
 }
 
 bool AudioOutput::open(OpenMode mode)
@@ -110,9 +155,6 @@ bool AudioOutput::open(OpenMode mode)
 
 qint64 AudioOutput::readData(char* data, qint64 maxLen)
 {
-	if(maxLen == 0)
-		return 0;
-
 	QMutexLocker mutexLocker(&m_mutex);
 
 	maxLen -= maxLen % 4;
@@ -120,13 +162,18 @@ qint64 AudioOutput::readData(char* data, qint64 maxLen)
 
 	if((int)m_mixBuffer.size() < framesPerBuffer * 2) {
 		m_mixBuffer.resize(framesPerBuffer * 2); // allocate 2 qint32 per frame (stereo)
-		if(m_mixBuffer.size() != framesPerBuffer * 2)
+		if(m_mixBuffer.size() != framesPerBuffer * 2) {
+			qDebug("KAPUTT");
 			return 0;
+		}
 	}
 	memset(&m_mixBuffer[0], 0x00, 2 * framesPerBuffer * sizeof(m_mixBuffer[0])); // start with silence
 
 	// sum up a block from all fifos
 	for(AudioFifos::iterator it = m_audioFifos.begin(); it != m_audioFifos.end(); ++it) {
+		if((*it)->isStopped())
+			continue;
+
 		// use outputBuffer as temp - yes, one memcpy could be saved
 		uint samples = (*it)->read((quint8*)data, framesPerBuffer, 1);
 		const qint16* src = (const qint16*)data;
@@ -141,7 +188,7 @@ qint64 AudioOutput::readData(char* data, qint64 maxLen)
 		}
 	}
 
-	// convert to int16
+	// convert to int16 and do saturation
 	std::vector<qint32>::const_iterator src = m_mixBuffer.begin();
 	qint16* dst = (qint16*)data;
 	for(int i = 0; i < framesPerBuffer; ++i) {

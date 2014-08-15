@@ -32,9 +32,10 @@ class SDRANGELOVE_API ScopeWindow : public QWidget {
 	Q_OBJECT
 
 public:
-	explicit ScopeWindow(DSPEngine* dspEngine, QWidget* parent = NULL);
+	explicit ScopeWindow(QWidget* parent = NULL);
 	~ScopeWindow();
 
+	void setDSPEngine(DSPEngine* dspEngine);
 	void setSampleRate(int sampleRate);
 
 	void resetToDefaults();

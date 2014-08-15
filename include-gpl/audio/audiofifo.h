@@ -36,11 +36,17 @@ public:
 	uint drain(uint numSamples);
 	void clear();
 
-	inline uint flush() { return drain(m_fill); }
-	inline uint fill() const { return m_fill; }
-	inline bool isEmpty() const { return m_fill == 0; }
-	inline bool isFull() const { return m_fill == m_size; }
-	inline uint size() const { return m_size; }
+	uint flush() { return drain(m_fill); }
+	uint fill() const { return m_fill; }
+	bool isEmpty() const { return m_fill == 0; }
+	bool isFull() const { return m_fill == m_size; }
+	uint size() const { return m_size; }
+
+	quint32 getSampleRate() const { return m_sampleRate; }
+	void setSampleRate(quint32 rate) { m_sampleRate = rate; }
+
+	bool isStopped() const { return m_stopped; }
+	void setStopped(bool stopped) { m_stopped = stopped; }
 
 private:
 	QMutex m_mutex;
@@ -58,6 +64,9 @@ private:
 	QMutex m_readWaitLock;
 	QWaitCondition m_writeWaitCondition;
 	QWaitCondition m_readWaitCondition;
+
+	quint32 m_sampleRate;
+	bool m_stopped;
 
 	bool create(uint sampleSize, uint numSamples);
 };

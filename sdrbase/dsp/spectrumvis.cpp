@@ -3,7 +3,7 @@
 #include "dsp/dspcommands.h"
 #include "util/messagequeue.h"
 
-#define MAX_FFT_SIZE 4096
+#define MAX_FFT_SIZE 8192
 
 #ifdef _WIN32
 double log2f(double n)

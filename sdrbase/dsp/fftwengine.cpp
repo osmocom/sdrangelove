@@ -21,6 +21,7 @@ void FFTWEngine::configure(int n, bool inverse)
 		}
 	}
 
+	m_globalPlanMutex.lock();
 	m_currentPlan = new Plan;
 	m_currentPlan->n = n;
 	m_currentPlan->inverse = inverse;
@@ -28,7 +29,6 @@ void FFTWEngine::configure(int n, bool inverse)
 	m_currentPlan->out = (fftwf_complex*)fftwf_malloc(sizeof(fftwf_complex) * n);
 	QTime t;
 	t.start();
-	m_globalPlanMutex.lock();
 	m_currentPlan->plan = fftwf_plan_dft_1d(n, m_currentPlan->in, m_currentPlan->out, inverse ? FFTW_BACKWARD : FFTW_FORWARD, FFTW_PATIENT);
 	m_globalPlanMutex.unlock();
 	qDebug("FFT: creating FFTW plan (n=%d,%s) took %dms", n, inverse ? "inverse" : "forward", t.elapsed());

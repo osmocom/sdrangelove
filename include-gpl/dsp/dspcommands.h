@@ -11,23 +11,23 @@ class SampleSink;
 class AudioFifo;
 
 class SDRANGELOVE_API DSPPing : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPPing)
 };
 
 class SDRANGELOVE_API DSPExit : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPExit)
 };
 
 class SDRANGELOVE_API DSPAcquisitionStart : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPAcquisitionStart)
 };
 
 class SDRANGELOVE_API DSPAcquisitionStop : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPAcquisitionStop)
 };
 
 class SDRANGELOVE_API DSPGetDeviceDescription : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPGetDeviceDescription)
 
 public:
 	void setDeviceDescription(const QString& text) { m_deviceDescription = text; }
@@ -38,7 +38,7 @@ private:
 };
 
 class SDRANGELOVE_API DSPGetErrorMessage : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPGetErrorMessage)
 
 public:
 	void setErrorMessage(const QString& text) { m_errorMessage = text; }
@@ -49,7 +49,7 @@ private:
 };
 
 class SDRANGELOVE_API DSPSetSource : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPSetSource)
 
 public:
 	DSPSetSource(SampleSource* sampleSource) : Message(), m_sampleSource(sampleSource) { }
@@ -61,7 +61,7 @@ private:
 };
 
 class SDRANGELOVE_API DSPAddSink : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPAddSink)
 
 public:
 	DSPAddSink(SampleSink* sampleSink) : Message(), m_sampleSink(sampleSink) { }
@@ -73,7 +73,7 @@ private:
 };
 
 class SDRANGELOVE_API DSPRemoveSink : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPRemoveSink)
 
 public:
 	DSPRemoveSink(SampleSink* sampleSink) : Message(), m_sampleSink(sampleSink) { }
@@ -85,7 +85,7 @@ private:
 };
 
 class SDRANGELOVE_API DSPAddAudioSource : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPAddAudioSource)
 
 public:
 	DSPAddAudioSource(AudioFifo* audioFifo) : Message(), m_audioFifo(audioFifo) { }
@@ -97,7 +97,7 @@ private:
 };
 
 class SDRANGELOVE_API DSPRemoveAudioSource : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPRemoveAudioSource)
 
 public:
 	DSPRemoveAudioSource(AudioFifo* audioFifo) : Message(), m_audioFifo(audioFifo) { }
@@ -109,7 +109,7 @@ private:
 };
 
 class SDRANGELOVE_API DSPConfigureSpectrumVis : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPConfigureSpectrumVis)
 
 public:
 	int getFFTSize() const { return m_fftSize; }
@@ -135,7 +135,7 @@ private:
 };
 
 class SDRANGELOVE_API DSPConfigureCorrection : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPConfigureCorrection)
 
 public:
 	bool getDCOffsetCorrection() const { return m_dcOffsetCorrection; }
@@ -157,8 +157,31 @@ private:
 	{ }
 };
 
+class SDRANGELOVE_API DSPConfigureAudioOutput : public Message {
+	MESSAGE_CLASS_DECLARATION(DSPConfigureAudioOutput)
+
+public:
+	const QString& getAudioOutputDevice() const { return m_audioOutputDevice; }
+	uint getAudioOutputRate() const { return m_audioOutputRate; }
+
+	static DSPConfigureAudioOutput* create(const QString& audioOutputDevice, uint audioOutputRate)
+	{
+		return new DSPConfigureAudioOutput(audioOutputDevice, audioOutputRate);
+	}
+
+private:
+	QString m_audioOutputDevice;
+	uint m_audioOutputRate;
+
+	DSPConfigureAudioOutput(const QString& audioOutputDevice, uint audioOutputRate) :
+		Message(),
+		m_audioOutputDevice(audioOutputDevice),
+		m_audioOutputRate(audioOutputRate)
+	{ }
+};
+
 class SDRANGELOVE_API DSPEngineReport : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPEngineReport)
 
 public:
 	int getSampleRate() const { return m_sampleRate; }
@@ -181,7 +204,7 @@ private:
 };
 
 class SDRANGELOVE_API DSPConfigureScopeVis : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPConfigureScopeVis)
 
 public:
 	int getTriggerChannel() const { return m_triggerChannel; }
@@ -207,7 +230,7 @@ private:
 };
 
 class SDRANGELOVE_API DSPSignalNotification : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPSignalNotification)
 
 public:
 	int getSampleRate() const { return m_sampleRate; }
@@ -230,7 +253,7 @@ private:
 };
 
 class SDRANGELOVE_API DSPConfigureChannelizer : public Message {
-	MESSAGE_CLASS_DECLARATION
+	MESSAGE_CLASS_DECLARATION(DSPConfigureChannelizer)
 
 public:
 	int getSampleRate() const { return m_sampleRate; }

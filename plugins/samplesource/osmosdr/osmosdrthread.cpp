@@ -52,13 +52,13 @@ void OsmoSDRThread::run()
 {
 	int res;
 
+	m_sampleFifo->readCommit(m_sampleFifo->fill());
+
 	m_running = true;
 	m_startWaiter.wakeAll();
 
-	//m_f = fopen("/tmp/samples.bin", "wb");
-
 	while(m_running) {
-		if((res = osmosdr_read_async(m_dev, &OsmoSDRThread::callbackHelper, this, 16, sizeof(Sample) * 8192 * 2)) < 0) {
+		if((res = osmosdr_read_async(m_dev, &OsmoSDRThread::callbackHelper, this, 16, sizeof(Sample) * 16384)) < 0) {
 			qCritical("OsmoSDRThread: async error: %s", strerror(errno));
 			break;
 		}
@@ -90,18 +90,6 @@ void OsmoSDRThread::checkData(const quint8* buf, qint32 len)
 
 void OsmoSDRThread::callback(const quint8* buf, qint32 len)
 {
-	/*
-	qDebug("%d", len);
-*/
-	/*
-	for(int i = 0; i < len / 2; i += 2) {
-		((qint16*)buf)[i] = sin((float)(cntr) * 1024* 2.0 * M_PI / 65536.0) * 32000.0;
-		((qint16*)buf)[i + 1] = -cos((float)(cntr++) * 1024*2.0 * M_PI / 65536.0) * 32000.0;
-	}
-	*/
-
-	//m_sampleFifo->write((SampleVector::const_iterator)((Sample*)buf), (SampleVector::const_iterator)((Sample*)(buf + len)));
-	//fwrite(buf, 1, len, m_f);
 	//checkData(buf, len);
 
 	m_sampleFifo->write(buf, len);

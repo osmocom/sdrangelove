@@ -29,6 +29,8 @@ const char* Message::getIdentifier() const
 
 bool Message::matchIdentifier(const char* identifier) const
 {
+	// Warning: this compares POINTERS - make sure, that each message has a unique name
+	// otherwise the linker might "optimize" stuff
 	return m_identifier == identifier;
 }
 

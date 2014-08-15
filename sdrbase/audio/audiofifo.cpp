@@ -22,7 +22,9 @@
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 
 AudioFifo::AudioFifo() :
-	m_fifo(NULL)
+	m_fifo(NULL),
+	m_sampleRate(0),
+	m_stopped(true)
 {
 	m_size = 0;
 	m_fill = 0;

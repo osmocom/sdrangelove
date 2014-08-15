@@ -281,7 +281,8 @@ bool GNURadioInput::applySettings(const GeneralSettings& generalSettings,
 
 		if((m_settings.m_sampRate != settings.m_sampRate) || force) {
 			m_settings.m_sampRate = settings.m_sampRate;
-			radio->set_sample_rate( m_settings.m_sampRate );
+			if(m_settings.m_sampRate != 0)
+				radio->set_sample_rate( m_settings.m_sampRate );
 		}
 
 		if((m_settings.m_antenna != settings.m_antenna) || force) {

@@ -32,7 +32,7 @@ public:
 	bool handleMessage(Message* cmd);
 
 	class MsgTCPSrcConnection : public Message {
-		MESSAGE_CLASS_DECLARATION
+		MESSAGE_CLASS_DECLARATION(MsgTCPSrcConnection)
 
 	public:
 		bool getConnect() const { return m_connect; }
@@ -62,7 +62,7 @@ public:
 
 protected:
 	class MsgTCPSrcConfigure : public Message {
-		MESSAGE_CLASS_DECLARATION
+		MESSAGE_CLASS_DECLARATION(MsgTCPSrcConfigure)
 
 	public:
 		SampleFormat getSampleFormat() const { return m_sampleFormat; }
@@ -90,7 +90,7 @@ protected:
 		{ }
 	};
 	class MsgTCPSrcSpectrum : public Message {
-		MESSAGE_CLASS_DECLARATION
+		MESSAGE_CLASS_DECLARATION(MsgTCPSrcSpectrum)
 
 	public:
 		bool getEnabled() const { return m_enabled; }

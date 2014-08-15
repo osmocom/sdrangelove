@@ -20,7 +20,6 @@
 #include <QLabel>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "audio/audiodeviceinfo.h"
 #include "gui/indicator.h"
 #include "gui/presetitem.h"
 #include "gui/scopewindow.h"
@@ -39,7 +38,6 @@
 MainWindow::MainWindow(QWidget* parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow),
-	m_audioDeviceInfo(new AudioDeviceInfo),
 	m_messageQueue(new MessageQueue),
 	m_settings(),
 	m_dspEngine(new DSPEngine(m_messageQueue)),
@@ -196,6 +194,8 @@ void MainWindow::loadSettings(const Preset* preset)
 
 	m_pluginManager->loadSettings(preset);
 
+	m_dspEngine->configureAudioOutput(m_settings.getPreferences()->getAudioOutput(), m_settings.getPreferences()->getAudioOutputRate());
+
 	// has to be last step
 	restoreState(preset->getLayout());
 }
@@ -306,12 +306,12 @@ void MainWindow::handleMessages()
 {
 	Message* message;
 	while((message = m_messageQueue->accept()) != NULL) {
-		qDebug("Message: %s", message->getIdentifier());
+		//qDebug("Message: %s", message->getIdentifier());
 		if(DSPEngineReport::match(message)) {
-			DSPEngineReport* rep = (DSPEngineReport*)message;
+			DSPEngineReport* rep = DSPEngineReport::cast(message);
 			m_sampleRate = rep->getSampleRate();
 			m_centerFrequency = rep->getCenterFrequency();
-			qDebug("SampleRate:%d, CenterFrequency:%llu", rep->getSampleRate(), rep->getCenterFrequency());
+			//qDebug("SampleRate:%d, CenterFrequency:%llu", rep->getSampleRate(), rep->getCenterFrequency());
 			updateCenterFreqDisplay();
 			updateSampleRate();
 			message->completed();
@@ -332,6 +332,7 @@ void MainWindow::updateStatus()
 				m_engineRunning->setColor(Qt::gray);
 				m_engineError->setColor(Qt::gray);
 				statusBar()->clearMessage();
+				updateEnables(false);
 				break;
 
 			case DSPEngine::StIdle:
@@ -339,6 +340,7 @@ void MainWindow::updateStatus()
 				m_engineRunning->setColor(Qt::gray);
 				m_engineError->setColor(Qt::gray);
 				statusBar()->clearMessage();
+				updateEnables(false);
 				if(m_startOsmoSDRUpdateAfterStop)
 					on_actionOsmoSDR_Firmware_Upgrade_triggered();
 				break;
@@ -348,6 +350,7 @@ void MainWindow::updateStatus()
 				m_engineRunning->setColor(Qt::green);
 				m_engineError->setColor(Qt::gray);
 				statusBar()->showMessage(tr("Sampling from %1").arg(m_dspEngine->deviceDescription()));
+				updateEnables(true);
 				break;
 
 			case DSPEngine::StError:
@@ -355,11 +358,22 @@ void MainWindow::updateStatus()
 				m_engineRunning->setColor(Qt::gray);
 				m_engineError->setColor(Qt::red);
 				statusBar()->showMessage(tr("Error: %1").arg(m_dspEngine->errorMessage()));
+				QMessageBox::critical(this, tr("Engine Error"), tr("%1").arg(m_dspEngine->errorMessage()), QMessageBox::Ok);
+				updateEnables(false);
 				if(m_startOsmoSDRUpdateAfterStop)
 					on_actionOsmoSDR_Firmware_Upgrade_triggered();
 				break;
 		}
 		m_lastEngineState = state;
+	}
+}
+
+void MainWindow::updateEnables(bool running)
+{
+	if(running) {
+		ui->action_Preferences->setEnabled(false);
+	} else {
+		ui->action_Preferences->setEnabled(true);
 	}
 }
 
@@ -490,7 +504,9 @@ void MainWindow::on_action_Oscilloscope_triggered()
 
 	QDockWidget* dock = new QDockWidget(tr("Signalscope"), this);
 	dock->setObjectName(QString::fromUtf8("scopeDock"));
-	m_scopeWindow = new ScopeWindow(m_dspEngine);
+
+	m_scopeWindow = new ScopeWindow();
+	m_scopeWindow->setDSPEngine(m_dspEngine);
 	connect(m_scopeWindow, SIGNAL(destroyed()), this, SLOT(scopeWindowDestroyed()));
 	m_scopeWindow->setSampleRate(m_sampleRate);
 	dock->setWidget(m_scopeWindow);
@@ -509,9 +525,11 @@ void MainWindow::on_action_Loaded_Plugins_triggered()
 
 void MainWindow::on_action_Preferences_triggered()
 {
-	PreferencesDialog preferencesDialog(m_audioDeviceInfo, this);
+	PreferencesDialog preferencesDialog(m_settings.getPreferences(), this);
 
-	preferencesDialog.exec();
+	if(preferencesDialog.exec() == QDialog::Accepted) {
+		m_dspEngine->configureAudioOutput(m_settings.getPreferences()->getAudioOutput(), m_settings.getPreferences()->getAudioOutputRate());
+	}
 }
 
 void MainWindow::on_sampleSource_currentIndexChanged(int index)

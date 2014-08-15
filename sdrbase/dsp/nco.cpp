@@ -30,7 +30,7 @@ void NCO::initTable()
 		return;
 
 	for(int i = 0; i < TableSize; i++)
-		m_table[i] = cos((2.0 * M_PI * i) / TableSize);
+		m_table[i] = cos((2.0 * M_PI * (Real)i) / ((Real)TableSize));
 
 	m_tableInitialized = true;
 }
@@ -43,8 +43,15 @@ NCO::NCO()
 
 void NCO::setFreq(Real freq, Real sampleRate)
 {
-	m_phaseIncrement = (freq * TableSize) / sampleRate;
-	qDebug("NCO phase inc %d", m_phaseIncrement);
+	if(sampleRate > 0) {
+		m_phaseIncrement = (freq * TableSize) / sampleRate;
+		if(m_phaseIncrement != 0)
+			qDebug("NCO phase inc %d (period %f)", m_phaseIncrement, (Real)TableSize / (Real)m_phaseIncrement);
+		else qDebug("NCO phase inc %d (period oo)", m_phaseIncrement);
+	} else {
+		qDebug("cannot calculate NCO phase increment since samplerate is 0");
+		m_phaseIncrement = 1;
+	}
 }
 
 float NCO::next()
@@ -66,5 +73,7 @@ Complex NCO::nextIQ()
 	while(m_phase < 0)
 		m_phase += TableSize;
 
-	return Complex(m_table[m_phase], -m_table[(m_phase + TableSize / 4) % TableSize]);
+	int idxQuad = (m_phase + (TableSize / 4) + (TableSize / 2)) % TableSize;
+
+	return Complex(m_table[m_phase], m_table[idxQuad]);
 }

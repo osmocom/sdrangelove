@@ -1,4 +1,4 @@
-#include "pidcontroller.h"
+#include "dsp/pidcontroller.h"
 
 PIDController::PIDController() :
 	m_p(0.0),
