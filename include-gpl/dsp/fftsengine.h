@@ -1,15 +1,13 @@
-#ifndef INCLUDE_FFTSEngine_H
-#define INCLUDE_FFTSEngine_H
+#ifndef INCLUDE_FFTSENGINE_H
+#define INCLUDE_FFTSENGINE_H
 
-#include <QMutex>
 #include <ffts/ffts.h>
-#include <list>
 #include "dsp/fftengine.h"
 
 class FFTSEngine : public FFTEngine {
 public:
-    FFTSEngine();
-    ~FFTSEngine();
+	FFTSEngine();
+	~FFTSEngine();
 
 	void configure(int n, bool inverse);
 	void transform();
@@ -18,12 +16,12 @@ public:
 	Complex* out();
 
 protected:
-    void allocate(int n);
-    ffts_plan_t* m_currentplan;
-    void *imem;
-    void *iptr;
-    void *omem;
-    void *optr;
+	void allocate(int n);
+	ffts_plan_t* m_currentplan;
+	void* m_imem;
+	void* m_iptr;
+	void* m_omem;
+	void* m_optr;
 };
 
-#endif // INCLUDE_FFTSEngine_H
+#endif // INCLUDE_FFTSENGINE_H

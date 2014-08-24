@@ -19,6 +19,7 @@ find_package(OpenGL REQUIRED)
 find_package(PkgConfig)
 
 find_package(FFTW3F)
+find_package(FFTS)
 
 ##############################################################################
 
@@ -183,29 +184,42 @@ set(sdrbase_RESOURCES
 	sdrbase/resources/res.qrc
 )
 
-if(FFTW3F_FOUND)
+if(LIBFFTS_FOUND)
 	set(sdrbase_SOURCES
 		${sdrbase_SOURCES}
-		sdrbase/dsp/fftwengine.cpp
+		sdrbase/dsp/fftsengine.cpp
 	)
 	set(sdrbase_HEADERS
 		${sdrbase_HEADERS}
-		include-gpl/dsp/fftwengine.h
+		include-gpl/dsp/fftsengine.h
 	)
-	add_definitions(-DUSE_FFTW)
-	include_directories(${FFTW3F_INCLUDE_DIRS})
-else(FFTW3F_FOUND)
-	set(sdrbase_SOURCES
-		${sdrbase_SOURCES}
-		sdrbase/dsp/kissengine.cpp
-		include/dsp/kissfft.h
-	)
-	set(sdrbase_HEADERS
-		${sdrbase_HEADERS}
-		include-gpl/dsp/kissengine.h
-	)
-	add_definitions(-DUSE_KISSFFT)
-endif(FFTW3F_FOUND)
+	add_definitions(-DUSE_FFTS)
+	include_directories(${LIBFFTS_INCLUDE_DIR})
+else(LIBFFTS_FOUND)
+	if(FFTW3F_FOUND)
+		set(sdrbase_SOURCES
+			${sdrbase_SOURCES}
+			sdrbase/dsp/fftwengine.cpp
+		)
+		set(sdrbase_HEADERS
+			${sdrbase_HEADERS}
+			include-gpl/dsp/fftwengine.h
+		)
+		add_definitions(-DUSE_FFTW)
+		include_directories(${FFTW3F_INCLUDE_DIRS})
+	else(FFTW3F_FOUND)
+		set(sdrbase_SOURCES
+			${sdrbase_SOURCES}
+			sdrbase/dsp/kissengine.cpp
+			include/dsp/kissfft.h
+		)
+		set(sdrbase_HEADERS
+			${sdrbase_HEADERS}
+			include-gpl/dsp/kissengine.h
+		)
+		add_definitions(-DUSE_KISSFFT)
+	endif(FFTW3F_FOUND)
+endif(LIBFFTS_FOUND)
 
 #include(${QT_USE_FILE})
 add_definitions(${QT_DEFINITIONS})
@@ -231,9 +245,13 @@ target_link_libraries(sdrbase
 	${LIBUSB_LIBRARIES}
 )
 
-if(FFTW3F_FOUND)
-	target_link_libraries(sdrbase ${FFTW3F_LIBRARIES})
-endif(FFTW3F_FOUND)
+if(LIBFFTS_FOUND)
+	target_link_libraries(sdrbase ${LIBFFTS_LIBRARIES})
+else(LIBFFTS_FOUND)
+	if(FFTW3F_FOUND)
+		target_link_libraries(sdrbase ${FFTW3F_LIBRARIES})
+	endif(FFTW3F_FOUND)
+endif(LIBFFTS_FOUND)
 
 set_target_properties(sdrbase PROPERTIES DEFINE_SYMBOL "sdrangelove_EXPORTS")
 
