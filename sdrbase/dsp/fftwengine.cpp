@@ -5,6 +5,13 @@ FFTWEngine::FFTWEngine() :
 	m_plans(),
 	m_currentPlan(NULL)
 {
+	configure(128, false);
+	configure(256, false);
+	configure(512, false);
+	configure(1024, false);
+	configure(2048, false);
+	configure(4096, false);
+	configure(8192, false);
 }
 
 FFTWEngine::~FFTWEngine()
