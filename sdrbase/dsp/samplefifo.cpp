@@ -69,16 +69,12 @@ bool SampleFifo::setSize(int size)
 
 uint SampleFifo::write(const quint8* data, uint count)
 {
-	return write(SampleVector::const_iterator((Sample*)data), SampleVector::const_iterator((Sample*)(data + count)));
-#if 0
 	QMutexLocker mutexLocker(&m_mutex);
 	uint total;
 	uint remaining;
 	uint len;
 	const Sample* begin = (const Sample*)data;
 	count /= sizeof(Sample);
-
-	//qDebug("write pre count %d %u", count, m_fill);
 
 	total = MIN(count, m_size - m_fill);
 	if(total < count) {
@@ -100,22 +96,17 @@ uint SampleFifo::write(const quint8* data, uint count)
 	remaining = total;
 	while(remaining > 0) {
 		len = MIN(remaining, m_size - m_tail);
-		//qDebug("write remaining %u, len %u", remaining, len);
 		std::copy(begin, begin + len, m_data.begin() + m_tail);
-		m_tail += len;
-		m_tail %= m_size;
+		m_tail = (m_tail + len) % m_size;
 		m_fill += len;
 		begin += len;
 		remaining -= len;
 	}
 
-	//qDebug("write post count %d %u [%u;%u]", count, m_fill, m_head, m_tail);
-
 	if(m_fill > 0)
 		emit dataReady();
 
 	return total;
-#endif
 }
 
 uint SampleFifo::write(SampleVector::const_iterator begin, SampleVector::const_iterator end)
