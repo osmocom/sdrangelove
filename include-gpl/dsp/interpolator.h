@@ -57,7 +57,7 @@ private:
 
 	void doInterpolate(int phase, Complex* result)
 	{
-#if 1
+#if USE_SIMD
 		// beware of the ringbuffer
 		if(m_ptr == 0) {
 			// only one straight block
