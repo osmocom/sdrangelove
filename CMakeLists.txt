@@ -283,6 +283,11 @@ if(USE_SIMD MATCHES SSE2)
 	endif()
 endif()
 
+if(CMAKE_COMPILER_IS_GNUCXX)
+	set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-narrowing" )
+	set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wno-narrowing" )
+endif()
+
 ##############################################################################
 
 set(sdrangelove_SOURCES
